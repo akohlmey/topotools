@@ -1,6 +1,6 @@
 .SILENT:
 
-VMFILES = topotools.tcl topobonds.tcl pkgIndex.tcl
+VMFILES = topotools.tcl topobonds.tcl topoangles.tcl pkgIndex.tcl README
 VMVERSION = 1.0
 DIR = $(PLUGINDIR)/noarch/tcl/topotools$(VMVERSION)
 
@@ -15,4 +15,4 @@ distrib:
 	mkdir -p $(DIR) 
 	cp $(VMFILES) $(DIR) 
 
-	
+
