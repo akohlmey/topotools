@@ -1,0 +1,60 @@
+<!--#set var="TITLE" value="TopoTools Plugin, Version 1.0"-->
+<!--#include virtual="/include/header-over.shtml"-->
+
+<!-- CONTENT STARTS HERE -->
+
+<pre>
+ usage: topo <span class="type">&lt;command&gt;</span> [args...] <span class="type">&lt;flags&gt;</span>
+ 
+ common flags:
+   -molid     <span class="type">&lt;num&gt;</span>|top    molecule id (default: 'top')
+   -sel       <span class="type">&lt;selection&gt;</span>  atom selection function or text
+                           (default: 'all')
+   -bondtype  <span class="type">&lt;typename&gt;</span>   bond type name (default: unknown)
+   -bondorder <span class="type">&lt;bondorder&gt;</span>  bond order parameter (default: 1)
+ 
+ commands:
+   help                    prints this message
+ 
+   numbonds                returns the number of unique bonds.
+   numbondtypes            returns the number of bond types.
+   bondtypenames           returns the list of bond types names.
+   clearbonds              deletes all bonds. 
+   retypebonds             resets all bond types. 
+ 
+   addbond <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span>     (re-)defines a single bond.
+   delbond <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span>     deletes a single bond, if it exists.
+ 
+   getbondlist [type|order|both|none]
+      returns a list of unique bonds, optionally
+      including bond order and bond type.
+   setbondlist <span class="type">&lt;list&gt;</span> [type|order|both|none]
+      resets all bonds from a list in the same
+      format as returned by 'topo getbondlist'.
+      bond order or -type are reset to defaults if not given.
+ 
+   numangles               returns the number of unique angles
+   numangletypes           returns the number of angle types
+   angletypenames          returns the list of bond type names
+   clearangles             deletes all angles. 
+   retypeangles            resets all angle types. 
+ 
+   addangle <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span> [<span class="type">&lt;type&gt;</span>] (re-defines) a single angle.
+   delangle <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span>  (re-defines) a single angle.
+ 
+ 
+   getanglelist  returns the list of angle definitions
+                 in the form {type <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span>}
+   setanglelist <span class="type">&lt;list&gt;</span>
+                 resets angle definitions from a list in the same
+                 format as retured by 'topo getanglelist'
+ 
+ NOTE: for angle, dihedral, and improper lists, the
+       type field currently has to be always present.
+</pre>
+
+<h3>Author</h3>
+<p><a href="http://www.cmm.upenn.edu/~akohlmey/">Axel Kohlmeyer</a>.</p>
+
+
+<!--#include virtual="/include/footer-over.shtml"-->
