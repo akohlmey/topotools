@@ -14,6 +14,58 @@ namespace eval ::TopoTools:: {
     # nothing to do here yet.
 }
 
+# angle definition list comparison function
+proc ::TopoTools::compareangles {a b} {
+    if {[lindex $a 1] < [lindex $b 1]} {
+        return -1
+    } elseif {[lindex $a 1] > [lindex $b 1]} {
+        return 1
+    } else {
+        if {[lindex $a 2] < [lindex $b 2]} {
+            return -1
+        } elseif {[lindex $a 2] > [lindex $b 2]} {
+            return 1
+        } else {
+            if {[lindex $a 3] < [lindex $b 3]} {
+                return -1
+            } elseif {[lindex $a 3] > [lindex $b 3]} {
+                return 1
+            } else {
+                if {[llength $a] == 4} {
+                    return 0
+                } else {
+                    if {[lindex $a 3] < [lindex $b 3]} {
+                        return -1
+                    } elseif  {[lindex $a 3] > [lindex $b 3]} {
+                        return 1
+                    } else {
+                        return 0
+                    }
+                }
+            }
+        }
+    }
+}
+
+# sort angle/dihedral/improper list and remove duplicates
+proc ::TopoTools::sortsomething {what sel} {
+    switch $what {
+        angle     {
+            setanglelist $sel [lsort -unique -command compareangles \
+                                     [angleinfo getanglelist $sel]]
+        }
+        dihedral  {
+            setdihedrallist $sel [lsort -unique -command comparedihedrals \
+                                     [dihedralinfo getdihedrallist $sel]]
+        }
+        improper  {
+            setimproperlist $sel [lsort -unique -command compareimpropers \
+                                     [improperinfo getimproperlist $sel]]
+        }
+}
+
+
+
 proc ::TopoTools::usage {} {
     vmdcon -info "usage: topo <command> \[args...\] <flags>"
     vmdcon -info ""
@@ -21,6 +73,7 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  -molid     <num>|top    molecule id (default: 'top')"
     vmdcon -info "  -sel       <selection>  atom selection function or text"
     vmdcon -info "                          (default: 'all')"
+    vmdcon -info "flags only applicable to 'bond' commands:"
     vmdcon -info "  -bondtype  <typename>   bond type name (default: unknown)"
     vmdcon -info "  -bondorder <bondorder>  bond order parameter (default: 1)"
     vmdcon -info ""
@@ -44,14 +97,18 @@ proc ::TopoTools::usage {} {
     vmdcon -info "     format as returned by 'topo getbondlist'."
     vmdcon -info "     bond order or -type are reset to defaults if not given."
     vmdcon -info ""
-    vmdcon -info "  numangles               returns the number of unique angles"
-    vmdcon -info "  numangletypes           returns the number of angle types"
-    vmdcon -info "  angletypenames          returns the list of bond type names"
-    vmdcon -info "  clearangles             deletes all angles. "
-    vmdcon -info "  retypeangles            resets all angle types. "
+    vmdcon -info "  num(angle|dihedral|improper)s       returns the number of unique (angle|dihedral|improper)s"
+    vmdcon -info "  num(angle|dihedral|improper)types   returns the number of (angle|dihedral|improper) types"
+    vmdcon -info "  (angle|dihedral|improper)typenames  returns the list of bond type names"
+    vmdcon -info "  clear(angle|dihedral|improper)s     deletes all (angle|dihedral|improper)s. "
+    vmdcon -info "  sort(angle|dihedral|improper)s      sorts the list of (angle|dihedral|improper)s"
+    vmdcon -info "                                      according to atom index and removes duplicates"
+    vmdcon -info "  retype(angle|dihedral|improper)s    resets all angle types. "
     vmdcon -info ""
     vmdcon -info "  addangle <id1> <id2> <id3> \[<type>\] (re-defines) a single angle."
     vmdcon -info "  delangle <id1> <id2> <id3>  (re-defines) a single angle."
+    vmdcon -info "  add(dihedral|improper) <id1> <id2> <id3> <id4> \[<type>\] (re-defines) a single (dihedral|improper)."
+    vmdcon -info "  del(dihedral|improper) <id1> <id2> <id3> <id4> (re-defines) a single (dihedral|improper)."
     vmdcon -info ""
     vmdcon -info ""
     vmdcon -info "  getanglelist  returns the list of angle definitions"
@@ -59,6 +116,11 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  setanglelist <list>"
     vmdcon -info "                resets angle definitions from a list in the same"
     vmdcon -info "                format as retured by 'topo getanglelist'"
+    vmdcon -info "  get(dihedral|improper)list  returns the list of (dihedral|improper) definitions"
+    vmdcon -info "                in the form {type <id1> <id2> <id3> <id4>}"
+    vmdcon -info "  set(dihedral|improper)list <list>"
+    vmdcon -info "                resets (dihedral|improper) definitions from a list in the same"
+    vmdcon -info "                format as retured by 'topo get(dihedral|improper)list'"
     vmdcon -info ""
     vmdcon -info "NOTE: for angle, dihedral, and improper lists, the"
     vmdcon -info "      type field currently has to be always present."
@@ -238,6 +300,10 @@ proc topo { args } {
             set retval [::TopoTools::retypeangles $sel] 
         }
 
+        sortangles {
+            set retval [::TopoTools::sortsomething angle $sel] 
+        }
+
         clearangles {
             set retval [::TopoTools::clearangles $sel] 
         }
@@ -272,6 +338,118 @@ proc topo { args } {
                             [lindex $newargs 2] ]
         }
 
+        getdihedrallist   -
+        dihedraltypenames -
+        numdihedraltypes  -
+        numdihedrals {
+            if {[llength $newargs] < 1} {set newargs none}
+            set retval [::TopoTools::dihedralinfo $cmd $sel $newargs]
+        }
+
+        setdihedrallist  {
+            set retval [::TopoTools::setdihedrallist $sel [lindex $newargs 0]]
+        }
+
+        retypedihedrals {
+            set retval [::TopoTools::retypedihedrals $sel] 
+        }
+
+        sortdihedrals {
+            set retval [::TopoTools::sortsomething dihedral $sel] 
+        }
+
+        cleardihedrals {
+            set retval [::TopoTools::cleardihedrals $sel] 
+        }
+
+        adddihedral {
+            set atype unknown
+            if {[llength $newargs] < 4} {
+                vmdcon -error "Not enough arguments for 'topo adddihedral'"
+                ::TopoTools::usage
+                return
+            }
+            if {[llength $newargs] > 4} {
+                set atype [lindex $newargs 4]
+            }
+            set retval [::TopoTools::adddihedral $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] \
+                            $atype]
+        }
+
+        deldihedral {
+            set atype unknown
+            if {[llength $newargs] < 4} {
+                vmdcon -error "Not enough arguments for 'topo deldihedral'"
+                ::TopoTools::usage
+                return
+            }
+            set retval [::TopoTools::deldihedral $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] ]
+        }
+
+        getimproperlist   -
+        impropertypenames -
+        numimpropertypes  -
+        numimpropers {
+            if {[llength $newargs] < 1} {set newargs none}
+            set retval [::TopoTools::improperinfo $cmd $sel $newargs]
+        }
+
+        setimproperlist  {
+            set retval [::TopoTools::setimproperlist $sel [lindex $newargs 0]]
+        }
+
+        retypeimpropers {
+            set retval [::TopoTools::retypeimpropers $sel] 
+        }
+
+        sortimpropers {
+            set retval [::TopoTools::sortsomething improper $sel] 
+        }
+
+        clearimpropers {
+            set retval [::TopoTools::clearimpropers $sel] 
+        }
+
+        addimproper {
+            set atype unknown
+            if {[llength $newargs] < 4} {
+                vmdcon -error "Not enough arguments for 'topo addimproper'"
+                ::TopoTools::usage
+                return
+            }
+            if {[llength $newargs] > 4} {
+                set atype [lindex $newargs 4]
+            }
+            set retval [::TopoTools::addimproper $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] \
+                            $atype]
+        }
+
+        delimproper {
+            set atype unknown
+            if {[llength $newargs] < 4} {
+                vmdcon -error "Not enough arguments for 'topo delimproper'"
+                ::TopoTools::usage
+                return
+            }
+            set retval [::TopoTools::delimproper $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] ]
+        }
+
         help -
         default {
             ::TopoTools::usage
@@ -283,4 +461,5 @@ proc topo { args } {
 
 source [file join $env(TOPOTOOLDIR) topobonds.tcl]
 source [file join $env(TOPOTOOLDIR) topoangles.tcl]
-
+source [file join $env(TOPOTOOLDIR) topodihedrals.tcl]
+source [file join $env(TOPOTOOLDIR) topoimpropers.tcl]

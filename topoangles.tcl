@@ -115,22 +115,22 @@ proc ::TopoTools::retypeangles {sel} {
     setanglelist $sel $newangles
 }
 
-
 # define a new angle or change an existing one.
 proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
-    if {[catch {atomselect $mol "index $id1 $id2 "} sel]} {
+    if {[catch {atomselect $mol "index $id1 $id2 $id3"} sel]} {
         vmdcon -error "topology addangle: Invalid atom indices: $sel"
         return
     }
 
-    # vmd will take care that angles are unique. 
-    # we just add it at the end of the list
+    # canonicalize indices
+    if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t } 
+
     set angles [join [molinfo $mol get angles]]
     lappend angles [list $type $id1 $id2 $id3]
     molinfo $mol set angles [list $angles]
 }
 
-# delete a angle.
+# delete an angle.
 proc ::TopoTools::delangle {mol id1 id2 id3 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3"} sel]} {
         vmdcon -error "topology delangle: Invalid atom indices: $sel"

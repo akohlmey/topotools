@@ -1,6 +1,7 @@
 .SILENT:
 
-VMFILES = topotools.tcl topobonds.tcl topoangles.tcl pkgIndex.tcl README
+VMFILES = pkgIndex.tcl README topotools.tcl \
+	topobonds.tcl topoangles.tcl topodihedrals.tcl topoimpropers.tcl
 VMVERSION = 1.0
 DIR = $(PLUGINDIR)/noarch/tcl/topotools$(VMVERSION)
 

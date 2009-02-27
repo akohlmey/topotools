@@ -2,16 +2,16 @@
 <!--#include virtual="/include/header-over.shtml"-->
 
 <!-- CONTENT STARTS HERE -->
-
-<pre>
- usage: topo <span class="type">&lt;command&gt;</span> [args...] <span class="type">&lt;flags&gt;</span>
+    <pre>
+ usage: topo &lt;command&gt; [args...] &lt;flags&gt;
  
  common flags:
-   -molid     <span class="type">&lt;num&gt;</span>|top    molecule id (default: 'top')
-   -sel       <span class="type">&lt;selection&gt;</span>  atom selection function or text
-                           (default: 'all')
-   -bondtype  <span class="type">&lt;typename&gt;</span>   bond type name (default: unknown)
-   -bondorder <span class="type">&lt;bondorder&gt;</span>  bond order parameter (default: 1)
+   -molid     &lt;num&gt;|top    molecule id (default: 'top')
+   -sel       &lt;selection&gt;  atom selection function or text (default: 'all')
+
+ flags only applicable to "bond" commands:
+   -bondtype  &lt;typename&gt;   bond type name (default: unknown)
+   -bondorder &lt;bondorder&gt;  bond order parameter (default: 1)
  
  commands:
    help                    prints this message
@@ -22,32 +22,42 @@
    clearbonds              deletes all bonds. 
    retypebonds             resets all bond types. 
  
-   addbond <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span>     (re-)defines a single bond.
-   delbond <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span>     deletes a single bond, if it exists.
+   addbond &lt;id1&gt; &lt;id2&gt;     (re-)defines a single bond.
+   delbond &lt;id1&gt; &lt;id2&gt;     deletes a single bond, if it exists.
  
    getbondlist [type|order|both|none]
       returns a list of unique bonds, optionally
       including bond order and bond type.
-   setbondlist <span class="type">&lt;list&gt;</span> [type|order|both|none]
+   setbondlist &lt;list&gt; [type|order|both|none]
       resets all bonds from a list in the same
       format as returned by 'topo getbondlist'.
       bond order or -type are reset to defaults if not given.
  
-   numangles               returns the number of unique angles
-   numangletypes           returns the number of angle types
-   angletypenames          returns the list of bond type names
-   clearangles             deletes all angles. 
-   retypeangles            resets all angle types. 
+   num(angle|dihedral|improper)s       returns the number of unique (angle|dihedral|improper)s
+   num(angle|dihedral|improper)types   returns the number of (angle|dihedral|improper) types
+   (angle|dihedral|improper)typenames  returns the list of bond type names
+   clear(angle|dihedral|improper)s     deletes all (angle|dihedral|improper)s. 
+   sort(angle|dihedral|improper)s      sorts the list of (angle|dihedral|improper)s
+                                       according to atom index and removes duplicates
+
+   retype(angle|dihedral|improper)s    resets all angle types. 
  
-   addangle <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span> [<span class="type">&lt;type&gt;</span>] (re-defines) a single angle.
-   delangle <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span>  (re-defines) a single angle.
+   addangle &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; [&lt;type&gt;] (re-defines) a single angle.
+   delangle &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;  (re-defines) a single angle.
+   add(dihedral|improper) &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; [&lt;type&gt;] (re-defines) a single (dihedral|improper).
+   del(dihedral|improper) &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; (re-defines) a single (dihedral|improper).
  
  
    getanglelist  returns the list of angle definitions
-                 in the form {type <span class="type">&lt;id1&gt;</span> <span class="type">&lt;id2&gt;</span> <span class="type">&lt;id3&gt;</span>}
-   setanglelist <span class="type">&lt;list&gt;</span>
+                 in the form {type &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;}
+   setanglelist &lt;list&gt;
                  resets angle definitions from a list in the same
                  format as retured by 'topo getanglelist'
+   get(dihedral|improper)list  returns the list of (dihedral|improper) definitions
+                 in the form {type &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;}
+   set(dihedral|improper)list &lt;list&gt;
+                 resets (dihedral|improper) definitions from a list in the same
+                 format as retured by 'topo get(dihedral|improper)list'
  
  NOTE: for angle, dihedral, and improper lists, the
        type field currently has to be always present.
