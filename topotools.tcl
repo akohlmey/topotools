@@ -62,8 +62,8 @@ proc ::TopoTools::sortsomething {what sel} {
             setimproperlist $sel [lsort -unique -command compareimpropers \
                                      [improperinfo getimproperlist $sel]]
         }
+    }
 }
-
 
 
 proc ::TopoTools::usage {} {
@@ -463,3 +463,4 @@ source [file join $env(TOPOTOOLDIR) topobonds.tcl]
 source [file join $env(TOPOTOOLDIR) topoangles.tcl]
 source [file join $env(TOPOTOOLDIR) topodihedrals.tcl]
 source [file join $env(TOPOTOOLDIR) topoimpropers.tcl]
+#source [file join $env(TOPOTOOLDIR) topolammps.tcl]
