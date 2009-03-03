@@ -142,7 +142,8 @@ proc topo { args } {
 
     set cmd ""
 
-    # process arguments
+    # process generic arguments and remove them
+    # from argument list.
     set newargs {}
     for {set i 0} {$i < [llength $args]} {incr i} {
         set arg [lindex $args $i]
@@ -213,17 +214,7 @@ proc topo { args } {
     if {$molid < 0} { 
         set molid [molinfo top]
     }
-    if {($selmol >= 0) && ($selmol != $molid)} {
-        vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
-        return
-    }
 
-    if {[catch {atomselect $molid $seltxt} sel]} {
-        vmdcon -error "Problem with atom selection: $sel"
-        return
-    }
-
-    # branch out to the various subcommands
     set retval ""
     if {[llength $newargs] > 0} {
         set cmd [lindex $newargs 0]
@@ -233,6 +224,18 @@ proc topo { args } {
         set cmd help
     }
 
+    if { ![string equal $cmd help] } {
+        if {($selmol >= 0) && ($selmol != $molid)} {
+            vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
+            return
+        }
+        if {[catch {atomselect $molid $seltxt} sel]} {
+            vmdcon -error "Problem with atom selection: $sel"
+            return
+        }
+    }
+
+    # branch out to the various subcommands
     switch -- $cmd {
         getbondlist   -
         bondtypenames -
@@ -455,7 +458,9 @@ proc topo { args } {
             ::TopoTools::usage
         }
     }
-    $sel delete
+    if {[info exists sel]} {
+        $sel delete
+    }
     return $retval
 }
 
