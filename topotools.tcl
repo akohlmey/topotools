@@ -2,6 +2,15 @@
 # TopoTools, a VMD package to simplify manipulating bonds 
 # other topology related properties in VMD.
 #
+# TODO: 
+# - topotools.tcl : use namespace variables, to cache metadata for faster execution.
+#                   e.g. store lastmol/lastsel and if it the same as before, reuse data 
+#                   that is present, or else invalidate cache etc.
+#                   need to add a generic API for that, and options to clear and avoid caching.
+# - topoatoms.tcl : provide frontend to atom name/types/numbers similar to bonds/angles/...
+# - topogmx.tcl   : interface to gromacs (at least for postprocessing)
+# - topoamber.tcl : 
+#
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
 #
 package provide topotools 1.0
@@ -11,7 +20,7 @@ package provide topotools 1.0
 ###################################################
 
 namespace eval ::TopoTools:: {
-    # nothing to do here yet.
+    variable version 1.0; # for allowing compatibility checks in scripts depending on this 
 }
 
 # angle definition list comparison function
@@ -121,9 +130,22 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  set(dihedral|improper)list <list>"
     vmdcon -info "                resets (dihedral|improper) definitions from a list in the same"
     vmdcon -info "                format as retured by 'topo get(dihedral|improper)list'"
-    vmdcon -info ""
     vmdcon -info "NOTE: for angle, dihedral, and improper lists, the"
     vmdcon -info "      type field currently has to be always present."
+    vmdcon -info ""
+    vmdcon -info ""
+    vmdcon -info "  readlammpsdata <filename> \[<atomstyle>\]"
+    vmdcon -info "      read atom properties, bond, angle, dihedral and other related data"
+    vmdcon -info "      from a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
+    vmdcon -info "      parameter. default value is 'full'."
+    vmdcon -info "      the molecule this info is being added to must have a matching number of atoms."
+    vmdcon -info "      the -sel parameter is currently ignored."
+    vmdcon -info ""
+    vmdcon -info "  writelammpsdata <filename> \[<atomstyle>\]"
+    vmdcon -info "      write atom properties, bond, angle, dihedral and other related data"
+    vmdcon -info "      to a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
+    vmdcon -info "      parameter. default value is 'full'."
+    vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
     return
 }
@@ -453,6 +475,34 @@ proc topo { args } {
                             [lindex $newargs 3] ]
         }
 
+        readlammpsdata {
+            set style atom
+            if {[llength $newargs] < 1} {
+                vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
+                ::TopoTools::usage
+                return
+            }
+            set fname [lindex $newargs 0]
+            if {[llength $newargs] > 1} {
+                set style [lindex $newargs 1]
+            }
+            set retval [::TopoTools::readlammpsdata $molid $fname $style $sel]
+        }
+
+        writelammpsdata {
+            set style atom
+            if {[llength $newargs] < 1} {
+                vmdcon -error "Not enough arguments for 'topo writelammpsdata'"
+                ::TopoTools::usage
+                return
+            }
+            set fname [lindex $newargs 0]
+            if {[llength $newargs] > 1} {
+                set style [lindex $newargs 1]
+            }
+            set retval [::TopoTools::writelammpsdata $molid $fname $style $sel]
+        }
+
         help -
         default {
             ::TopoTools::usage
@@ -464,8 +514,8 @@ proc topo { args } {
     return $retval
 }
 
-source [file join $env(TOPOTOOLDIR) topobonds.tcl]
-source [file join $env(TOPOTOOLDIR) topoangles.tcl]
-source [file join $env(TOPOTOOLDIR) topodihedrals.tcl]
-source [file join $env(TOPOTOOLDIR) topoimpropers.tcl]
-#source [file join $env(TOPOTOOLDIR) topolammps.tcl]
+source [file join $env(TOPOTOOLSDIR) topobonds.tcl]
+source [file join $env(TOPOTOOLSDIR) topoangles.tcl]
+source [file join $env(TOPOTOOLSDIR) topodihedrals.tcl]
+source [file join $env(TOPOTOOLSDIR) topoimpropers.tcl]
+source [file join $env(TOPOTOOLSDIR) topolammps.tcl]

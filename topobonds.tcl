@@ -23,10 +23,11 @@ proc ::TopoTools::bondinfo {infotype sel {flag none}} {
             if {($a < $b) && ([lsearch -sorted -integer $aidxlist $b] != -1)} {
                 incr numbonds
                 switch $flag {
-                    type  {lappend bidxlist [list $a $b $t]}
-                    order {lappend bidxlist [list $a $b $o]}
-                    both  {lappend bidxlist [list $a $b $t $o]}
-                    none  {lappend bidxlist [list $a $b]}
+                    type   {lappend bidxlist [list $a $b $t]}
+                    order  {lappend bidxlist [list $a $b $o]}
+                    both   {lappend bidxlist [list $a $b $t $o]}
+                    lammps {lappend bidxlist [list $numbonds $a $b $t]}
+                    none   {lappend bidxlist [list $a $b]}
                 }
             }
             set bondtypes($t) 1
@@ -66,19 +67,33 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
 
     clearbonds $sel
     # set defaults
+    set n 0
     set t unknown
     set o 1
     set mol [$sel molid]
     set a -1
     set b -1
+    set i 0
+    set fract  [expr 100.0/[llength $bondlist]]
+    set deltat 2000
+    set newt   $deltat 
 
     # XXX: add sanity check on data format
     foreach bond $bondlist {
+        incr i
+        set time [clock clicks -milliseconds]
+        if {$time > $newt} {
+            set percent [format "%3.1f" [expr {$i*$fract}]]
+            vmdcon -info "setbondlist: $percent% done."
+            display update ui
+            set newt [expr {$time + $deltat}]
+        }
         switch $flag {
-            type  {lassign $bond a b t  }
-            order {lassign $bond a b o  }
-            both  {lassign $bond a b t o}
-            none  {lassign $bond a b    }
+            type   {lassign $bond a b t  }
+            order  {lassign $bond a b o  }
+            both   {lassign $bond a b t o}
+            lammps {lassign $bond n a b t}
+            none   {lassign $bond a b    }
         }
         addbond $mol $a $b $t $o
     }

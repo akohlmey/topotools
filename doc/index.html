@@ -61,6 +61,19 @@
  
  NOTE: for angle, dihedral, and improper lists, the
        type field currently has to be always present.
+
+   readlammpsdata &lt;filename&gt; [&lt;atomstyle&gt;]
+      read atom properties, bond, angle, dihedral and other related data
+      from a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'
+      parameter ('angle', 'atomic', 'bond', 'charge', 'full', 'molecular'). default value is 'full'.
+      the molecule/selection this info is being added to must have a matching number of atoms.
+
+  writelammpsdata &lt;filename&gt; [&lt;atomstyle&gt;]
+      write atom properties, bond, angle, dihedral and other related data
+      to a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'
+      parameter ('angle', 'atomic', 'bond', 'charge', 'full', 'molecular'). default value is 'full'.
+      Only data that is present is written. 
+
 </pre>
 
 <h3>Author</h3>

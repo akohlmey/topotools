@@ -2,14 +2,13 @@ VMD topotools package
 Copyright (c) by 2009 Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
 -------------------
 
-A collection of tcl command to manipulate and build 
+A collection of tcl commands to manipulate and build 
 topologies (i.e. bonds, angles, dihedrals, etc. and
 their corresponding properties (type, order, etc.).
 
 TODO:
+  - topo atomtypes <sel>
+  - topo atomtypenames <sel>
   - topo copybonds <fromsel> <tosel>
-  - proper documentation
-  - support for dihedrals and impropers
-  - tools to write custom topology files (e.g., LAMMPS data, gromacs top?, amber parmtop?)
-    for which we no suitable molfile plugin exists. or to generate parameter
-    files or input script fragments (HOOMD, LAMMPS, ...), the latter perhaps in a GUI.
+  - proper documentation and a tutorial
+  - more tools to read/write custom topology files (e.g. gromacs top?, amber parmtop?)
