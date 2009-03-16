@@ -66,6 +66,8 @@ proc ::TopoTools::clearbonds {sel} {
 proc ::TopoTools::setbondlist {sel flag bondlist} {
 
     clearbonds $sel
+    set nbnd [llength $bondlist]
+    if {$nbnd == 0} { return }
     # set defaults
     set n 0
     set t unknown
@@ -74,7 +76,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
     set a -1
     set b -1
     set i 0
-    set fract  [expr 100.0/[llength $bondlist]]
+    set fract  [expr {100.0/$nbnd}]
     set deltat 2000
     set newt   $deltat 
 
@@ -97,6 +99,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
         }
         addbond $mol $a $b $t $o
     }
+    return
 }
 
 # guess bonds type names from atom types.

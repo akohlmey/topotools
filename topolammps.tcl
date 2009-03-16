@@ -7,39 +7,81 @@
 # high level subroutines for LAMMPS support.
 #
 # import a LAMMPS data file.
-# this requires that either a corresponding coordinate file 
-# (e.g. from a yet to be written molfile plugin)
-# has already been loaded and will only import the
-# structural information.
+# this behaves almost like a molfile plugin and will create a
+# new molecule (but no representation) and return its molecule id.
+# 
 # Arguments:
-# mol = molecule id with matching coordinate data
 # filename = name of data file
-# style = atomstyle
-# sel = selection function (currently ignored, not sure how it can be useful)
+# style = atomstyle 
 # flags = more flags. (currently not used)
-proc ::TopoTools::readlammpsdata {mol filename style sel {flags none}} {
+proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     if {[catch {open $filename r} fp]} {
         vmdcon -error "readlammpsdata: problem opening data file: $fp\n"
         return -1
     }
     
-    # parse lammps header
+    # parse lammps header section.
     array set lammps [readlammpsheader $fp]
-    if {[$sel num] != $lammps(atoms)} {
-        vmdcon -error "readlammpsdata: number of atoms in data file and selection/molecule don't match. "
+    if {$lammps(atoms) < 1} {
+        vmdcon -error "readlammpsdata: failed to parse lammps data header. aborting."
         return -1
+    } 
+
+    # create an empty molecule and timestep
+    set mol -1
+    if {[catch {mol new atoms $lammps(atoms)} mol]} {
+        variable tmpdir
+        set fn [file join $tmpdir tmpdummy.xyz]
+        # XXX temporarily inserted for backward compatibility.
+        # XXX until john approves the 'mol new atoms <num>' code.
+        if {[catch {open $fn w} tmp]} {
+            vmdcon -error "readlammpsdata: problem writing to temp file $fn: $tmp"
+            return -1
+        }
+        puts $tmp " $lammps(atoms)"
+        puts $tmp "temporary file"
+        for {set i 0} {$i < $lammps(atoms)} {incr i} {
+            puts $tmp "0  0.0 0.0 0.0"
+        }
+        close $tmp
+        if {[catch {mol new $fn type xyz waitfor all} mol]} {
+            vmdcon -error "readlammpsdata: problem reading temp file $fn: $mol"
+            return -1
+        }
+        file delete -force $fn
+    } else {
+        animate dup $mol
     }
+    mol rename $mol [file tail $filename]
+    set sel [atomselect $mol all]
+    set a [expr {$lammps(xhi) - $lammps(xlo)}]
+    set b [expr {$lammps(yhi) - $lammps(ylo)}]
+    set c [expr {$lammps(zhi) - $lammps(zlo)}]
+    set boxdim [list $a $b $c]
+    molinfo $mol set {a b c} $boxdim
+
+    # now loop through the file until we find a known section header.
+    # then call a subroutine that parses this section. those subroutines
+    # all take the current line number as last argument and return the
+    # new value, so we can keep track of the current line and print more
+    # useful error messages or warnings.
     set lineno $lammps(lineno)
     while {[gets $fp line] >= 0} {
         incr lineno
         if {[regexp {^\s*Atoms} $line ]} {
-            set lineno [readlammpsatoms $fp $sel $style $lineno]
+            set lineno [readlammpsatoms $fp $sel $style $boxdim $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Atoms section."
                 return -1
             }
         } elseif {[regexp {^\s*Velocities} $line ]} {
+            # XXX: FIXME.
         } elseif {[regexp {^\s*Masses} $line ]} {
+            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lineno]
+            if {$lineno < 0} {
+                vmdcon -error "readlammpsdata: error reading Masses section."
+                return -1
+            }
         } elseif {[regexp {^\s*Bonds} $line ]} {
             set lineno [readlammpsbonds $fp $sel $lammps(bonds) $lineno]
             if {$lineno < 0} {
@@ -76,7 +118,8 @@ proc ::TopoTools::readlammpsdata {mol filename style sel {flags none}} {
         set lammps(lineno) $lineno
     }
     close $fp
-    return 0
+    mol reanalyze $mol
+    return $mol
 }
 
 
@@ -135,13 +178,17 @@ proc ::TopoTools::readlammpsheader {fp} {
 }
 
 # parse atom section
-proc ::TopoTools::readlammpsatoms {fp sel style lineno} {
-    set curatoms 0
+proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
     set numatoms [$sel num]
     set atomdata {}
+    set boxx 0.0
+    set boxy 0.0 
+    set boxz 0.0
+    lassign $boxdata boxx boxy boxz
 
     vmdcon -info "parsing LAMMPS Atoms section."
 
+    set curatoms 0
     while {[gets $fp line] >= 0} {
         incr lineno
 
@@ -149,18 +196,54 @@ proc ::TopoTools::readlammpsatoms {fp sel style lineno} {
         set resid 0
         set atomtype 0
         set charge 0.0
+        set mass 1.0 ; #  m=0.0 in MD gets us in trouble, so use a different default.
+        set x 0.0
+        set y 0.0
+        set z 0.0
+        set xi 0
+        set yi 0
+        set zi 0
 
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curatoms ; # caveat: we don't import coordinates.
-            switch $style { # XXX: use regexp based parser to detect wrong format.
-                atomic    { lassign $line atomid       atomtype        }
-                bond      { lassign $line atomid resid atomtype        }
-                angle     { lassign $line atomid resid atomtype        }
-                charge    { lassign $line atomid       atomtype charge }
-                molecular { lassign $line atomid resid atomtype        }
-                full      { lassign $line atomid resid atomtype charge }
+            incr curatoms
+            switch $style { # XXX: use regexp based parser to detect wrong formats.
+
+                atomic    { 
+                    if {[llength $line] >= 8} {
+                        lassign $line atomid       atomtype        x y z xi yi zi
+                    } else {
+                        lassign $line atomid       atomtype        x y z
+                    }
+                }
+
+                bond      -
+                angle     -
+                molecular { 
+                    if {[llength $line] >= 9} {
+                        lassign $line atomid resid atomtype        x y z xi yi zi
+                    } else {
+                        lassign $line atomid resid atomtype        x y z
+                    }
+                }
+
+                charge { 
+                    if {[llength $line] >= 9} {
+                        lassign $line atomid       atomtype charge x y z xi yi zi
+                    } else {
+                        lassign $line atomid       atomtype charge x y z
+                    }
+                }
+
+                full {
+                    if {[llength $line] >= 10} {
+                        lassign $line atomid resid atomtype charge x y z xi yi zi
+                    } else {
+                        lassign $line atomid resid atomtype charge x y z
+                    }
+                }
+
                 default   {
                     # ignore this unsupported style
                 }
@@ -169,12 +252,43 @@ proc ::TopoTools::readlammpsatoms {fp sel style lineno} {
                 vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
                 return -1
             }
-            lappend atomdata [list $atomid $resid $atomtype $charge ]
+            lappend atomdata [list $atomid $resid $atomtype $atomtype $charge [expr {$xi*$boxx + $x}] \
+                                  [expr {$yi*$boxy + $y}] [expr {$zi*$boxz + $z}] $mass ]
         }
         if {$curatoms >= $numatoms} break
     }
     vmdcon -info "applying atoms data."
-    $sel set {user resid type charge} [lsort -integer -index 0 $atomdata]
+    $sel set {user resid name type charge x y z mass} [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
+
+# parse masses section
+proc ::TopoTools::readlammpsmasses {fp mol numtypes lineno} {
+    vmdcon -info "parsing LAMMPS Masses section."
+
+    set massdata {}
+    set curtypes 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set typeid 0
+        set mass 0.0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curtypes 
+            lassign $line typeid mass
+            if {$typeid > $numtypes} {
+                vmdcon -error "readlammpsatoms: only typeids 1-$numtypes are supported. $lineno : $line "
+                return -1
+            }
+            set sel [atomselect $mol "type $typeid"]
+            $sel set mass $mass
+            $sel delete
+        }
+        if {$curtypes >= $numtypes} break
+    }
     return $lineno
 }
 
@@ -420,12 +534,24 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         set atomtype [expr 1 + [lsearch -sorted -ascii $typemap $type]]
         set resid    [expr 1 + [lsearch -sorted -ascii $resmap $residue]]
         switch $style {
-            atomic    { puts $fp [format "%d %d %.3f %.3f %.3f"         $atomid        $atomtype  $x $y $z] }
+            atomic    { 
+                puts $fp [format "%d %d %.3f %.3f %.3f" \
+                              $atomid        $atomtype  $x $y $z] 
+            }
             bond  -
             angle -
-            molecular { puts $fp [format "%d %d %d %.3f %.3f %.3f"      $atomid $resid $atomtype  $x $y $z] }
-            charge    { puts $fp [format "%d %d %.2f %.3f %.3f %.3f"    $atomid $atomtype $charge $x $y $z] }
-            full      { puts $fp [format "%d %d %d %.2f %.3f %.3f %.3f" $atomid $resid $atomtype $charge $x $y $z] }
+            molecular { 
+                puts $fp [format "%d %d %d %.3f %.3f %.3f" \
+                              $atomid $resid $atomtype  $x $y $z] 
+            }
+            charge    { 
+                puts $fp [format "%d %d %.2f %.3f %.3f %.3f" \
+                              $atomid $atomtype $charge $x $y $z] 
+            }
+            full      { 
+                puts $fp [format "%d %d %d %.2f %.3f %.3f %.3f" \
+                              $atomid $resid $atomtype $charge $x $y $z] 
+            }
             default   {
                 # ignore this unsupported style
             }

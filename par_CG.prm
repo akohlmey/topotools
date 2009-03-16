@@ -1,0 +1,393 @@
+# CG-CMM force field parameter database. MPDyn format
+# updated: 9-jan-2009
+#
+# please cite:
+# W. Shinoda, R. H. DeVane, M. L. Klein, Multi-property fitting and 
+# parameterization of a coarse grained model for aqueous surfactants,
+# Molecular Simulation, 33, 27-36 (2007)
+#
+# and:
+# W. Shinoda, R. H. DeVane, M. L. Klein, Coarse-grained molecular modeling
+# of non-ionic surfactant self-assembly, Soft Matter, 4, 2453-2462 (2008)
+#
+# atomtype (this part is not used in simulation code)
+>> ATOMTYPE
+# Water
+W  ! (H2O)3
+# PC
+NC ! (CH3)3-N-CH2CH2- (+)
+PH ! PO4 (-)
+GL ! CH2CHCH2
+EST1  ! CH2CO2
+EST2  ! CH2CO2
+# PE
+NH ! NH3-CH2-CH2- (+)
+# PG
+OB ! -CH(OH)-CH2-
+# Alkane
+CM   !  -CH2CH2CH2-
+CT   !  -CH2CH2CH3
+CT2  !  -CH2CH3
+CQT  !  -CH2CH(CH3)CH3
+CQM  !  -CH2CH(CH3)CH2-
+CBT  !  CH3CH(CH3)-
+# Alkene
+CMD2  !  -HC=CH- (cis)
+# PEG
+OA   !  -CH2OH
+EO   !  -CH2OCH2-
+EOT  !  -CH2OCH3
+EOH  !  -CH2CH2OH
+# LIP5 & LIP13
+EOC  !  = EO
+# esters
+CTE  !  = CT
+EST  !  = EST1
+# ions
+SOD  !  Na(+) (H2O)3 
+CLA  !  Cl(-) (H2O)2 
+# DTAB
+NC4  !  (CH3)3-N-CH2- (+)
+# SDS
+SO4  !  SO4 (-)
+<<
+
+>> BOND
+# bond pair, bond type, k, r0 [A]
+# bond type = [ harm ]
+# harm : k * (r - r0)^2 
+UNIT= kcal_per_mol # [ kcal_per_mol / K / kJ_per_mol ]
+# DPC
+NC   PH   harm    4.8    4.25
+PH   CM   harm   12.0    3.69
+# PC
+PH   GL   harm    8.9    3.52
+GL   EST1 harm   30.0    2.88
+GL   EST2 harm    8.4    3.48
+EST1 CM   harm    4.7    3.55
+EST2 CM   harm    5.1    3.61
+# PE
+NH   PHE  harm    9.40   3.60
+PHE  GL   harm    8.9    3.52
+# Alkane
+CM   CM   harm    6.16   3.64
+CM   CT   harm    6.16   3.65
+CT2  CM   harm    9.00   3.13
+CT   CT   harm    6.955  3.71
+CMD2 CM   harm    8.0    3.03
+CQT  CQT  harm   16.0    4.00
+CQT  CQM  harm   16.0    3.97
+CBT  CBT  harm   55.0    2.502
+# Alkene
+CT   CMD2 harm    8.00   3.09
+CT2  CMD2 harm   60.00   2.54
+# PEG
+OA   OA   harm   63.00   2.16 # Russel:AMBER
+#OA   OA   harm   80.00   2.28 # CHARMM version
+EOT  EOT  harm    5.50   3.33
+EOT  EO   harm    5.40   3.34
+EO   EO   harm    4.90   3.28
+EO   OA   harm   15.00   2.79
+CT   EO   harm    7.10   3.61
+CM   EO   harm    7.10   3.56
+CT2  EO   harm   10.00   3.07
+# alcohol
+EOH  EOH  harm    3.50   3.62
+CT   OA   harm    6.955  3.05
+CM   OA   harm    7.500  3.01
+CT2  OA   harm   14.000  2.53
+CT   EOH  harm    5.200  3.66
+CM   EOH  harm    5.200  3.62
+# LIP5 and LIP13
+EO   EOC  harm    4.90   3.28
+CM   EOC  harm    7.10   3.56
+# ester for short chains
+EST  CT   harm    4.30   3.62
+EST  CTE  harm    5.50   3.40
+EST  CT2  harm    6.50   3.13
+CME  CT   harm    6.16   3.65
+EST  CM   harm    4.30   3.62
+EST  CME  harm    5.50   3.38
+# DTAB
+NC4  CM   harm   13.00   3.80
+# SDS
+SO4  CM   harm   11.00   3.63
+# WORKING PARAMETERS7
+OA   OB   harm   50.00   2.51
+OB   PHE  harm    5.30   3.79
+<<
+
+>> ANGLE
+# angle pair, angle type, k, theta_0 [deg]
+# angle type = [ harm, cosine, quartic ]
+# harm : k * (theta - theta_0)^2
+# cosine : k * ( 1 - cos(theta_0 - theta) )
+# quartic : k/8 * ((theta0-pi)^2 - (theta-pi)^2)^2 / (theta0-pi)^2
+UNIT= kcal_per_mol # [ kcal_per_mol / K / kJ_per_mol ]
+# DPC
+NC   PH   CM   harm   3.3   112.0
+PH   CM   CM   harm   1.1   178.0
+# DMPC POPC DPPC
+NC   PH   GL   harm   3.1   112.0
+PH   GL   EST1 harm   1.4   124.0
+PH   GL   EST2 harm   2.0   138.0
+GL   EST1 CM   harm   0.8   168.0
+GL   EST2 CM   harm   0.8   172.0
+EST1 GL   EST2 harm   1.0    95.0
+EST1 CM   CM   harm   1.0   178.0
+EST2 CM   CM   harm   1.0   178.0
+# PE
+NH   PHE  GL   harm   4.00  102.0
+PHE  GL   EST1 harm   1.4   124.0
+PHE  GL   EST2 harm   2.0   138.0
+# Alkane
+CM   CM   CM   harm   1.19  173.0
+CM   CM   CT   harm   1.19  175.0
+CT2  CM   CM   harm   1.60  172.0
+CT2  CM   CT   harm   1.60  172.0
+CT2  CM   CT2  harm   1.70  173.0
+CT   CM   CT   harm   1.093 175.5
+CQT  CQM  CQT  harm   2.50  126.0
+# Alkene
+CT   CMD2 CT   harm   7.70  116.0
+CT2  CMD2 CT2  harm  12.00  110.0
+CMD2 CM   CM   harm   1.9   161.0
+CM   CMD2 CM   harm   6.0   110.0
+# PEG
+EO   EO   EOT  harm   3.50  135.0
+EO   EO   EO   harm   3.40  132.0
+EOT  EO   EOT  harm   3.50  134.0
+OA   EO   OA   harm   6.60  131.0
+EO   EO   OA   harm   3.00  131.0
+CT   EO   EO   harm   2.20  145.0
+CT2  CM   EO   harm   1.30  178.0
+CM   EO   CM   harm   1.80  171.0
+CT2  EO   CT2  harm   2.60  165.0
+OA   EO   CT2  harm   4.00  146.0
+CM   CM   EO   harm   1.50  172.0
+CM   EO   EO   harm   3.20  146.0
+# alcohol
+CT2  CM   OA   harm   1.80  166.0
+CT   CM   EOH  harm   1.30  174.0
+# just for LIP5
+CM   CM   EOC  harm   1.50  172.0
+CM   EOC  EO   harm   3.20  146.0
+EO   EO   EOC  harm   3.40  132.0
+EOC  EO   EOC  harm   3.60  112.0
+# ester for short chains
+CT   EST  CTE  harm   1.10  169.0
+CT2  EST  CTE  harm   1.10  169.0
+CM   EST  CTE  harm   1.00  172.0
+CM   EST  CME  harm   1.00  172.0
+CT   CM   EST  harm   1.30  170.0
+EST  CME  CT   harm   1.30  170.0
+# DTAB
+NC4  CM   CM   harm   1.00  174.0
+# SDS
+SO4  CM   CM   harm   1.10  178.0
+#WORKING PARAMETER
+OA   OB   PHE  harm   1.50   75.0
+OB   PHE  GL   harm   3.50   97.0
+<<
+
+>> NONBOND
+# nonbond pair, nonbond type, parameters*, rmin, rmax
+# nonbond type = [LJ12-4, LJ9-6, LJ6-4, LJ8-4, table]
+# rmin : minimum distance for the interaction in Angstrom
+# rmax : maximum (cut-off) distance for the interaction in Angstrom
+# For LJs, parameters are epsilon, sigma
+# LJ(I)-(J) : prefactor * eps * ((sigma/r)^(I) - (sigma/r)^(J))
+# Prefactors are taken for the potential to have the minimum value of eps
+# and get 0 at the distance of sigma; for LJ6-4 and LJ9-6, the prefactor 
+# should be 27/4, for LJ8-4, it should be 4, and for LJ12-4, it becomes
+# 3*sqrt(3)/2
+# for tabulated potential, Rmin, Rmax are requested as its parameter
+UNIT= kcal_per_mol # [ kcal_per_mol / K / kJ_per_mol ]
+# water
+W    W    LJ12-4   0.895   4.371     2.0   15.0
+# Alkane
+CT   CT   LJ9-6    0.469   4.585     2.0   15.0
+CT   CM   LJ9-6    0.444   4.5455    2.0   15.0
+CM   CM   LJ9-6    0.420   4.506     2.0   15.0
+W    CT   LJ12-4   0.360   4.478     2.0   15.0
+W    CM   LJ12-4   0.340   4.4385    2.0   15.0
+CT2  CT2  LJ9-6    0.312   4.221     2.0   15.0
+CT2  CM   LJ9-6    0.362   4.3635    2.0   15.0
+W    CT2  LJ12-4   0.290   4.296     2.0   15.0
+CT2  CT   LJ9-6    0.383   4.403     2.0   15.0
+CQT  CQT  LJ9-6    0.545   5.020     2.0   15.0
+CQM  CQM  LJ9-6    0.500   4.980     2.0   15.0
+CQM  CQT  LJ9-6    0.522   5.000     2.0   15.0
+CBT  CBT  LJ9-6    0.353   4.884     2.0   15.0
+# Alkene
+CMD2 CMD2 LJ9-6    0.232   4.005     2.0   15.0
+CMD2 CT   LJ9-6    0.330   4.295     2.0   15.0
+CMD2 CT2  LJ9-6    0.269   4.113     2.0   15.0
+CMD2 CM   LJ9-6    0.312   4.2555    2.0   15.0 # combination rule
+CMD2 W    LJ12-4   0.270   4.188     2.0   15.0
+# PEG
+OA   OA   LJ9-6    0.4491  3.713     2.0   15.0 # Ethylene glycol (Russel:AMBER)
+EOT  EOT  LJ9-6    0.437   4.250     2.0   15.0
+EO   EO   LJ9-6    0.405   4.250     2.0   15.0
+EO   EOT  LJ9-6    0.420   4.250     2.0   15.0
+EO   OA   LJ9-6    0.440   3.890     2.0   15.0
+EO   CT   LJ9-6    0.410   4.340     2.0   15.0
+EO   CM   LJ9-6    0.377   4.274     2.0   15.0
+EO   CT2  LJ9-6    0.370   4.140     2.0   15.0
+OA   W    LJ12-4   0.700   3.950     2.0   15.0
+EO   W    LJ12-4   0.570   4.310     2.0   15.0
+# alcohol
+MOH  MOH  LJ9-6    0.580   3.680     2.0   15.0 # Russel for methanol
+CT   OA   LJ9-6    0.4372  4.033     2.0   15.0 # Russel:AMBER
+CM   OA   LJ9-6    0.365   3.987     2.0   15.0
+CT2  OA   LJ9-6    0.380   3.840     2.0   15.0
+EOH  EOH  LJ9-6    0.595   4.083     2.0   15.0 # 1,4-butanediol
+CT   EOH  LJ9-6    0.555   4.324     2.0   15.0 # pentanol
+CM   EOH  LJ9-6    0.420   4.170     2.0   15.0 # octanol (poor struct)
+# LIP5
+EOC  EOC  LJ9-6    0.405   4.250     2.0   15.0
+EOC  EO   LJ9-6    0.405   4.250     2.0   15.0
+EOC  OA   LJ9-6    0.440   3.890     2.0   15.0
+EOC  CM   LJ9-6    0.377   4.274     2.0   15.0
+EOC  CT2  LJ9-6    0.370   4.140     2.0   15.0
+EOC  W    LJ12-4   0.570   4.310     2.0   15.0
+# esters
+CTE  CTE  LJ9-6    0.469   4.585     2.0   15.0 # CT-CT
+CT   CTE  LJ9-6    0.469   4.585     2.0   15.0 # CT-CT
+EST  EST  LJ9-6    0.495   4.300     2.0   15.0
+EST  CT   LJ9-6    0.470   4.4425    2.0   15.0
+EST  CTE  LJ9-6    0.470   4.4425    2.0   15.0 # EST-CT
+EST  CT2  LJ9-6    0.390   4.2605    2.0   15.0
+CT2  CTE  LJ9-6    0.383   4.403     2.0   15.0 # CT2-CT
+EST  W    LJ12-4   0.820   4.290     2.0   15.0
+CTE  CM   LJ9-6    0.444   4.5455    2.0   15.0 # CT-CM
+CT   CME  LJ9-6    0.444   4.5455    2.0   15.0 # CT-CM
+CME  CM   LJ9-6    0.420   4.506     2.0   15.0 # CM-CM
+CME  CME  LJ9-6    0.420   4.506     2.0   15.0 # CM-CM
+EST  CM   LJ9-6    0.470   4.403     2.0   15.0 #
+EST  CME  LJ9-6    0.470   4.403     2.0   15.0 #
+# copy (for two tailed lipids)
+EST1 CM   LJ9-6    0.470   4.403     2.0   15.0 #
+EST2 CM   LJ9-6    0.470   4.403     2.0   15.0 #
+EST1 CT   LJ9-6    0.470   4.4425    2.0   15.0 #
+EST2 CT   LJ9-6    0.470   4.4425    2.0   15.0 #
+EST1 CT2  LJ9-6    0.390   4.2605    2.0   15.0
+EST2 CT2  LJ9-6    0.390   4.2605    2.0   15.0
+EST1 EST1 LJ9-6    0.495   4.300     2.0   15.0
+EST1 EST2 LJ9-6    0.495   4.300     2.0   15.0
+EST2 EST2 LJ9-6    0.495   4.300     2.0   15.0
+EST1 W    LJ12-4   0.820   4.290     2.0   15.0
+EST2 W    LJ12-4   0.820   4.290     2.0   15.0
+# SODIUM CLORIDE
+SOD  SOD  LJ12-4   0.350   4.371     2.0   15.0
+CLA  CLA  LJ12-4   0.350   4.371     2.0   15.0
+SOD  CLA  LJ12-4   0.895   4.371     2.0   15.0
+SOD  W    LJ12-4   0.895   4.371     2.0   15.0
+CLA  W    LJ12-4   0.895   4.371     2.0   15.0
+# DTAB
+CLA  CM   LJ12-4   0.340   4.4385    2.0   15.0! taken from W - CM
+CLA  CT2  LJ12-4   0.290   4.296     2.0   15.0! taken from W - CT2
+NC4  CM   LJ9-6    0.420   4.760     2.0   15.0
+NC4  CT2  LJ9-6    0.380   4.660     2.0   15.0
+NC4  W    LJ12-4   0.950   4.430     2.0   15.0
+NC4  CLA  LJ12-4   0.950   4.430     2.0   15.0! assume = NC4 - W
+NC4  NC4  LJ9-6    0.500   5.950     2.0   15.0
+# SDS
+SO4  W    LJ12-4   1.100   4.100     2.0   15.0
+SO4  SOD  LJ12-4   1.100   4.100     2.0   15.0! taken from SO4 - W
+SO4  SO4  LJ9-6    0.700   4.321     2.0   15.0
+SOD  CM   LJ12-4   0.340   4.4385    2.0   15.0! taken from W - CM
+SOD  CT   LJ12-4   0.360   4.478     2.0   15.0! taken from W - CT
+SO4  CM   LJ9-6    0.383   4.4135    2.0   15.0
+SO4  CT   LJ9-6    0.405   4.453     2.0   15.0
+# DPC
+PH   CM   LJ9-6    0.300   4.953     2.0   15.0
+PH   CT   LJ9-6    0.320   4.9925    2.0   15.0
+NC   CM   LJ9-6    0.400   5.128     2.0   15.0
+NC   CT   LJ9-6    0.420   5.1675    2.0   15.0
+PH   W    LJ12-4   1.000   4.030     2.0   15.0
+NC   W    LJ12-4   0.900   4.610     2.0   15.0
+PH   PH   LJ9-6    1.400   5.400     2.0   15.0
+NC   NC   LJ9-6    0.700   5.750     2.0   15.0
+NC   PH   LJ9-6    1.150   4.200     2.0   15.0
+# DMPC & DPPC & POPC
+GL   GL   LJ9-6    0.420   4.506     2.0   15.0
+GL   EST1 LJ9-6    0.470   4.403     2.0   15.0
+GL   EST2 LJ9-6    0.470   4.403     2.0   15.0
+GL   CM   LJ9-6    0.420   4.506     2.0   15.0
+GL   CT   LJ9-6    0.444   4.5455    2.0   15.0
+GL   W    LJ12-4   0.640   4.4385    2.0   15.0
+# DPPC
+GL   CT2  LJ9-6    0.362   4.3635    2.0   15.0
+PH   CT2  LJ9-6    0.280   4.8105    2.0   15.0
+NC   CT2  LJ9-6    0.320   4.9855    2.0   15.0
+# POPC
+CMD2 GL   LJ9-6    0.312   4.2555    2.0   15.0 # CMD2-CM
+CMD2 EST1 LJ9-6    0.440   4.005     2.0   15.0
+CMD2 EST2 LJ9-6    0.440   4.005     2.0   15.0
+PH   CMD2 LJ9-6    0.300   4.7025    2.0   15.0
+NC   CMD2 LJ9-6    0.350   4.8775    2.0   15.0
+#
+GL   NC   LJ9-6    0.650   4.620     2.0   15.0
+GL   PH   LJ9-6    0.300   4.750     2.0   15.0
+EST1 NC   LJ9-6    0.750   4.475     2.0   15.0
+EST2 NC   LJ9-6    0.750   4.475     2.0   15.0
+EST1 PH   LJ9-6    0.500   4.550     2.0   15.0
+EST2 PH   LJ9-6    0.500   4.550     2.0   15.0
+# POPE
+PHE  PHE  LJ9-6    1.400   4.600     2.0   15.0 ! PH for PE, PG headgroups
+PHE  CM   LJ9-6    0.300   4.953     2.0   15.0 ! = PH-CM
+PHE  CMD2 LJ9-6    0.300   4.7025    2.0   15.0 ! = PHE-CMD2
+PHE  CT   LJ9-6    0.320   4.9925    2.0   15.0 ! = PH-CT
+PHE  CT2  LJ9-6    0.280   4.8105    2.0   15.0 ! = PH-CT2
+PHE  GL   LJ9-6    0.300   4.750     2.0   15.0 ! = PH-GL
+PHE  EST1 LJ9-6    0.500   4.550     2.0   15.0 ! = PH-EST1
+PHE  EST2 LJ9-6    0.500   4.550     2.0   15.0 ! = PH-EST2
+PHE  W    LJ12-4   1.000   4.030     2.0   15.0 ! = PH-W
+#
+NH   CM   LJ9-6    0.33    4.553     2.0   15.0
+NH   CMD2 LJ9-6    0.30    4.3025    2.0   15.0
+NH   CT2  LJ9-6    0.32    4.4105    2.0   15.0
+NH   CT   LJ9-6    0.34    4.5925    2.0   15.0
+#
+NH   NH   LJ9-6    1.100   4.600     2.0   15.0
+NH   PHE  LJ9-6    1.200   3.800     2.0   15.0
+NH   GL   LJ9-6    0.750   4.190     2.0   15.0
+NH   EST1 LJ9-6    0.850   4.110     2.0   15.0
+NH   EST2 LJ9-6    0.850   4.110     2.0   15.0
+NH   W    LJ12-4   0.800   3.950     2.0   15.0
+# WORKING PARAMETERS (not yet fixed)
+GL   SOD  LJ12-4   0.640   4.4385    2.0   15.0 # taken from GL-W
+OA   SOD  LJ12-4   0.700   3.950     2.0   15.0 # taken from OA-W
+EST1 SOD  LJ12-4   0.820   4.290     2.0   15.0 # taken from EST-W
+EST2 SOD  LJ12-4   0.820   4.290     2.0   15.0
+CMD2 SOD  LJ12-4   0.270   4.188     2.0   15.0 # taken from CMD2-W
+CT2  SOD  LJ12-4   0.290   4.296     2.0   15.0 # taken from CT2-W
+PHE  SOD  LJ12-4   1.700   4.030     2.0   15.0 ! = PH-W
+#
+OB   CT   LJ9-6    0.400   4.324     2.0   15.0
+OB   CM   LJ9-6    0.360   4.170     2.0   15.0
+OB   CMD2 LJ9-6    0.320   4.044     2.0   15.0
+OB   CT2  LJ9-6    0.360   4.152     2.0   15.0
+OA   CMD2 LJ9-6    0.365   3.859     2.0   15.0
+#
+OB   OB   LJ9-6    0.595   4.083     2.0   15.0 # taken from EOH-EOH
+OB   OA   LJ9-6    0.517   3.898     2.0   15.0
+PHE  OA   LJ9-6    0.600   3.800     2.0   15.0
+PHE  OB   LJ9-6    0.600   3.850     2.0   15.0
+OA   GL   LJ9-6    0.700   4.202     2.0   15.0
+OB   GL   LJ9-6    0.700   4.2945    2.0   15.0
+OA   EST1 LJ9-6    0.600   4.099     2.0   15.0
+OA   EST2 LJ9-6    0.600   4.099     2.0   15.0
+OB   EST1 LJ9-6    0.600   4.1915    2.0   15.0
+OB   EST2 LJ9-6    0.600   4.1915    2.0   15.0
+OB   W    LJ12-4   0.500   4.140     2.0   15.0
+OB   SOD  LJ12-4   0.500   4.140     2.0   15.0
+## for PE/PC mixture
+PH   PHE  LJ9-6    1.400   5.000     2.0   15.0
+NH   PH   LJ9-6    1.200   3.800     2.0   15.0 # = NH - PHE
+NC   PHE  LJ9-6    1.150   4.200     2.0   15.0 # = NC - PH
+NC   NH   LJ9-6    0.880   5.175     2.0   15.0
+<<
+
+<end>

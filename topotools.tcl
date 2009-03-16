@@ -6,21 +6,49 @@
 # - topotools.tcl : use namespace variables, to cache metadata for faster execution.
 #                   e.g. store lastmol/lastsel and if it the same as before, reuse data 
 #                   that is present, or else invalidate cache etc.
+#                   some operations on bonds can be very slow.
 #                   need to add a generic API for that, and options to clear and avoid caching.
-# - topoatoms.tcl : provide frontend to atom name/types/numbers similar to bonds/angles/...
 # - topogmx.tcl   : interface to gromacs (at least for postprocessing)
-# - topoamber.tcl : 
+# - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
 #
-package provide topotools 1.0
-
-###################################################
-# main frontend command.
-###################################################
 
 namespace eval ::TopoTools:: {
-    variable version 1.0; # for allowing compatibility checks in scripts depending on this 
+    # XXX: scratch dir code from vmd movie maker.
+    # perhaps we should have a global setting
+    # in VMD with a designated scratch area??
+    # if not, perhaps we should use the tcl 
+    # fileutil package instead. it also has a
+    # tempfilename generation method.
+    if [info exists env(TMPDIR)] {
+        set workdir $env(TMPDIR)
+    } else {
+        switch [vmdinfo arch] { 
+            WIN64 -
+            WIN32 {
+                set workdir "c:/"
+            }
+            MACOSXX86_64 -
+            MACOSXX86 -
+            MACOSX {
+                set workdir "/"
+            }
+            default {
+                set workdir "/tmp"
+            } 
+        }
+    }
+    # for allowing compatibility checks in scripts 
+    # depending on this package. we'll have to expect
+    variable version 1.0
+    # location of additional data files containing 
+    # force field parameters or topology data.
+    variable datadir $env(TOPOTOOLSDIR)
+    # location for temporary data files.
+    variable tmpdir $workdir
+    # print a citation reminder in case the CG-CMM is used, but only once.
+    variable cgcmmciteme 1
 }
 
 # angle definition list comparison function
@@ -74,7 +102,7 @@ proc ::TopoTools::sortsomething {what sel} {
     }
 }
 
-
+# help/usage/error message and online documentation.
 proc ::TopoTools::usage {} {
     vmdcon -info "usage: topo <command> \[args...\] <flags>"
     vmdcon -info ""
@@ -88,6 +116,10 @@ proc ::TopoTools::usage {} {
     vmdcon -info ""
     vmdcon -info "commands:"
     vmdcon -info "  help                    prints this message"
+    vmdcon -info ""
+    vmdcon -info "  numatoms                returns the number of unique atoms."
+    vmdcon -info "  numatomtypes            returns the number of atom types."
+    vmdcon -info "  atomtypenames           returns the list of atom types names."
     vmdcon -info ""
     vmdcon -info "  numbonds                returns the number of unique bonds."
     vmdcon -info "  numbondtypes            returns the number of bond types."
@@ -135,10 +167,10 @@ proc ::TopoTools::usage {} {
     vmdcon -info ""
     vmdcon -info ""
     vmdcon -info "  readlammpsdata <filename> \[<atomstyle>\]"
-    vmdcon -info "      read atom properties, bond, angle, dihedral and other related data"
+    vmdcon -info "      read atom coordinates, properties, bond, angle, dihedral and other related data"
     vmdcon -info "      from a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
     vmdcon -info "      parameter. default value is 'full'."
-    vmdcon -info "      the molecule this info is being added to must have a matching number of atoms."
+    vmdcon -info "      this subcommand creates a new molecule and returns the molecule id or -1 on failure."
     vmdcon -info "      the -sel parameter is currently ignored."
     vmdcon -info ""
     vmdcon -info "  writelammpsdata <filename> \[<atomstyle>\]"
@@ -246,6 +278,24 @@ proc topo { args } {
         set cmd help
     }
 
+    if {[string equal $cmd readlammpsdata]} {
+        set style atom
+        if {[llength $newargs] < 1} {
+            vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
+            ::TopoTools::usage
+            return
+        }
+        set fname [lindex $newargs 0]
+        if {[llength $newargs] > 1} {
+            set style [lindex $newargs 1]
+        }
+        set retval [::TopoTools::readlammpsdata $fname $style]
+        if {[info exists sel]} {
+            $sel delete
+        }
+        return $retval
+    }
+
     if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
@@ -259,6 +309,13 @@ proc topo { args } {
 
     # branch out to the various subcommands
     switch -- $cmd {
+        numatoms      -
+        numatomtypes  -
+        atomtypenames {
+            if {[llength $newargs] < 1} {set newargs none}
+            set retval [::TopoTools::atominfo $cmd $sel $newargs]
+        }
+
         getbondlist   -
         bondtypenames -
         numbondtypes  -
@@ -475,21 +532,7 @@ proc topo { args } {
                             [lindex $newargs 3] ]
         }
 
-        readlammpsdata {
-            set style atom
-            if {[llength $newargs] < 1} {
-                vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
-                ::TopoTools::usage
-                return
-            }
-            set fname [lindex $newargs 0]
-            if {[llength $newargs] > 1} {
-                set style [lindex $newargs 1]
-            }
-            set retval [::TopoTools::readlammpsdata $molid $fname $style $sel]
-        }
-
-        writelammpsdata {
+        writelammpsdata { ;# NOTE: readlammpsdata is far above as it does not need sel or molid
             set style atom
             if {[llength $newargs] < 1} {
                 vmdcon -error "Not enough arguments for 'topo writelammpsdata'"
@@ -514,8 +557,15 @@ proc topo { args } {
     return $retval
 }
 
+# load middleware API
+source [file join $env(TOPOTOOLSDIR) topoatoms.tcl]
 source [file join $env(TOPOTOOLSDIR) topobonds.tcl]
 source [file join $env(TOPOTOOLSDIR) topoangles.tcl]
 source [file join $env(TOPOTOOLSDIR) topodihedrals.tcl]
 source [file join $env(TOPOTOOLSDIR) topoimpropers.tcl]
+# load high-level API
 source [file join $env(TOPOTOOLSDIR) topolammps.tcl]
+source [file join $env(TOPOTOOLSDIR) topocgcmm.tcl]
+
+package provide topotools $::TopoTools::version
+
