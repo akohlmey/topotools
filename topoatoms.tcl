@@ -9,7 +9,7 @@
 # we list and count only bonds that are entirely within the selection.
 proc ::TopoTools::atominfo {infotype sel {flag none}} {
 
-    set atomtypes [lsort -ascii -unique [sel get type]]
+    set atomtypes [lsort -ascii -unique [$sel get type]]
 
     switch $infotype {
         numatoms      { return [$sel num] }
