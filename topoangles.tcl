@@ -74,7 +74,7 @@ proc ::TopoTools::setanglelist {sel anglelist} {
         }
     }
 
-    # append new ones, but only those contained in $sel
+    # append new ones, but only those fully contained in $sel
     foreach angle $anglelist {
         lassign $angle t a b c 
 

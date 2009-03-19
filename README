@@ -7,8 +7,8 @@ topologies (i.e. bonds, angles, dihedrals, etc. and
 their corresponding properties (type, order, etc.).
 
 TODO:
-  - topo atomtypes <sel>
-  - topo atomtypenames <sel>
   - topo copybonds <fromsel> <tosel>
+  - topo guessbonds <sel>  (use bondsrecalc and restore bonds outside the selection)
+  - topo guessangles <sel> (use bond info -> assign angle to all pairs of bonds sharing an atom)
   - proper documentation and a tutorial
   - more tools to read/write custom topology files (e.g. gromacs top?, amber parmtop?)

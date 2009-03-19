@@ -30,25 +30,8 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     # create an empty molecule and timestep
     set mol -1
     if {[catch {mol new atoms $lammps(atoms)} mol]} {
-        variable tmpdir
-        set fn [file join $tmpdir tmpdummy.xyz]
-        # XXX temporarily inserted for backward compatibility.
-        # XXX until john approves the 'mol new atoms <num>' code.
-        if {[catch {open $fn w} tmp]} {
-            vmdcon -error "readlammpsdata: problem writing to temp file $fn: $tmp"
-            return -1
-        }
-        puts $tmp " $lammps(atoms)"
-        puts $tmp "temporary file"
-        for {set i 0} {$i < $lammps(atoms)} {incr i} {
-            puts $tmp "0  0.0 0.0 0.0"
-        }
-        close $tmp
-        if {[catch {mol new $fn type xyz waitfor all} mol]} {
-            vmdcon -error "readlammpsdata: problem reading temp file $fn: $mol"
-            return -1
-        }
-        file delete -force $fn
+        vmdcon -error "readlammpsdata: problem creating empty molecule: $mol"
+        return -1
     } else {
         animate dup $mol
     }
@@ -75,7 +58,11 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*Velocities} $line ]} {
-            # XXX: FIXME.
+            set lineno [readlammpsvelocities $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -error "readlammpsdata: error reading Velocities section."
+                return -1
+            }
         } elseif {[regexp {^\s*Masses} $line ]} {
             set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lineno]
             if {$lineno < 0} {
@@ -161,7 +148,7 @@ proc ::TopoTools::readlammpsheader {fp} {
         } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+ylo yhi} $line \
                         x lammps(ylo) lammps(yhi)] } {
         } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+zlo zhi} $line \
-                        x lammps(zlo) lammps(hi)] } {
+                        x lammps(zlo) lammps(zhi)] } {
         } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+xlo xhi} $line x lammps(xy) lammps(xz) lammps(yz)] } {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
         } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
@@ -291,6 +278,42 @@ proc ::TopoTools::readlammpsmasses {fp mol numtypes lineno} {
     }
     return $lineno
 }
+
+# parse velocities section
+proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
+    set numatoms [$sel num]
+    set velocitydata {}
+
+    vmdcon -info "parsing LAMMPS Velocities section."
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+        set vx 0.0
+        set vy 0.0
+        set vz 0.0
+        set veldata {}
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid vx vy vz 
+
+            if {$atomid > $numatoms} {
+                vmdcon -error "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
+                return -1
+            }
+            lappend veldata [list $atomid $vx $vy $vz]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    $sel set {user vx vy vz} [lsort -integer -index 0 $veldata]
+    return $lineno
+}
+
 
 # parse bond section
 proc ::TopoTools::readlammpsbonds {fp sel numbonds lineno} {
