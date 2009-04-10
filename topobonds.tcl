@@ -67,7 +67,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
 
     clearbonds $sel
     set nbnd [llength $bondlist]
-    if {$nbnd == 0} { return }
+    if {$nbnd == 0} { return 0}
     # set defaults
     set n 0
     set t unknown
@@ -79,6 +79,54 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
     set fract  [expr {100.0/$nbnd}]
     set deltat 2000
     set newt   $deltat 
+
+    # special optimization for "all" selection.
+    if {[string equal "all" [$sel text]]} {
+        set nulllist {}
+        for {set i 0} {$i < [$sel num]} {incr i} {
+            set blist($i) $nulllist
+            set olist($i) $nulllist
+            set tlist($i) $nulllist
+        }
+        foreach bond $bondlist {
+            incr i
+            switch $flag {
+                type   {lassign $bond a b t  }
+                order  {lassign $bond a b o  }
+                both   {lassign $bond a b t o}
+                lammps {lassign $bond n a b t}
+                none   {lassign $bond a b    }
+            }
+            lappend blist($a) $b
+            lappend blist($b) $a
+            lappend olist($a) $o
+            lappend olist($b) $o
+            lappend tlist($a) $t
+            lappend tlist($b) $t
+        }
+        set dlist {}
+        for {set i 0} {$i < [$sel num]} {incr i} {
+            lappend dlist $blist($i)
+        }
+        $sel setbonds $dlist
+        set dlist {}
+        for {set i 0} {$i < [$sel num]} {incr i} {
+            lappend dlist $olist($i)
+        }
+        $sel setbondorders $dlist
+        set dlist {}
+        for {set i 0} {$i < [$sel num]} {incr i} {
+            lappend dlist $tlist($i)
+        }
+        $sel setbondtypes $dlist
+        return 0
+    }
+
+    # XXX: fixme!
+    # using addbond is very inefficient with a large number of bonds
+    # that are being added. it is better to fill the corresponding
+    # bondlists directly. the code above should be better, but uses
+    # much more memory and needs to be generalized.
 
     # XXX: add sanity check on data format
     foreach bond $bondlist {
@@ -99,7 +147,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
         }
         addbond $mol $a $b $t $o
     }
-    return
+    return 0
 }
 
 # guess bonds type names from atom types.
