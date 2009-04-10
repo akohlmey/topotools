@@ -7,6 +7,7 @@ topologies (i.e. bonds, angles, dihedrals, etc. and
 their corresponding properties (type, order, etc.).
 
 TODO:
+  - fix "topo setbonds" to be more efficient for large sets of bonds to be added.
   - topo copybonds <fromsel> <tosel>
   - topo guessbonds <sel>  (use bondsrecalc and restore bonds outside the selection)
   - topo guessangles <sel> (use bond info -> assign angle to all pairs of bonds sharing an atom)

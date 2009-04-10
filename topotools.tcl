@@ -279,7 +279,7 @@ proc topo { args } {
     }
 
     if {[string equal $cmd readlammpsdata]} {
-        set style atom
+        set style full
         if {[llength $newargs] < 1} {
             vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
             ::TopoTools::usage
@@ -288,6 +288,11 @@ proc topo { args } {
         set fname [lindex $newargs 0]
         if {[llength $newargs] > 1} {
             set style [lindex $newargs 1]
+        }
+        if {[::TopoTools::checklammpsstyle $style]} {
+            vmdcon -error "Atom style '$style' not supported."
+            ::TopoTools::usage
+            return
         }
         set retval [::TopoTools::readlammpsdata $fname $style]
         if {[info exists sel]} {
@@ -532,8 +537,8 @@ proc topo { args } {
                             [lindex $newargs 3] ]
         }
 
-        writelammpsdata { ;# NOTE: readlammpsdata is far above as it does not need sel or molid
-            set style atom
+        writelammpsdata { ;# NOTE: readlammpsdata is handled above to bypass check for sel/molid.
+            set style full
             if {[llength $newargs] < 1} {
                 vmdcon -error "Not enough arguments for 'topo writelammpsdata'"
                 ::TopoTools::usage
@@ -542,6 +547,11 @@ proc topo { args } {
             set fname [lindex $newargs 0]
             if {[llength $newargs] > 1} {
                 set style [lindex $newargs 1]
+            }
+            if {[::TopoTools::checklammpsstyle $style]} {
+                vmdcon -error "Atom style '$style' not supported."
+                ::TopoTools::usage
+                return
             }
             set retval [::TopoTools::writelammpsdata $molid $fname $style $sel]
         }
