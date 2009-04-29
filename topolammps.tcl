@@ -143,13 +143,13 @@ proc ::TopoTools::readlammpsheader {fp} {
         } elseif { [regexp {^\s*(\d+)\s+dihedral types} $line x lammps(dihedraltypes)] } {
         } elseif { [regexp {^\s*(\d+)\s+improper types} $line x lammps(impropertypes)] } {
         } elseif { [regexp {^\s*(\d+)\s+extra bond per atom} $line x lammps(xtrabond)] } {
-        } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+xlo xhi} $line \
+        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+xlo xhi} $line \
                         x lammps(xlo) lammps(xhi)] } {
-        } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+ylo yhi} $line \
+        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+ylo yhi} $line \
                         x lammps(ylo) lammps(yhi)] } {
-        } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+zlo zhi} $line \
+        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+zlo zhi} $line \
                         x lammps(zlo) lammps(zhi)] } {
-        } elseif { [regexp {^\s*([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+([-[:digit:].e+]+)\s+xlo xhi} $line x lammps(xy) lammps(xz) lammps(yz)] } {
+        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+xlo xhi} $line x lammps(xy) lammps(xz) lammps(yz)] } {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
         } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
             seek $fp $offs start
