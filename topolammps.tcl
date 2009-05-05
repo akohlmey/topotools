@@ -287,6 +287,7 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
     vmdcon -info "parsing LAMMPS Velocities section."
 
     set curatoms 0
+    set veldata {}
     while {[gets $fp line] >= 0} {
         incr lineno
 
@@ -294,7 +295,6 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
         set vx 0.0
         set vy 0.0
         set vz 0.0
-        set veldata {}
 
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
@@ -310,7 +310,9 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
         }
         if {$curatoms >= $numatoms} break
     }
-    $sel set {user vx vy vz} [lsort -integer -index 0 $veldata]
+    if { [catch {$sel set {user vx vy vz} [lsort -integer -index 0 $veldata]} errmsg] } {
+        vmdcon -warn "readlammpsvelocities: problems assigning velocities. skipping..."
+    }
     return $lineno
 }
 
