@@ -93,8 +93,16 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -error "readlammpsdata: error reading Impropers section."
                 return -1
             }
-        } elseif {[regexp {^\s*((Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
-            # add code to skip silently.
+        } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(atomtypes) $lineno] 
+        } elseif {[regexp {^\s*(Bond Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno] 
+        } elseif {[regexp {^\s*(Angle Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+        } elseif {[regexp {^\s*(Dihedral Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(Improper Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else { 
@@ -109,6 +117,20 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     return $mol
 }
 
+# skip over a given number of non-empty, non-comment lines
+proc ::TopoTools::skiplammpslines {fp num lineno} {
+
+    while {[gets $fp line] >= 0} {
+        if {$num <= 0} break
+        incr lineno
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+          incr num -1
+        }
+    }
+    return $lineno
+}
 
 # read lammps header section from opened file
 # and return as an array.
