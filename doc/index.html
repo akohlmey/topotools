@@ -2,6 +2,8 @@
 <!--#include virtual="/include/header-over.shtml"-->
 
 <!-- CONTENT STARTS HERE -->
+
+<h3>Main command interface</h3>
     <pre>
  usage: topo &lt;command&gt; [args...] &lt;flags&gt;
  
@@ -74,6 +76,43 @@
       parameter ('angle', 'atomic', 'bond', 'charge', 'full', 'molecular'). default value is 'full'.
       Only data that is present is written. 
 
+</pre>
+
+<h3>Utility functions:</h3>
+These are useful and convenient tools written on top of the topotools API.
+<h4>mergemols</h4>
+Combines multiple separate molecules into one file. Example usage:
+
+<pre>
+package require topotools 1.0
+
+# load to be merged molecules into VMD
+set midlist {}
+set mol [mol new part1.psf waitfor all]
+mol addfile part1.pdb
+lappend midlist $mol
+set mol [mol new part2.psf waitfor all]
+mol addfile part2.pdb
+lappend midlist $mol
+
+# do the magic
+set mol [TopoTools::mergemols $midlist]
+animate write psf merged.psf $mol
+animate write pdb merged.pdb $mol
+</pre>
+
+<h4>replicatemol</h4>
+Replicate the current unitcell according to integer replicate counts.
+
+<pre>
+package require topotools 1.0
+
+# load molecule
+set mol [mol new pegc12e8-small.xml type hoomd waitfor all]
+
+# do the magic
+set newmol [::TopoTools::replicatemol $mol 2 2 1 ]
+animate write hoomd replicated.xml $newmol
 </pre>
 
 <h3>Author</h3>
