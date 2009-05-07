@@ -49,57 +49,10 @@ namespace eval ::TopoTools:: {
     variable tmpdir $workdir
     # print a citation reminder in case the CG-CMM is used, but only once.
     variable cgcmmciteme 1
-}
 
-# angle definition list comparison function
-proc ::TopoTools::compareangles {a b} {
-    if {[lindex $a 1] < [lindex $b 1]} {
-        return -1
-    } elseif {[lindex $a 1] > [lindex $b 1]} {
-        return 1
-    } else {
-        if {[lindex $a 2] < [lindex $b 2]} {
-            return -1
-        } elseif {[lindex $a 2] > [lindex $b 2]} {
-            return 1
-        } else {
-            if {[lindex $a 3] < [lindex $b 3]} {
-                return -1
-            } elseif {[lindex $a 3] > [lindex $b 3]} {
-                return 1
-            } else {
-                if {[llength $a] == 4} {
-                    return 0
-                } else {
-                    if {[lindex $a 3] < [lindex $b 3]} {
-                        return -1
-                    } elseif  {[lindex $a 3] > [lindex $b 3]} {
-                        return 1
-                    } else {
-                        return 0
-                    }
-                }
-            }
-        }
-    }
-}
-
-# sort angle/dihedral/improper list and remove duplicates
-proc ::TopoTools::sortsomething {what sel} {
-    switch $what {
-        angle     {
-            setanglelist $sel [lsort -unique -command compareangles \
-                                     [angleinfo getanglelist $sel]]
-        }
-        dihedral  {
-            setdihedrallist $sel [lsort -unique -command comparedihedrals \
-                                     [dihedralinfo getdihedrallist $sel]]
-        }
-        improper  {
-            setimproperlist $sel [lsort -unique -command compareimpropers \
-                                     [improperinfo getimproperlist $sel]]
-        }
-    }
+    # utility command exports. the other commands are
+    # best used through the "topo" frontend command.
+    namespace export mergemols replicatemol
 }
 
 # help/usage/error message and online documentation.
@@ -186,7 +139,7 @@ proc ::TopoTools::usage {} {
 # this takes care of all sanity checks on arguments and
 # then dispatches the subcommands to the corresponding
 # subroutines. 
-proc topo { args } {
+proc TopoTools::topo { args } {
 
     set molid -1
     set seltxt all
@@ -282,19 +235,19 @@ proc topo { args } {
         set style full
         if {[llength $newargs] < 1} {
             vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
-            ::TopoTools::usage
+            usage
             return
         }
         set fname [lindex $newargs 0]
         if {[llength $newargs] > 1} {
             set style [lindex $newargs 1]
         }
-        if {[::TopoTools::checklammpsstyle $style]} {
+        if {[checklammpsstyle $style]} {
             vmdcon -error "Atom style '$style' not supported."
-            ::TopoTools::usage
+            usage
             return
         }
-        set retval [::TopoTools::readlammpsdata $fname $style]
+        set retval [readlammpsdata $fname $style]
         if {[info exists sel]} {
             $sel delete
         }
@@ -318,7 +271,7 @@ proc topo { args } {
         numatomtypes  -
         atomtypenames {
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::atominfo $cmd $sel $newargs]
+            set retval [atominfo $cmd $sel $newargs]
         }
 
         getbondlist   -
@@ -326,7 +279,7 @@ proc topo { args } {
         numbondtypes  -
         numbonds {
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::bondinfo $cmd $sel $newargs]
+            set retval [bondinfo $cmd $sel $newargs]
         }
 
         setbondlist  {
@@ -336,24 +289,24 @@ proc topo { args } {
                 set newargs [lrange $newargs 1 end]
             }
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::setbondlist $sel $flag [lindex $newargs 0]]
+            set retval [setbondlist $sel $flag [lindex $newargs 0]]
         }
 
         retypebonds {
-            set retval [::TopoTools::retypebonds $sel] 
+            set retval [retypebonds $sel] 
         }
 
         clearbonds {
-            set retval [::TopoTools::clearbonds $sel] 
+            set retval [clearbonds $sel] 
         }
 
         addbond {
             if {[llength $newargs] < 2} {
                 vmdcon -error "Not enough arguments for 'topo addbond'"
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::addbond $molid \
+            set retval [addbond $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             $bondtype $bondorder]
@@ -362,10 +315,10 @@ proc topo { args } {
         delbond {
             if {[llength $newargs] < 2} {
                 vmdcon -error "Not enough arguments for 'topo addbond'"
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::delbond $molid \
+            set retval [delbond $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             $bondtype $bondorder]
@@ -376,36 +329,36 @@ proc topo { args } {
         numangletypes  -
         numangles {
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::angleinfo $cmd $sel $newargs]
+            set retval [angleinfo $cmd $sel $newargs]
         }
 
         setanglelist  {
-            set retval [::TopoTools::setanglelist $sel [lindex $newargs 0]]
+            set retval [setanglelist $sel [lindex $newargs 0]]
         }
 
         retypeangles {
-            set retval [::TopoTools::retypeangles $sel] 
+            set retval [retypeangles $sel] 
         }
 
         sortangles {
-            set retval [::TopoTools::sortsomething angle $sel] 
+            set retval [sortsomething angle $sel] 
         }
 
         clearangles {
-            set retval [::TopoTools::clearangles $sel] 
+            set retval [clearangles $sel] 
         }
 
         addangle {
             set atype unknown
             if {[llength $newargs] < 3} {
                 vmdcon -error "Not enough arguments for 'topo addangle'"
-                ::TopoTools::usage
+                usage
                 return
             }
             if {[llength $newargs] > 3} {
                 set atype [lindex $newargs 3]
             }
-            set retval [::TopoTools::addangle $molid \
+            set retval [addangle $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] \
@@ -416,10 +369,10 @@ proc topo { args } {
             set atype unknown
             if {[llength $newargs] < 3} {
                 vmdcon -error "Not enough arguments for 'topo delangle'"
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::delangle $molid \
+            set retval [delangle $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] ]
@@ -430,36 +383,36 @@ proc topo { args } {
         numdihedraltypes  -
         numdihedrals {
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::dihedralinfo $cmd $sel $newargs]
+            set retval [dihedralinfo $cmd $sel $newargs]
         }
 
         setdihedrallist  {
-            set retval [::TopoTools::setdihedrallist $sel [lindex $newargs 0]]
+            set retval [setdihedrallist $sel [lindex $newargs 0]]
         }
 
         retypedihedrals {
-            set retval [::TopoTools::retypedihedrals $sel] 
+            set retval [retypedihedrals $sel] 
         }
 
         sortdihedrals {
-            set retval [::TopoTools::sortsomething dihedral $sel] 
+            set retval [sortsomething dihedral $sel] 
         }
 
         cleardihedrals {
-            set retval [::TopoTools::cleardihedrals $sel] 
+            set retval [cleardihedrals $sel] 
         }
 
         adddihedral {
             set atype unknown
             if {[llength $newargs] < 4} {
                 vmdcon -error "Not enough arguments for 'topo adddihedral'"
-                ::TopoTools::usage
+                usage
                 return
             }
             if {[llength $newargs] > 4} {
                 set atype [lindex $newargs 4]
             }
-            set retval [::TopoTools::adddihedral $molid \
+            set retval [adddihedral $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] \
@@ -471,10 +424,10 @@ proc topo { args } {
             set atype unknown
             if {[llength $newargs] < 4} {
                 vmdcon -error "Not enough arguments for 'topo deldihedral'"
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::deldihedral $molid \
+            set retval [deldihedral $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] \
@@ -486,36 +439,36 @@ proc topo { args } {
         numimpropertypes  -
         numimpropers {
             if {[llength $newargs] < 1} {set newargs none}
-            set retval [::TopoTools::improperinfo $cmd $sel $newargs]
+            set retval [improperinfo $cmd $sel $newargs]
         }
 
         setimproperlist  {
-            set retval [::TopoTools::setimproperlist $sel [lindex $newargs 0]]
+            set retval [setimproperlist $sel [lindex $newargs 0]]
         }
 
         retypeimpropers {
-            set retval [::TopoTools::retypeimpropers $sel] 
+            set retval [retypeimpropers $sel] 
         }
 
         sortimpropers {
-            set retval [::TopoTools::sortsomething improper $sel] 
+            set retval [sortsomething improper $sel] 
         }
 
         clearimpropers {
-            set retval [::TopoTools::clearimpropers $sel] 
+            set retval [clearimpropers $sel] 
         }
 
         addimproper {
             set atype unknown
             if {[llength $newargs] < 4} {
                 vmdcon -error "Not enough arguments for 'topo addimproper'"
-                ::TopoTools::usage
+                usage
                 return
             }
             if {[llength $newargs] > 4} {
                 set atype [lindex $newargs 4]
             }
-            set retval [::TopoTools::addimproper $molid \
+            set retval [addimproper $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] \
@@ -527,10 +480,10 @@ proc topo { args } {
             set atype unknown
             if {[llength $newargs] < 4} {
                 vmdcon -error "Not enough arguments for 'topo delimproper'"
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::delimproper $molid \
+            set retval [delimproper $molid \
                             [lindex $newargs 0] \
                             [lindex $newargs 1] \
                             [lindex $newargs 2] \
@@ -541,24 +494,24 @@ proc topo { args } {
             set style full
             if {[llength $newargs] < 1} {
                 vmdcon -error "Not enough arguments for 'topo writelammpsdata'"
-                ::TopoTools::usage
+                usage
                 return
             }
             set fname [lindex $newargs 0]
             if {[llength $newargs] > 1} {
                 set style [lindex $newargs 1]
             }
-            if {[::TopoTools::checklammpsstyle $style]} {
+            if {[checklammpsstyle $style]} {
                 vmdcon -error "Atom style '$style' not supported."
-                ::TopoTools::usage
+                usage
                 return
             }
-            set retval [::TopoTools::writelammpsdata $molid $fname $style $sel]
+            set retval [writelammpsdata $molid $fname $style $sel]
         }
 
         help -
         default {
-            ::TopoTools::usage
+            usage
         }
     }
     if {[info exists sel]} {
@@ -573,9 +526,19 @@ source [file join $env(TOPOTOOLSDIR) topobonds.tcl]
 source [file join $env(TOPOTOOLSDIR) topoangles.tcl]
 source [file join $env(TOPOTOOLSDIR) topodihedrals.tcl]
 source [file join $env(TOPOTOOLSDIR) topoimpropers.tcl]
+
 # load high-level API
 source [file join $env(TOPOTOOLSDIR) topolammps.tcl]
 source [file join $env(TOPOTOOLSDIR) topocgcmm.tcl]
+
+# load high-level utility functions
+source [file join $env(TOPOTOOLSDIR) topoutils.tcl]
+
+# load internal helper functions
+source [file join $env(TOPOTOOLSDIR) topohelpers.tcl]
+
+# insert the "topo" frontend command into the normal namespace
+interp alias {} topo {} ::TopoTools::topo
 
 package provide topotools $::TopoTools::version
 

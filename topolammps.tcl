@@ -104,7 +104,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         } elseif {[regexp {^\s*(Improper Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
-            # skip empty lines.
+            # skip empty lines silently
         } else { 
             vmdcon -error "readlammpsdata: unkown header line: $lineno : $line "
             vmdcon -error "readlammpsdata: cannot continue. "

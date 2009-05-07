@@ -6,10 +6,17 @@ A collection of tcl commands to manipulate and build
 topologies (i.e. bonds, angles, dihedrals, etc. and
 their corresponding properties (type, order, etc.).
 
+Please contact me, if you have any additional ideas
+or want to implement a specific feature.
+
 TODO:
-  - fix "topo setbonds" to be more efficient for large sets of bonds to be added.
+  - improve "topo setbonds" to be more efficient for large sets 
+    of bonds to be added.
   - topo copybonds <fromsel> <tosel>
-  - topo guessbonds <sel>  (use bondsrecalc and restore bonds outside the selection)
-  - topo guessangles <sel> (use bond info -> assign angle to all pairs of bonds sharing an atom)
+  - topo guessbonds <sel>  (use bondsrecalc and restore bonds 
+    outside the selection)
+  - topo guessangles <sel> (use bond info -> assign angle to all 
+    pairs of bonds sharing an atom)
   - proper documentation and a tutorial
-  - more tools to read/write custom topology files (e.g. gromacs top?, amber parmtop?)
+  - more tools to read/write custom topology files 
+    (e.g. gromacs top?, amber parmtop?)
