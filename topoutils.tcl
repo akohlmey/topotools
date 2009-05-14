@@ -24,7 +24,9 @@ proc ::TopoTools::mergemols {mids} {
         return -1
     }
 
-    set newmol mergedmol-[join $mids -]
+    # NOTE: we clamp length of the name to avoid a buffer
+    # overflow in older VMD versions.
+    set newmol [string range mergedmol-[join $mids -] 0 50]
     set mol -1
     if {[catch {mol new atoms $ntotal} mol]} {
         vmdcon -error "mergemols: could not create new molecule: $mol"
@@ -126,7 +128,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     set ntotal 0
     set natoms 0
     if {[catch {molinfo $mol get numatoms} natoms]} {
-        vmdcon -error "replicatemol: molecule id $m does not exist."
+        vmdcon -error "replicatemol: molecule id $mol does not exist."
         return -1
     } else {
         set ntotal [expr {$natoms * $nrepl}]
