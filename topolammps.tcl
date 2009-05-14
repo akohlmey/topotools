@@ -206,6 +206,8 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
         set atomtype 0
         set charge 0.0
         set mass 1.0 ; #  m=0.0 in MD gets us in trouble, so use a different default.
+        set radius 1.5 ; # default radius for unknown elements.
+        # XXX: we could have a guess(element|radius) utility for setting this to something better.
         set x 0.0
         set y 0.0
         set z 0.0
@@ -262,12 +264,12 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
                 return -1
             }
             lappend atomdata [list $atomid $resid $atomtype $atomtype $charge [expr {$xi*$boxx + $x}] \
-                                  [expr {$yi*$boxy + $y}] [expr {$zi*$boxz + $z}] $mass ]
+                                  [expr {$yi*$boxy + $y}] [expr {$zi*$boxz + $z}] $mass $radius ]
         }
         if {$curatoms >= $numatoms} break
     }
     vmdcon -info "applying atoms data."
-    $sel set {user resid name type charge x y z mass} [lsort -integer -index 0 $atomdata]
+    $sel set {user resid name type charge x y z mass radius} [lsort -integer -index 0 $atomdata]
     return $lineno
 }
 
