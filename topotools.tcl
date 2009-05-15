@@ -49,6 +49,9 @@ namespace eval ::TopoTools:: {
     variable tmpdir $workdir
     # print a citation reminder in case the CG-CMM is used, but only once.
     variable cgcmmciteme 1
+    # if nonzero, add a new representation with default settings,
+    # when creating a new molecule. similar to what "mol new" does.
+    variable newaddsrep 1
 
     # utility command exports. the other commands are
     # best used through the "topo" frontend command.

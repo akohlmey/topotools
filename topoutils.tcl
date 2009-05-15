@@ -91,6 +91,7 @@ proc ::TopoTools::mergemols {mids} {
     topo setimproperlist -molid $mol $improperlist
         
     mol reanalyze $mol
+    adddefaultrep $mol
     return $mol
 }
 
@@ -212,6 +213,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     topo setimproperlist -molid $newmol $improperlist
     
     mol reanalyze $newmol
+    adddefaultrep $mol
     return $newmol
 }
 

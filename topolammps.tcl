@@ -114,6 +114,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     }
     close $fp
     mol reanalyze $mol
+    adddefaultrep $mol
     return $mol
 }
 

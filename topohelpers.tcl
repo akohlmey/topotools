@@ -55,3 +55,16 @@ proc ::TopoTools::sortsomething {what sel} {
     }
 }
 
+# emulate the behavior of loading a molecule through
+# the regular "mol new" command.
+proc ::TopoTools::adddefaultrep {mol} {
+    variable newaddsrep
+    if {$newaddsrep} {
+        mol color [mol default color]
+        mol rep [mol default style]
+        mol selection [mol default selection]
+        mol material [mol default material]
+        mol addrep $mol
+    }
+    display resetview
+}
