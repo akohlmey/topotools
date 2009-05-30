@@ -90,8 +90,12 @@ proc ::TopoTools::mergemols {mids} {
     topo setdihedrallist -molid $mol $dihedrallist
     topo setimproperlist -molid $mol $improperlist
         
+    variable newaddsrep
     mol reanalyze $mol
-    adddefaultrep $mol
+    if {$newaddsrep} {
+        adddefaultrep $mol
+    }
+
     return $mol
 }
 
@@ -212,8 +216,12 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     topo setdihedrallist -molid $newmol $dihedrallist
     topo setimproperlist -molid $newmol $improperlist
     
+    variable newaddsrep
     mol reanalyze $newmol
-    adddefaultrep $mol
+    if {$newaddsrep} {
+        adddefaultrep $mol
+    }
+
     return $newmol
 }
 
