@@ -539,6 +539,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
 
     # write out supported data file sections
     writelammpsheader $fp [array get lammps]
+    writelammpsmasses $fp $sel
     writelammpsatoms $fp $sel $style
     set atomidmap  [$sel get serial]
     if {$lammps(bonds) > 0} {
@@ -581,46 +582,32 @@ proc ::TopoTools::writelammpsheader {fp flags} {
     return
 }
 
-# write atoms section
-proc ::TopoTools::writelammpsatoms {fp sel style} {
+# write masses section, but only if number of masses 
+# matches the number of atom types and if no mass is < 0.01
+proc ::TopoTools::writelammpsmasses {fp sel} {
 
-    vmdcon -info "writing LAMMPS Atoms section in style '$style'."
+    # first run the checks and build list of masses
+    set typemap  [lsort -unique -ascii [$sel get type]]
+    set masslist {}
+    set mol [$sel molid]
+    set idx [$sel list]
+    foreach type $typemap {
+        set tsel [atomselect $mol "(index $idx) and (type $type)"]
+        set mass [lsort -unique -real [$tsel get mass]]
+        $tsel delete
+        if {[llength $mass] != 1} return
+        if {$mass < 0.01} return
+        lappend masslist $mass
+    }
 
-    puts $fp " Atoms\n"
-    set typemap [lsort -unique -ascii [$sel get type]]
-    set resmap  [lsort -unique -ascii [$sel get residue]]
-    set atomid 0
-    foreach adat [$sel get {type residue charge x y z resname}] {
-        lassign $adat type residue charge x y z resname
-        incr atomid
-        set atomtype [expr 1 + [lsearch -sorted -ascii $typemap $type]]
-        set resid    [expr 1 + [lsearch -sorted -ascii $resmap $residue]]
-        switch $style {
-            atomic    { 
-                puts $fp [format "%d %d %.3f %.3f %.3f \# %s" \
-                              $atomid        $atomtype  $x $y $z $type] 
-            }
-            bond  -
-            angle -
-            molecular { 
-                puts $fp [format "%d %d %d %.3f %.3f %.3f \# %s %s" \
-                              $atomid $resid $atomtype  $x $y $z $type $resname] 
-            }
-            charge    { 
-                puts $fp [format "%d %d %.2f %.3f %.3f %.3f \# %s" \
-                              $atomid $atomtype $charge $x $y $z $type] 
-            }
-            full      { 
-                puts $fp [format "%d %d %d %.2f %.3f %.3f %.3f \# %s %s" \
-                              $atomid $resid $atomtype $charge $x $y $z $type $resname] 
-            }
-            default   {
-                # ignore this unsupported style
-                # XXX: add a way to flag an error. actually the test for 
-                #      supported lammps atom styles should be done on a
-                #      much higher level, so that we don't do unneeded work.
-            }
-        }
+    # we passed the test, write out what we learned.
+    vmdcon -info "writing LAMMPS Masses section."
+
+    puts $fp " Masses\n"
+    set typeid 1
+    foreach mass $masslist type $typemap {
+        puts $fp [format " %d %.3f \# %s" $typeid $mass $type]
+        incr typeid
     }
     puts $fp ""
     return
