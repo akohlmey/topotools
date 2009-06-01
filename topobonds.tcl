@@ -75,7 +75,6 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
     set mol [$sel molid]
     set a -1
     set b -1
-    set i 0
     set fract  [expr {100.0/$nbnd}]
     set deltat 2000
     set newt   $deltat 
@@ -89,7 +88,6 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
             set tlist($i) $nulllist
         }
         foreach bond $bondlist {
-            incr i
             switch $flag {
                 type   {lassign $bond a b t  }
                 order  {lassign $bond a b o  }
@@ -129,6 +127,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
     # much more memory and needs to be generalized.
 
     # XXX: add sanity check on data format
+    set i 0
     foreach bond $bondlist {
         incr i
         set time [clock clicks -milliseconds]
@@ -170,8 +169,13 @@ proc ::TopoTools::retypebonds {sel} {
 }
 
 
-# define a new bond or change and existing.
+# define a new bond or change an existing one.
 proc ::TopoTools::addbond {mol id1 id2 type order} {
+    if {$id1 == $id2} {
+        vmdcon -error "topology addbond: invalid atom indices: $id1 $id2"
+        return
+    }
+
     if {[catch {atomselect $mol "index $id1 $id2"} sel]} {
         vmdcon -error "topology addbond: Invalid atom indices: $sel"
         return
