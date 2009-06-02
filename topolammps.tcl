@@ -143,14 +143,19 @@ proc ::TopoTools::readlammpsheader {fp} {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0 
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 
-        lineno 0
+        lineno 0 cgcmm 0
     }
     set x {}
 
     vmdcon -info "parsing LAMMPS header."
 
-    # skip first header line
+    # first header line is skipped by LAMMPS. so we put a flag to 
+    # detect CMM style CG data files with additional information.
     gets $fp line
+    if {[string match "*CGCMM*" $line]} {
+        set lammps(cgcmm) 1
+        vmdcon -info "detected CGCMM style file. will try to parse additional data."
+    }
     set lineno 1
     set offs [tell $fp]
     set lammps(lineno) $lineno
@@ -199,7 +204,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
     set boxz 0.0
     lassign $boxdata boxx boxy boxz
 
-    vmdcon -info "parsing LAMMPS Atoms section."
+    vmdcon -info "parsing LAMMPS Atoms section with style '$style'."
 
     set curatoms 0
     while {[gets $fp line] >= 0} {
@@ -207,6 +212,8 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
 
         set atomid 0
         set resid 0
+        set atomname ""
+        set resname ""
         set atomtype 0
         set charge 0.0
         set mass 1.0 ; #  m=0.0 in MD gets us in trouble, so use a different default.
@@ -220,8 +227,11 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
         set zi 0
 
         if { [regexp {^\s*(\#.*|)$} $line ] } {
-            # skip empty lines.
+            # skip empty, whitespace or comment lines.
         } else {
+            if {[regexp {^(.*)\#\s*(\S+)(\s+(\S+))?} $line all nline atomname dummy resname]} {
+                set line $nline
+            }
             incr curatoms
             switch $style { # XXX: use regexp based parser to detect wrong formats.
 
@@ -267,13 +277,16 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
                 vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
                 return -1
             }
-            lappend atomdata [list $atomid $resid $atomtype $atomtype $charge [expr {$xi*$boxx + $x}] \
-                                  [expr {$yi*$boxy + $y}] [expr {$zi*$boxz + $z}] $mass $radius ]
+            if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
+            lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
+                                  [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
+                                  [expr {$zi*$boxz + $z}] $mass $radius ]
         }
         if {$curatoms >= $numatoms} break
     }
     vmdcon -info "applying atoms data."
-    $sel set {user resid name type charge x y z mass radius} [lsort -integer -index 0 $atomdata]
+    $sel set {user resid resname name type charge x y z mass radius} \
+        [lsort -integer -index 0 $atomdata]
     return $lineno
 }
 
@@ -613,7 +626,7 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
     return
 }
 
-# parse atom section
+# write atoms section
 proc ::TopoTools::writelammpsatoms {fp sel style} {
 
     vmdcon -info "writing LAMMPS Atoms section in style '$style'."
