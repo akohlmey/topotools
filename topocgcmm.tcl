@@ -189,3 +189,22 @@ proc ::TopoTools::citation_reminder {args} {
     }
     return
 }
+
+# little proc to convert the lj type flag to the LAMMPS version,
+# which is supported by both, LAMMPS and HOOMD.
+proc TopoTools::canonical_cgcmm_ljtype {ljtype} {
+    switch -exact -- $ljtype {
+        124    -
+        lj12_4 -
+        LJ12-4 { return lj12_4 }
+        126    -
+        lj12_6 -
+        LJ12-6 { return lj12_6 }
+        96    -
+        lj9_6 -
+        LJ9-6  { return lj9_6  }
+        default { return $ljtype }
+    }
+    return $ljtype
+}
+

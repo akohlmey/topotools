@@ -55,7 +55,10 @@ namespace eval ::TopoTools:: {
 
     # utility command exports. the other commands are
     # best used through the "topo" frontend command.
-    namespace export mergemols replicatemol
+    # part 1: operations on whole systems/selections
+    namespace export mergemols replicatemol 
+    # part 2: CGCMM forcefield tools
+    namespace export parse_cgcmm_parms parse_cgcmm_topo canonical_cgcmm_ljtype
 }
 
 # help/usage/error message and online documentation.
