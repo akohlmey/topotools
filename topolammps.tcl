@@ -633,13 +633,15 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
 
     puts $fp " Atoms\n"
     set typemap [lsort -unique -ascii [$sel get type]]
-    set resmap  [lsort -unique -ascii [$sel get residue]]
+    set resmap  [lsort -unique -integer [$sel get residue]]
     set atomid 0
     foreach adat [$sel get {type residue charge x y z resname}] {
         lassign $adat type residue charge x y z resname
+        set atomtype [lsearch -sorted -ascii $typemap $type]
+        set resid    [lsearch -sorted -integer $resmap $residue]
         incr atomid
-        set atomtype [expr 1 + [lsearch -sorted -ascii $typemap $type]]
-        set resid    [expr 1 + [lsearch -sorted -ascii $resmap $residue]]
+        incr atomtype
+        incr resid
         switch $style {
             atomic    { 
                 puts $fp [format "%d %d %.3f %.3f %.3f \# %s" \
