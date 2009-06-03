@@ -3,8 +3,44 @@
 
 <!-- CONTENT STARTS HERE -->
 
+<h3>Scope and usage</h3>
+<p>Starting with VMD version 1.8.7 it is now possible to store the complete topology
+information, i.e. not only bonds, but also angle, dihedral, and improper definitions
+as well as their force field type labels (if available). This now allows to do
+a large variety of modifications to topology data or even building topologies from
+scratch. The focus lies hereby on being able to perform many operations manually
+or scripted and thus being less focused on and optimized for biomolecules like psfgen.
+</p>
+
+<p>In combination with the new command <tt>mol new atoms &lt;number&</tt> it is now
+also possible to do many operations directly that previously required writing and 
+manipulating temporary files and reading them back into VMD, or even write complete
+molecule or simulation data readers in Tcl script. This is especially useful for
+file formats, where additional input from the user is required, for example reading
+LAMMPS format "data" (=topology) files, where the "style" of the <i>Atoms</i> section
+cannot be deduced from the data. Of course write support is also possible.</p>
+
+<p>The underlying Tcl script API in VMD itself had been designed to be minimalistic,
+since most operations are not computationally demanding and could be programmed with
+scripting. The <b>topotools</b> packages is supposed to provide a <i>middleware</i>, i.e.
+flexible script commands that make it easier to use the existing interface.</p>
+
+<p>Finally <b>topotools</b> also contains some utilities and applications for more 
+complex operations like combining multiple molecules (=different files) or 
+multiple selections into one new molecule, or building larger systems by replicating
+a given unitcell.</p>
+
+
 <h3>Main command interface</h3>
-    <pre>
+<p>This is the <i>middleware</i> part of the package that provides abstract 
+operations on top of the low-level API. This is modeled after the example
+of the internal <tt>mol</tt> and <tt>molinfo</tt> command, or the 
+<tt>pbc</tt> command from the PBCTools package to provide a somewhat 
+consistent interface to the functionality. All command lines start with 
+the <tt>topo</tt> keyword and then take a subcommand name to determine
+the actual functionality that is requested.</p>
+
+<pre>
  usage: topo &lt;command&gt; [args...] &lt;flags&gt;
  
  common flags:
@@ -79,10 +115,18 @@
 </pre>
 
 <h3>Utility functions:</h3>
-These are useful and convenient tools written on top of the topotools API.
-<h4>mergemols</h4>
-Combines multiple separate molecules into one file. Example usage:
+<p>These are useful and convenient tools written on top of the topotools API.
+You can access them directly with their <tt>::TopoTools::</tt> namespace
+prefix or use <tt>namespace import ::TopoTools::&lt;pattern&gt;</tt> to
+import some or all of them into your current namespace.</p>
 
+<h4>mergemols</h4>
+Combines multiple separate molecules into one file. Usage:<br>
+<pre>
+  ::TopoTools::mergemols &lt;list of molecule ids&gt;
+</pre>
+
+Example usage:
 <pre>
 package require topotools 1.0
 
@@ -96,18 +140,48 @@ mol addfile part2.pdb
 lappend midlist $mol
 
 # do the magic
-set mol [TopoTools::mergemols $midlist]
+set mol [::TopoTools::mergemols $midlist]
 animate write psf merged.psf $mol
 animate write pdb merged.pdb $mol
 </pre>
 
-<h4>replicatemol</h4>
-Replicate the current unitcell according to integer replicate counts.
 
+<h4>selections2mol</h4>
+This is very similar to the previous <tt>mergemols</tt> command. It combines 
+one or multiple atom selections, which can be taken from different molecules, 
+into one new molecule. Usage:<br>
+<pre>
+  ::TopoTools::selections2mol &lt;list of atom selection functions&gt;
+</pre>
+
+Example usage:
 <pre>
 package require topotools 1.0
 
-# load molecule
+set sellist {}
+set sel [atomselect 0 protein]
+lappend sellist $sel
+set sel [atomselect 0 protein]
+$sel frame 200
+$sel moveby {50.0 50.0 0.0}
+lappend sellist $sel
+set sel [atomselect 1 "same residue as (within 3.0 of chain L)"]
+lappend sellist $sel
+
+# do the magic
+set mol [::TopoTools::selections2mol $sellist]
+animate write psf combinedsel.psf $mol
+animate write pdb combinedsel.pdb $mol
+</pre>
+
+
+<h4>replicatemol</h4>
+Replicate the current unitcell according to integer replicate counts.
+This currently assumes an orthorhombic cell.
+<pre>
+package require topotools 1.0
+
+# load a molecule
 set mol [mol new pegc12e8-small.xml type hoomd waitfor all]
 
 # do the magic
