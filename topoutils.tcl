@@ -8,13 +8,19 @@
 # to form one new "molecule", i.e. system.
 proc ::TopoTools::mergemols {mids} {
 
-    # compute total number of atoms.
+    # compute total number of atoms and collect
+    # offsets and number of atoms of each piece.
     set ntotal 0
+    set offset {}
+    set numlist {}
     foreach m $mids {
         if {[catch {molinfo $m get numatoms} natoms]} {
             vmdcon -error "molecule id $m does not exist."
             return -1
         } else {
+            # record number of atoms and offsets for later use.
+            lappend offset $ntotal
+            lappend numlist $natoms
             incr ntotal $natoms
         }
     }
@@ -24,9 +30,7 @@ proc ::TopoTools::mergemols {mids} {
         return -1
     }
 
-    # NOTE: we clamp length of the name to avoid a buffer
-    # overflow in older VMD versions.
-    set newmol [string range mergedmol-[join $mids -] 0 50]
+    # create new molecule to hold data.
     set mol -1
     if {[catch {mol new atoms $ntotal} mol]} {
         vmdcon -error "mergemols: could not create new molecule: $mol"
@@ -34,18 +38,16 @@ proc ::TopoTools::mergemols {mids} {
     } else {
         animate dup $mol
     }
-    mol rename $mol $newmol
+    mol rename $mol [string range mergedmol-[join $mids -] 0 50]
 
     # copy data over piece by piece
-    set ntotal 0
     set bondlist {}
     set anglelist {}
     set dihedrallist {}
     set improperlist {}
-    foreach m $mids {
+    foreach m $mids off $offset num $numlist {
         set oldsel [atomselect $m all]
-        set newsel [atomselect $mol \
-                        "index $ntotal to [expr $ntotal + [$oldsel num] - 1]"]
+        set newsel [atomselect $mol "index $off to [expr {$off+$num-1}]"]
 
         # per atom props
         set cpylist {name type mass charge radius element x y z \
@@ -56,30 +58,27 @@ proc ::TopoTools::mergemols {mids} {
         set list [topo getbondlist both -molid $m]
         foreach l $list {
             lassign $l a b t o
-            lappend bondlist [list [expr {$a+$ntotal}] [expr {$b+$ntotal}] $t $o]
+            lappend bondlist [list [expr {$a+$off}] [expr {$b+$off}] $t $o]
         }
 
         set list [topo getanglelist -molid $m]
         foreach l $list {
             lassign $l t a b c 
-            lappend anglelist [list $t [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
-                                    [expr {$c + $ntotal}]]
+            lappend anglelist [list $t [expr {$a+$off}] [expr {$b+$off}] [expr {$c+$off}]]
         }
 
         set list [topo getdihedrallist -molid $m]
         foreach l $list {
             lassign $l t a b c d
-            lappend dihedrallist [list $t [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
-                                    [expr {$c + $ntotal}] [expr {$d + $ntotal}]]
+            lappend dihedrallist [list $t [expr {$a+$off}] [expr {$b+$off}] \
+                                    [expr {$c+$off}] [expr {$d+$off}]]
         }
         set list [topo getimproperlist -molid $m]
         foreach l $list {
             lassign $l t a b c d
-            lappend improperlist [list $t [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
-                                    [expr {$c + $ntotal}] [expr {$d + $ntotal}]]
+            lappend improperlist [list $t [expr {$a + $off}] [expr {$b + $off}] \
+                                    [expr {$c + $off}] [expr {$d + $off}]]
         }
-
-        incr ntotal [$oldsel num]            
         $oldsel delete
         $newsel delete
     }
@@ -89,7 +88,121 @@ proc ::TopoTools::mergemols {mids} {
     topo setanglelist -molid $mol $anglelist
     topo setdihedrallist -molid $mol $dihedrallist
     topo setimproperlist -molid $mol $improperlist
+
+    # set box to be largest of the available boxes
+    set amax 0.0
+    set bmax 0.0
+    set cmax 0.0
+    foreach m $mids {
+        lassign [molinfo $m get {a b c}] a b c
+        if {$a > $amax} {set amax $a}
+        if {$b > $bmax} {set bmax $b}
+        if {$c > $cmax} {set cmax $c}
+    }
+    molinfo $mol set {a b c} [list $amax $bmax $cmax]
+
+    variable newaddsrep
+    mol reanalyze $mol
+    if {$newaddsrep} {
+        adddefaultrep $mol
+    }
+    return $mol
+}
+
+# build a new molecule from one or more selections
+proc ::TopoTools::selections2mol {sellist} {
+
+    # compute total number of atoms and collect
+    # offsets and number of atoms of each piece.
+    set ntotal 0
+    set offset {}
+    set numlist {}
+    foreach s $sellist {
+        if {[catch {$s num} natoms]} {
+            vmdcon -error "selection access error: $natoms"
+            return -1
+        } else {
+            # record number of atoms and offsets for later use.
+            lappend offset $ntotal
+            lappend numlist $natoms
+            incr ntotal $natoms
+        }
+    }
+
+    if {!$ntotal} {
+        vmdcon -error "selections2mol: combined molecule has no atoms."
+        return -1
+    }
+
+    # create new molecule to hold data.
+    set mol -1
+    if {[catch {mol new atoms $ntotal} mol]} {
+        vmdcon -error "selection2mol: could not create new molecule: $mol"
+        return -1
+    } else {
+        animate dup $mol
+    }
+    mol rename $mol selections2mol-[molinfo num]
+
+    # copy data over piece by piece
+    set bondlist {}
+    set anglelist {}
+    set dihedrallist {}
+    set improperlist {}
+    foreach sel $sellist off $offset num $numlist {
+        set newsel [atomselect $mol "index $off to [expr {$off+$num-1}]"]
+
+        # per atom props
+        set cpylist {name type mass charge radius element x y z \
+                         resname resid chain segname}
+        $newsel set $cpylist [$sel get $cpylist]
+
+        # assign structure data. we need to renumber indices
+        set list [topo getbondlist both -sel $sel]
+        foreach l $list {
+            lassign $l a b t o
+            lappend bondlist [list [expr {$a+$off}] [expr {$b+$off}] $t $o]
+        }
+
+        set list [topo getanglelist -sel $sel]
+        foreach l $list {
+            lassign $l t a b c 
+            lappend anglelist [list $t [expr {$a+$off}] [expr {$b+$off}] [expr {$c+$off}]]
+        }
+
+        set list [topo getdihedrallist -sel $sel]
+        foreach l $list {
+            lassign $l t a b c d
+            lappend dihedrallist [list $t [expr {$a + $off}] [expr {$b + $off}] \
+                                    [expr {$c + $off}] [expr {$d + $off}]]
+        }
+        set list [topo getimproperlist -sel $sel]
+        foreach l $list {
+            lassign $l t a b c d
+            lappend improperlist [list $t [expr {$a + $off}] [expr {$b + $off}] \
+                                    [expr {$c + $off}] [expr {$d + $off}]]
+        }
+        $newsel delete
+    }
+
+    # apply structure info
+    topo setbondlist both -molid $mol $bondlist
+    topo setanglelist -molid $mol $anglelist
+    topo setdihedrallist -molid $mol $dihedrallist
+    topo setimproperlist -molid $mol $improperlist
         
+    # set box to be largest of the available boxes
+    set amax 0.0
+    set bmax 0.0
+    set cmax 0.0
+    foreach sel $sellist {
+        lassign [molinfo [$sel molid] get {a b c}] a b c
+        if {$a > $amax} {set amax $a}
+        if {$b > $bmax} {set bmax $b}
+        if {$c > $cmax} {set cmax $c}
+    }
+    molinfo $mol set {a b c} [list $amax $bmax $cmax]
+
     variable newaddsrep
     mol reanalyze $mol
     if {$newaddsrep} {
