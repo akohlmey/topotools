@@ -335,6 +335,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
         adddefaultrep $mol
     }
 
+    $oldsel delete
     return $newmol
 }
 
