@@ -42,6 +42,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     set c [expr {$lammps(zhi) - $lammps(zlo)}]
     set boxdim [list $a $b $c]
     molinfo $mol set {a b c} $boxdim
+    set atomidmap {}
 
     # now loop through the file until we find a known section header.
     # then call a subroutine that parses this section. those subroutines
@@ -57,6 +58,11 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -error "readlammpsdata: error reading Atoms section."
                 return -1
             }
+            # retrieve map of atomids from user field and convert back to integer.
+            set atomidmap {}
+            foreach id [$sel get user] {
+                lappend atomidmap [expr {int($id + 0.5)}]
+            }
         } elseif {[regexp {^\s*Velocities} $line ]} {
             set lineno [readlammpsvelocities $fp $sel $lineno]
             if {$lineno < 0} {
@@ -70,25 +76,41 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*Bonds} $line ]} {
-            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $lineno]
+            if {[llength $atomidmap] < 1} {
+                vmdcon -error "readlammsdata: Atoms section must come before Bonds in data file"
+                return -1
+            }
+            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Bonds section."
                 return -1
             }
         } elseif {[regexp {^\s*Angles} $line ]} {
-            set lineno [readlammpsangles $fp $sel $lammps(angles) $lineno]
+            if {[llength $atomidmap] < 1} {
+                vmdcon -error "readlammsdata: Atoms section must come before Angles in data file"
+                return -1
+            }
+            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Angles section."
                 return -1
             }
         } elseif {[regexp {^\s*Dihedrals} $line ]} {
-            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $lineno]
+            if {[llength $atomidmap] < 1} {
+                vmdcon -error "readlammsdata: Atoms section must come before Dihedrals in data file"
+                return -1
+            }
+            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Dihedrals section."
                 return -1
             }
         } elseif {[regexp {^\s*Impropers} $line ]} {
-            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $lineno]
+            if {[llength $atomidmap] < 1} {
+                vmdcon -error "readlammsdata: Atoms section must come before Impropers in data file"
+                return -1
+            }
+            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Impropers section."
                 return -1
@@ -273,10 +295,17 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
                     # ignore this unsupported style
                 }
             }
-            if {$atomid > $numatoms} {
-                vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
-                return -1
-            }
+
+            # XXX: no reason to discriminate by atomid. we store the 
+            # atomid in the user field and assign atoms sorted by atomid
+            # (for faster lookup) and can retrieve that info later and 
+            # use it for mapping bonds, angles, etc to it.
+            ################
+            # if {$atomid > $numatoms} {
+            #     vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
+            #    return -1
+            # }
+
             if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
             lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
                                   [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
@@ -343,10 +372,10 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
             incr curatoms
             lassign $line atomid vx vy vz 
 
-            if {$atomid > $numatoms} {
-                vmdcon -error "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
-                return -1
-            }
+            #if {$atomid > $numatoms} {
+            #    vmdcon -error "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
+            #    return -1
+            #}
             lappend veldata [list $atomid $vx $vy $vz]
         }
         if {$curatoms >= $numatoms} break
@@ -359,7 +388,7 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
 
 
 # parse bond section
-proc ::TopoTools::readlammpsbonds {fp sel numbonds lineno} {
+proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
     set curbonds 0
     set bonddata {}
 
@@ -377,9 +406,14 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds lineno} {
         } else {
             incr curbonds 
             lassign $line num type a b ;# XXX: use regexp based parser to detect wrong format.
-            incr a -1 ; # we force that only atomids 1-numatoms are used (normal case)
-            incr b -1 ; # so this does work to translate into VMD numbering.
-            lappend bonddata [list $a $b $type]
+            # map atomid to vmd atom index.
+            set aidx [lsearch -sorted -integer $atomidmap $a]
+            set bidx [lsearch -sorted -integer $atomidmap $b]
+            if {($aidx < 0) || ($bidx < 0)} {
+                vmdcon -error "readlammpsdata: bond with non-existent atomid on line: $lineno"
+                return -1
+            }
+            lappend bonddata [list $aidx $bidx $type]
         }
         if {$curbonds >= $numbonds} break
     }
@@ -389,7 +423,7 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds lineno} {
 }
 
 # parse angle section
-proc ::TopoTools::readlammpsangles {fp sel numangles lineno} {
+proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
     set curangles 0
     set angledata {}
 
@@ -408,10 +442,15 @@ proc ::TopoTools::readlammpsangles {fp sel numangles lineno} {
         } else {
             incr curangles 
             lassign $line num type a b c ;# XXX: use regexp based parser to detect wrong format.
-            incr a -1 ; # we force that only atomids 1-numatoms are used (normal case)
-            incr b -1 ; # so this does work to translate into VMD numbering.
-            incr c -1
-            lappend angledata [list $type $a $b $c]
+            # map atomid to vmd atom index.
+            set aidx [lsearch -sorted -integer $atomidmap $a]
+            set bidx [lsearch -sorted -integer $atomidmap $b]
+            set cidx [lsearch -sorted -integer $atomidmap $c]
+            if {($aidx < 0) || ($bidx < 0) || ($cidx < 0)} {
+                vmdcon -error "readlammpsdata: angle with non-existent atomid on line: $lineno"
+                return -1
+            }
+            lappend angledata [list $type $aidx $bidx $cidx]
         }
         if {$curangles >= $numangles} break
     }
@@ -421,7 +460,7 @@ proc ::TopoTools::readlammpsangles {fp sel numangles lineno} {
 }
 
 # parse dihedral section
-proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals lineno} {
+proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
     set curdihedrals 0
     set dihedraldata {}
 
@@ -441,11 +480,16 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals lineno} {
         } else {
             incr curdihedrals 
             lassign $line num type a b c d ;# XXX: use regexp based parser to detect wrong format.
-            incr a -1 ; # we force that only atomids 1-numatoms are used (normal case)
-            incr b -1 ; # so this does work to translate into VMD numbering.
-            incr c -1
-            incr d -1
-            lappend dihedraldata [list $type $a $b $c $d]
+            # map atomid to vmd atom index.
+            set aidx [lsearch -sorted -integer $atomidmap $a]
+            set bidx [lsearch -sorted -integer $atomidmap $b]
+            set cidx [lsearch -sorted -integer $atomidmap $c]
+            set didx [lsearch -sorted -integer $atomidmap $d]
+            if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
+                vmdcon -error "readlammpsdata: dihedral with non-existent atomid on line: $lineno"
+                return -1
+            }
+            lappend dihedraldata [list $type $aidx $bidx $cidx $didx]
         }
         if {$curdihedrals >= $numdihedrals} break
     }
@@ -455,7 +499,7 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals lineno} {
 }
 
 # parse improper section
-proc ::TopoTools::readlammpsimpropers {fp sel numimpropers lineno} {
+proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
     set curimpropers 0
     set improperdata {}
 
@@ -475,11 +519,16 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers lineno} {
         } else {
             incr curimpropers 
             lassign $line num type a b c d;# XXX: use regexp based parser to detect wrong format.
-            incr a -1 ; # we force that only atomids 1-numatoms are used (normal case)
-            incr b -1 ; # so this does work to translate into VMD numbering.
-            incr c -1
-            incr d -1
-            lappend improperdata [list $type $a $b $c $d]
+            # map atomid to vmd atom index.
+            set aidx [lsearch -sorted -integer $atomidmap $a]
+            set bidx [lsearch -sorted -integer $atomidmap $b]
+            set cidx [lsearch -sorted -integer $atomidmap $c]
+            set didx [lsearch -sorted -integer $atomidmap $d]
+            if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
+                vmdcon -error "readlammpsdata: improper with non-existent atomid on line: $lineno"
+                return -1
+            }
+            lappend improperdata [list $type $aidx $bidx $cidx $didx]
         }
         if {$curimpropers >= $numimpropers} break
     }
