@@ -636,9 +636,9 @@ proc ::TopoTools::writelammpsheader {fp flags} {
         puts $fp [format " %d %s" $lammps($key) [regsub types $key " &"]]
     }
 
-    puts $fp [format " %.4f %.4f  xlo xhi" $lammps(xlo) $lammps(xhi)]
-    puts $fp [format " %.4f %.4f  ylo yhi" $lammps(ylo) $lammps(yhi)]
-    puts $fp [format " %.4f %.4f  zlo zhi" $lammps(zlo) $lammps(zhi)]
+    puts $fp [format " %.6f %.6f  xlo xhi" $lammps(xlo) $lammps(xhi)]
+    puts $fp [format " %.6f %.6f  ylo yhi" $lammps(ylo) $lammps(yhi)]
+    puts $fp [format " %.6f %.6f  zlo zhi" $lammps(zlo) $lammps(zhi)]
 
     puts $fp ""
     return
@@ -668,7 +668,7 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
     puts $fp " Masses\n"
     set typeid 1
     foreach mass $masslist type $typemap {
-        puts $fp [format " %d %.3f \# %s" $typeid $mass $type]
+        puts $fp [format " %d %.6f \# %s" $typeid $mass $type]
         incr typeid
     }
     puts $fp ""
@@ -693,21 +693,21 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         incr resid
         switch $style {
             atomic    { 
-                puts $fp [format "%d %d %.3f %.3f %.3f \# %s" \
+                puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
                               $atomid        $atomtype  $x $y $z $type] 
             }
             bond  -
             angle -
             molecular { 
-                puts $fp [format "%d %d %d %.3f %.3f %.3f \# %s %s" \
+                puts $fp [format "%d %d %d %.6f %.6f %.6f \# %s %s" \
                               $atomid $resid $atomtype  $x $y $z $type $resname] 
             }
             charge    { 
-                puts $fp [format "%d %d %.2f %.3f %.3f %.3f \# %s" \
+                puts $fp [format "%d %d %.6f %.6f %.6f %.6f \# %s" \
                               $atomid $atomtype $charge $x $y $z $type] 
             }
             full      { 
-                puts $fp [format "%d %d %d %.2f %.3f %.3f %.3f \# %s %s" \
+                puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
                               $atomid $resid $atomtype $charge $x $y $z $type $resname] 
             }
             default   {
