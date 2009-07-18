@@ -113,7 +113,8 @@ proc ::TopoTools::retypedihedrals {sel} {
         set idx [lsearch -sorted -integer $atomindex $i4]
         set d [lindex $atomtypes $idx]
 
-        if { [string compare $b $c] > 0 } { 
+        if { ([string compare $b $c] > 0) \
+                 || ( [string equal $b $c] && [string compare $a $d] > 0 ) } {
             set t $a; set a $d; set d $t 
             set t $b; set b $c; set c $t 
         }
