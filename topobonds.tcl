@@ -162,6 +162,7 @@ proc ::TopoTools::retypebonds {sel} {
         set a [lindex $atomtypes $idx]
         set idx [lsearch -sorted -integer $atomindex [lindex $bond 1]]
         set b [lindex $atomtypes $idx]
+        if { [string compare $a $b] > 0 } { set t $a; set a $b; set b $t }
         set type [join [list $a $b] "-"]
         lappend newbonds [list [lindex $bond 0] [lindex $bond 1] $type]
     }
