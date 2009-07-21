@@ -157,30 +157,44 @@ proc ::TopoTools::selections2mol {sellist} {
                          resname resid chain segname}
         $newsel set $cpylist [$sel get $cpylist]
 
+        # get atom index map for this selection
+        set atomidmap [$sel get index]
+
         # assign structure data. we need to renumber indices
         set list [topo getbondlist both -sel $sel]
         foreach l $list {
             lassign $l a b t o
-            lappend bondlist [list [expr {$a+$off}] [expr {$b+$off}] $t $o]
+            set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
+            set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
+            lappend bondlist [list $anew $bnew $t $o]
         }
 
         set list [topo getanglelist -sel $sel]
         foreach l $list {
             lassign $l t a b c 
-            lappend anglelist [list $t [expr {$a+$off}] [expr {$b+$off}] [expr {$c+$off}]]
+            set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
+            set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
+            set cnew [expr [lsearch -sorted -integer $atomidmap $c] + $off]
+            lappend anglelist [list $t $anew $bnew $cnew]
         }
 
         set list [topo getdihedrallist -sel $sel]
         foreach l $list {
             lassign $l t a b c d
-            lappend dihedrallist [list $t [expr {$a + $off}] [expr {$b + $off}] \
-                                    [expr {$c + $off}] [expr {$d + $off}]]
+            set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
+            set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
+            set cnew [expr [lsearch -sorted -integer $atomidmap $c] + $off]
+            set dnew [expr [lsearch -sorted -integer $atomidmap $d] + $off]
+            lappend dihedrallist [list $t  $anew $bnew $cnew $dnew]
         }
         set list [topo getimproperlist -sel $sel]
         foreach l $list {
             lassign $l t a b c d
-            lappend improperlist [list $t [expr {$a + $off}] [expr {$b + $off}] \
-                                    [expr {$c + $off}] [expr {$d + $off}]]
+            set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
+            set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
+            set cnew [expr [lsearch -sorted -integer $atomidmap $c] + $off]
+            set dnew [expr [lsearch -sorted -integer $atomidmap $d] + $off]
+            lappend improperlist [list $t  $anew $bnew $cnew $dnew]
         }
         $newsel delete
     }
