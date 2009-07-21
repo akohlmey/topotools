@@ -257,7 +257,8 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
             incr curatoms
             switch $style { # XXX: use regexp based parser to detect wrong formats.
 
-                atomic    { 
+                atomic    -
+                dpd { 
                     if {[llength $line] >= 8} {
                         lassign $line atomid       atomtype        x y z xi yi zi
                     } else {
@@ -289,6 +290,11 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
                     } else {
                         lassign $line atomid resid atomtype charge x y z
                     }
+                }
+
+                hybrid {
+                     # with hybrid style we cannot detect image flags.
+                        lassign $line atomid       atomtype        x y z
                 }
 
                 default   {
@@ -692,7 +698,8 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         incr atomtype
         incr resid
         switch $style {
-            atomic    { 
+            atomic -
+            dpd       { 
                 puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
                               $atomid        $atomtype  $x $y $z $type] 
             }
@@ -709,6 +716,10 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
             full      { 
                 puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
                               $atomid $resid $atomtype $charge $x $y $z $type $resname] 
+            }
+            hybrid      { 
+                puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
+                              $atomid $atomtype $x $y $z $resid $charge $type $resname] 
             }
             default   {
                 # ignore this unsupported style
@@ -816,6 +827,8 @@ proc ::TopoTools::checklammpsstyle {style} {
     switch $style {
 
         atomic -
+        dpd   -
+        hybrid -
         bond  -
         angle -
         molecular -
