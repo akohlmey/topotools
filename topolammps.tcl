@@ -43,6 +43,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     set boxdim [list $a $b $c]
     molinfo $mol set {a b c} $boxdim
     set atomidmap {}
+    set atommasses {}
 
     # now loop through the file until we find a known section header.
     # then call a subroutine that parses this section. those subroutines
@@ -70,7 +71,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*Masses} $line ]} {
-            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lineno]
+            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) atommasses $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Masses section."
                 return -1
@@ -135,6 +136,17 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         set lammps(lineno) $lineno
     }
     close $fp
+
+    # apply masses. Atoms section sets a default of 1.0.
+    # since the Masses section can appear before the Atoms section
+    # we have to set it here after the parsing.
+    if {[llength atommasses] > 0} {
+        foreach {t m} $atommasses {
+            set msel [atomselect $mol "type $t"]
+            $msel set mass $m
+            $msel delete
+        }
+    } 
     mol reanalyze $mol
     variable newaddsrep
     if {$newaddsrep} {
@@ -326,10 +338,11 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
 }
 
 # parse masses section
-proc ::TopoTools::readlammpsmasses {fp mol numtypes lineno} {
+proc ::TopoTools::readlammpsmasses {fp mol numtypes massmap lineno} {
     vmdcon -info "parsing LAMMPS Masses section."
 
-    set massdata {}
+    upvar $massmap massdata
+    set massmap {}
     set curtypes 0
     while {[gets $fp line] >= 0} {
         incr lineno
@@ -340,15 +353,22 @@ proc ::TopoTools::readlammpsmasses {fp mol numtypes lineno} {
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curtypes 
+            incr curtypes
+            set typename {}
+            if {[regexp {^(.*)\#\s*(\S+).*} $line all nline typename]} {
+                set line $nline
+            }
             lassign $line typeid mass
             if {$typeid > $numtypes} {
                 vmdcon -error "readlammpsatoms: only typeids 1-$numtypes are supported. $lineno : $line "
                 return -1
             }
-            set sel [atomselect $mol "type $typeid"]
-            $sel set mass $mass
-            $sel delete
+            # if we have a CGCMM style data file, we have strings for types.
+            if {[string length $typename] > 0} {
+                lappend massdata $typename $mass
+            } else {
+                lappend massdata $typeid $mass
+            }
         }
         if {$curtypes >= $numtypes} break
     }
