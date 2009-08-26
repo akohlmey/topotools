@@ -1,5 +1,5 @@
 # CG-CMM force field topology database. MPDyn format
-# updated: 9-jan-2009
+# updated: 26-aug-2009
 #
 # please cite:
 # W. Shinoda, R. H. DeVane, M. L. Klein, Multi-property fitting and 
@@ -407,68 +407,6 @@ BOND   1   2   2   3   3   4   4   5   5   6   6   7
 BOND   7   8   8   9   9  10
 <<
 
-### PEG lipids
->> LIP13 ! PEG lipid (headgroup length 13)
-NUMATOM=  24
-NUMBOND=  23
-NUMIMPR=  0
-ATOM       1      OA          OA        31.0337    0.00 0.0
-ATOM       2      E1          EO        44.0526    0.00 0.0
-ATOM       3      E2          EO        44.0526    0.00 0.0
-ATOM       4      E3          EO        44.0526    0.00 0.0
-ATOM       5      E4          EO        44.0526    0.00 0.0
-ATOM       6      E5          EO        44.0526    0.00 0.0
-ATOM       7      E6          EO        44.0526    0.00 0.0
-ATOM       8      E7          EO        44.0526    0.00 0.0
-ATOM       9      E8          EO        44.0526    0.00 0.0
-ATOM      10      E9          EO        44.0526    0.00 0.0
-ATOM      11      E10         EO        44.0526    0.00 0.0
-ATOM      12      E11         EO        44.0526    0.00 0.0
-ATOM      13      E12         EO        44.0526    0.00 0.0
-ATOM      14      E13         EO        43.0447    0.00 0.0
-ATOM      15      EA          EOC       44.0526    0.00 0.0
-ATOM      16      C11         CM        42.0804    0.00 0.0
-ATOM      17      C12         CM        42.0804    0.00 0.0
-ATOM      18      C13         CM        42.0804    0.00 0.0
-ATOM      19      C14         CT2       29.0615    0.00 0.0
-ATOM      20      EB          EOC       44.0526    0.00 0.0
-ATOM      21      C21         CM        42.0804    0.00 0.0
-ATOM      22      C22         CM        42.0804    0.00 0.0
-ATOM      23      C23         CM        42.0804    0.00 0.0
-ATOM      24      C24         CT2       29.0615    0.00 0.0
-BOND   1   2   2   3   3   4   4   5   5   6   6   7
-BOND   7   8   8   9   9  10  10  11  11  12  12  13
-BOND  13  14  14  15  14  20
-BOND  15  16  16  17  17  18  18  19
-BOND  20  21  21  22  22  23  23  24
-<<
-
->> LIP5 ! PEG lipid (headgroup length 5)
-NUMATOM=  16
-NUMBOND=  15
-NUMIMPR=  0
-ATOM       1      OA          OA        31.0337    0.00  0.0
-ATOM       2      E1          EO        44.0526    0.00  0.0
-ATOM       3      E2          EO        44.0526    0.00  0.0
-ATOM       4      E3          EO        44.0526    0.00  0.0
-ATOM       5      E4          EO        44.0526    0.00  0.0
-ATOM       6      E5          EO        43.0447    0.00  0.0
-ATOM       7      EA          EOC       44.0526    0.00  0.0
-ATOM       8      C11         CM        42.0804    0.00  0.0
-ATOM       9      C12         CM        42.0804    0.00  0.0
-ATOM      10      C13         CM        42.0804    0.00  0.0
-ATOM      11      C14         CT2       29.0615    0.00  0.0
-ATOM      12      EB          EOC       44.0526    0.00  0.0
-ATOM      13      C21         CM        42.0804    0.00  0.0
-ATOM      14      C22         CM        42.0804    0.00  0.0
-ATOM      15      C23         CM        42.0804    0.00  0.0
-ATOM      16      C24         CT2       29.0615    0.00  0.0
-BOND   1   2   2   3   3   4   4   5   
-BOND   5   6   6   7   6  12
-BOND   7   8   8   9   9  10  10  11
-BOND  12  13  13  14  14  15  15  16
-<<
-
 ### alcohols
 >> ETNL ! ethanol (not so successful though)
 NUMATOM= 1
@@ -494,75 +432,5 @@ ATOM       1      CT2          CT2       29.0615    0.0   0.0
 ATOM       2      CM           CM        42.0804    0.0   0.0
 ATOM       3      OA           OA        31.0337    0.0   0.0
 BOND   1   2    2   3
-<<
-
-### esters (CTE should be the same as CT for vdW)
->> POAT  ! propyl octanoate
-NUMATOM= 4
-NUMBOND= 3
-NUMIMPR=  0
-ATOM       1      CT           CT        43.0883    0.0 0.0
-ATOM       2      CM           CM        42.0804    0.0 0.0
-ATOM       3      EST          EST       58.0358    0.0 0.0
-ATOM       4      CTE          CTE       43.0883    0.0 0.0
-BOND   1   2   2  3   3  4
-<<
-
->> HOAT  ! hexyl octanoate
-NUMATOM= 5
-NUMBOND= 4
-NUMIMPR=  0
-ATOM       1      C1           CT        43.0883    0.0 0.0
-ATOM       2      C2           CM        42.0804    0.0 0.0
-ATOM       3      EST          EST       58.0358    0.0 0.0
-ATOM       4      C3           CME       42.0804    0.0 0.0
-ATOM       5      C4           CT        43.0883    0.0 0.0
-BOND   1   2   2  3   3  4   4  5
-<<
-
->> PVAT  ! propyl valerate (propyl pentanoate)
-NUMATOM= 3
-NUMBOND= 2
-NUMIMPR=  0
-ATOM       1      CT           CT        43.0883    0.0 0.0
-ATOM       2      EST          EST       58.0358    0.0 0.0
-ATOM       3      CTE          CTE       43.0883    0.0 0.0
-BOND   1   2   2  3
-<<
-
->> PBAT  ! propylbutyrate
-NUMATOM= 3
-NUMBOND= 2
-NUMIMPR=  0
-ATOM       1      CT2          CT2       29.0615    0.0 0.0
-ATOM       2      EST          EST       58.0358    0.0 0.0
-ATOM       3      CTE          CTE       43.0883    0.0 0.0
-BOND   1   2   2  3
-<<
-
-### simple ions
->> SOD  ! sodium ion (accompanying with three water molecules)
-NUMATOM=  1
-NUMBOND=  0
-NUMIMPR=  0
-ATOM      1       SOD          SOD       77.0342   +0.1118033989   0.0
-<<
-
->> CLA  ! chloride ion (accompanying with two water molecules)
-NUMATOM=  1
-NUMBOND=  0
-NUMIMPR=  0
-ATOM      1       CLA          CLA       71.4796   -0.1118033989   0.0
-<<
-
-### benzene
->> BENZ ! benzen three site
-NUMATOM=  3
-NUMBOND=  3
-NUMIMPR=  0
-ATOM       1      C1           CA        26.0378    0.0   0.0
-ATOM       2      C2           CA        26.0378    0.0   0.0
-ATOM       3      C3           CA        26.0378    0.0   0.0
-BOND 1 2  2 3  3 1
 <<
 
