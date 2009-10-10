@@ -53,6 +53,13 @@ the actual functionality that is requested.</p>
  
  commands:
    help                    prints this message
+
+   numatoms                returns the number of unique atoms.
+   numatomtypes            returns the number of atom types.
+   atomtypenames           returns the list of atom types names.
+
+   guessatom <what> <from> (re-)set atom data heuristically. currently supported:
+                           element from mass.
  
    numbonds                returns the number of unique bonds.
    numbondtypes            returns the number of bond types.
@@ -79,6 +86,7 @@ the actual functionality that is requested.</p>
                                        according to atom index and removes duplicates
 
    retype(angle|dihedral|improper)s    resets all angle types. 
+   guess(angle|dihedral)s              guesses angle and dihedral definitions from bonds.
  
    addangle &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; [&lt;type&gt;] (re-defines) a single angle.
    delangle &lt;id1&gt; &lt;id2&gt; &lt;id3&gt;  (re-defines) a single angle.
