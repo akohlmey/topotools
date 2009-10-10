@@ -52,6 +52,9 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  numatomtypes            returns the number of atom types."
     vmdcon -info "  atomtypenames           returns the list of atom types names."
     vmdcon -info ""
+    vmdcon -info "  guessatom <what> <from> (re-)set atom data heuristically. currently supported:"
+    vmdcon -info "                          element from mass."
+    vmdcon -info ""
     vmdcon -info "  numbonds                returns the number of unique bonds."
     vmdcon -info "  numbondtypes            returns the number of bond types."
     vmdcon -info "  bondtypenames           returns the list of bond types names."
@@ -76,6 +79,7 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  sort(angle|dihedral|improper)s      sorts the list of (angle|dihedral|improper)s"
     vmdcon -info "                                      according to atom index and removes duplicates"
     vmdcon -info "  retype(angle|dihedral|improper)s    resets all angle types. "
+    vmdcon -info "  guess(angle|dihedral)s              guesses angle and dihedral definitions from bonds."
     vmdcon -info ""
     vmdcon -info "  addangle <id1> <id2> <id3> \[<type>\] (re-defines) a single angle."
     vmdcon -info "  delangle <id1> <id2> <id3>  (re-defines) a single angle."
@@ -252,6 +256,14 @@ proc TopoTools::topo { args } {
             set retval [atominfo $cmd $sel $newargs]
         }
 
+        guessatom {
+            if {[llength $newargs] < 2} {
+                vmdcon -error "'topo guessatom' requires two arguments: <what> <from>"
+                return
+            }
+            set retval [guessatomdata $sel [lindex $newargs 0] [lindex $newargs 1]]
+        }
+
         getbondlist   -
         bondtypenames -
         numbondtypes  -
@@ -318,6 +330,10 @@ proc TopoTools::topo { args } {
             set retval [retypeangles $sel] 
         }
 
+        guessangles {
+            set retval [guessangles $sel] 
+        }
+
         sortangles {
             set retval [sortsomething angle $sel] 
         }
@@ -370,6 +386,10 @@ proc TopoTools::topo { args } {
 
         retypedihedrals {
             set retval [retypedihedrals $sel] 
+        }
+
+        guessdihedrals {
+            set retval [guessdihedrals $sel] 
         }
 
         sortdihedrals {

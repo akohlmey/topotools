@@ -115,6 +115,57 @@ proc ::TopoTools::retypeangles {sel} {
     setanglelist $sel $newangles
 }
 
+# reset angles to definitions derived from bonds.
+# this includes retyping of the angles.
+proc ::TopoTools::guessangles {sel} {
+
+    set mol [$sel molid]
+    set atomtypes [$sel get type]
+    set atomindex [$sel list]
+    set newangles {}
+    
+    set bonddata [$sel getbonds]
+
+    # preserve all angles definitions that are not fully contained in $sel
+    foreach angle [angleinfo getanglelist $sel] {
+        lassign $angle t a b c 
+
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0) } {
+            lappend newanglelist $angle
+        }
+    }
+
+    # a topological angle is defined by two bonds that share an atom
+    # bound to it that are not the bond itself
+    foreach bonds $bonddata aidx $atomindex atyp $atomtypes {
+        set nbnd [llenght $bonds]
+        for {set i 0} {$i < $nbnd-1} {incr i} {
+            for {set j [expr {$i+1}]} {$j < $nbnd} {incr j} {
+                set b1idx [lindex $bonds $i]
+                set idx [lsearch -sorted -integer $atomindex $b1idx]
+                set b1typ [lindex $atomtypes $idx]
+                set b2idx [lindex $bonds $j]
+                set idx [lsearch -sorted -integer $atomindex $b2idx]
+                set b2typ [lindex $atomtypes $idx]
+                if { ([string compare $b1typ $b2typ] > 0) } {
+                    set t $b1typ; set b1typ $b2typ; set b2typ $t 
+                }
+                set type [join [list $b1typ $atyp $b2typ] "-"]
+                
+                # append only angles that are full contained in $sel
+                if {([lsearch -sorted -integer $atomindex $b1idx] >= 0)          \
+                        && ([lsearch -sorted -integer $atomindex $aidx] >= 0)   \
+                        && ([lsearch -sorted -integer $atomindex $b2idx] >= 0) } {
+                    lappend newangles [list $type $b1idx $aidx $b2idx]
+                }
+            }
+        }
+    }
+    molinfo $mol set angles [list $newanglelist]
+}
+
 # define a new angle or change an existing one.
 proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3"} sel]} {

@@ -126,6 +126,63 @@ proc ::TopoTools::retypedihedrals {sel} {
 }
 
 
+# reset dihedrals to definitions derived from bonds.
+# this includes retyping of the dihedrals.
+proc ::TopoTools::guessdihedrals {sel} {
+
+    set mol [$sel molid]
+    set atomtypes [$sel get type]
+    set atomindex [$sel list]
+    set newdihedrals {}
+    
+    set bondlist [bondinfo getbondlist $sel]
+    set bonddata [$sel getbonds]
+
+    # preserve all dihedrals definitions that are not fully contained in $sel
+    foreach dihedral [join [molinfo $mol get dihedrals]] {
+        lassign $dihedral t a b c d
+
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
+            lappend newdihedrallist $dihedral
+        }
+    }
+
+    # a topological dihedral is defined by a bond and atoms
+    # bound to it that are not the bond itself
+    foreach bond $bondlist {
+        lassign $bond b1 b2 
+        set b1idx [lsearch -sorted -integer $atomindex $b1]
+        set b1typ [lindex $atomtypes $b1idx]
+        set b2idx [lsearch -sorted -integer $atomindex $b2]
+        set b2typ [lindex $atomtypes $b2idx]
+        foreach o1 [lindex $bonddata $b1idx] {
+            foreach o2 [lindex $bonddata $b2idx] {
+                if {($o1 == b1) || ($o2 == b1) || ($o1 == b2) || ($o2 == b2)} {
+                    continue
+                }
+                set o1idx [lsearch -sorted -integer $atomindex $o1]
+                set o1typ [lindex $atomtypes $o1idx]
+                set o2idx [lsearch -sorted -integer $atomindex $o2]
+                set o2typ [lindex $atomtypes $o2idx]
+                if { ([string compare $b1typ $b2typ] > 0) \
+                 || ( [string equal $b1typ $b2typ] 
+                      && [string compare $o1typ $o2typ] > 0 ) } {
+                    set t $o1typ; set o1typ $o2typ; set o2typ $t 
+                    set t $b1typ; set b1typ $b2typ; set b2typ $t 
+                }
+                set type [join [list $o1typ $b1typ $b2typ $o2typ] "-"]
+
+                lappend newdihedrals [list $type $o1 $b1 $b2 $o2]
+            }
+        }
+    }
+    setdihedrallist $sel $newdihedrals
+}
+
+
 # define a new dihedral or change an existing one.
 proc ::TopoTools::adddihedral {mol id1 id2 id3 id4 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
