@@ -3,50 +3,22 @@
 # other topology related properties in VMD.
 #
 # TODO: 
-# - topotools.tcl : use namespace variables, to cache metadata for faster execution.
-#                   e.g. store lastmol/lastsel and if it the same as before, reuse data 
-#                   that is present, or else invalidate cache etc.
-#                   some operations on bonds can be very slow.
-#                   need to add a generic API for that, and options to clear and avoid caching.
+# - topotools.tcl : some operations on bonds can be very slow.
+#                   we may need some optimized variants and/or special
+#                   implementation in VMD for that.
 # - topogmx.tcl   : interface to gromacs (at least for postprocessing)
 # - topoamber.tcl : interface to amber's parmtop
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
 #
 
 namespace eval ::TopoTools:: {
-    # XXX: scratch dir code from vmd movie maker.
-    # perhaps we should have a global setting
-    # in VMD with a designated scratch area??
-    # if not, perhaps we should use the tcl 
-    # fileutil package instead. it also has a
-    # tempfilename generation method.
-    if [info exists env(TMPDIR)] {
-        set workdir $env(TMPDIR)
-    } else {
-        switch [vmdinfo arch] { 
-            WIN64 -
-            WIN32 {
-                set workdir "c:/"
-            }
-            MACOSXX86_64 -
-            MACOSXX86 -
-            MACOSX {
-                set workdir "/"
-            }
-            default {
-                set workdir "/tmp"
-            } 
-        }
-    }
     # for allowing compatibility checks in scripts 
     # depending on this package. we'll have to expect
-    variable version 1.0
+    variable version 1.1
     # location of additional data files containing 
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
-    # location for temporary data files.
-    variable tmpdir $workdir
     # print a citation reminder in case the CG-CMM is used, but only once.
     variable cgcmmciteme 1
     # if nonzero, add a new representation with default settings,

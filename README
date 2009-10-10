@@ -1,5 +1,5 @@
-VMD topotools package
-Copyright (c) by 2009 Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+VMD topotools package. Version 1.1
+Copyright (c) by 2009 Axel Kohlmeyer <akohlmey@gmail.com>
 -------------------
 
 A collection of tcl commands to manipulate and build 
@@ -15,8 +15,6 @@ TODO:
   - topo copybonds <fromsel> <tosel>
   - topo guessbonds <sel>  (use bondsrecalc and restore bonds 
     outside the selection)
-  - topo guessangles <sel> (use bond info -> assign angle to all 
-    pairs of bonds sharing an atom)
   - proper documentation and a tutorial
   - more tools to read/write custom topology files 
     (e.g. gromacs top?, amber parmtop?)
