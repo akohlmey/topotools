@@ -3,7 +3,8 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-#
+# $Id: topocgcmm.tcl,v 1.4 2009/10/10 22:42:48 akohlmey Exp $
+
 # high level subroutines for CMM coarse grain forcefield support.
 
 # proc to parse wataru's cg parameter file format

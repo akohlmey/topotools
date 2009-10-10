@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-#
+# $Id: topoatoms.tcl,v 1.5 2009/10/10 22:42:48 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.

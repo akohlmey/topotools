@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-#
+# $Id: topodihedrals.tcl,v 1.6 2009/10/10 22:42:48 akohlmey Exp $
 
 # return info about dihedrals
 # we list and count only dihedrals that are entirely within the selection.
@@ -117,6 +117,8 @@ proc ::TopoTools::retypedihedrals {sel} {
                  || ( [string equal $b $c] && [string compare $a $d] > 0 ) } {
             set t $a; set a $d; set d $t 
             set t $b; set b $c; set c $t 
+            set t $i1; set i1 $i4; set i4 $t 
+            set t $i2; set i2 $i3; set i3 $t 
         }
         set type [join [list $a $b $c $d] "-"]
 
@@ -172,6 +174,8 @@ proc ::TopoTools::guessdihedrals {sel} {
                       && [string compare $o1typ $o2typ] > 0 ) } {
                     set t $o1typ; set o1typ $o2typ; set o2typ $t 
                     set t $b1typ; set b1typ $b2typ; set b2typ $t 
+                    set t $o1idx; set o1idx $o2idx; set o2idx $t 
+                    set t $b1idx; set b1idx $b2idx; set b2idx $t 
                 }
                 set type [join [list $o1typ $b1typ $b2typ $o2typ] "-"]
 

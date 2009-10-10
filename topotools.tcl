@@ -10,7 +10,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-#
+# $Id: topotools.tcl,v 1.16 2009/10/10 22:42:49 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 

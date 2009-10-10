@@ -3,7 +3,7 @@
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-#
+# $Id: topohelpers.tcl,v 1.5 2009/10/10 22:42:48 akohlmey Exp $
 
 # some little helper functions
 
