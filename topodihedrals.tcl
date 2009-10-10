@@ -99,7 +99,7 @@ proc ::TopoTools::retypedihedrals {sel} {
     set dihedrallist [dihedralinfo getdihedrallist $sel]
     set atomtypes [$sel get type]
     set atomindex [$sel list]
-    set newdihedrals {}
+    set newdihedrallist {}
     
     foreach dihedral $dihedrallist {
         lassign $dihedral type i1 i2 i3 i4
@@ -120,9 +120,9 @@ proc ::TopoTools::retypedihedrals {sel} {
         }
         set type [join [list $a $b $c $d] "-"]
 
-        lappend newdihedrals [list $type $i1 $i2 $i3 $i4]
+        lappend newdihedrallist [list $type $i1 $i2 $i3 $i4]
     }
-    setdihedrallist $sel $newdihedrals
+    setdihedrallist $sel $newdihedrallist
 }
 
 
@@ -133,7 +133,7 @@ proc ::TopoTools::guessdihedrals {sel} {
     set mol [$sel molid]
     set atomtypes [$sel get type]
     set atomindex [$sel list]
-    set newdihedrals {}
+    set newdihedrallist {}
     
     set bondlist [bondinfo getbondlist $sel]
     set bonddata [$sel getbonds]
@@ -160,7 +160,7 @@ proc ::TopoTools::guessdihedrals {sel} {
         set b2typ [lindex $atomtypes $b2idx]
         foreach o1 [lindex $bonddata $b1idx] {
             foreach o2 [lindex $bonddata $b2idx] {
-                if {($o1 == b1) || ($o2 == b1) || ($o1 == b2) || ($o2 == b2)} {
+                if {($o1 == $b1) || ($o2 == $b1) || ($o1 == $b2) || ($o2 == $b2)} {
                     continue
                 }
                 set o1idx [lsearch -sorted -integer $atomindex $o1]
@@ -175,11 +175,11 @@ proc ::TopoTools::guessdihedrals {sel} {
                 }
                 set type [join [list $o1typ $b1typ $b2typ $o2typ] "-"]
 
-                lappend newdihedrals [list $type $o1 $b1 $b2 $o2]
+                lappend newdihedrallist [list $type $o1 $b1 $b2 $o2]
             }
         }
     }
-    setdihedrallist $sel $newdihedrals
+    setdihedrallist $sel $newdihedrallist
 }
 
 
@@ -217,14 +217,14 @@ proc ::TopoTools::deldihedral {mol id1 id2 id3 id4 {type unknown}} {
         set t $id1 ; set id1 $id4 ; set id4 $t 
     }
 
-    set newdihedrals {}
+    set newdihedrallist {}
     foreach dihedral [join [molinfo $mol get dihedrals]] {
         lassign $dihedral t a b c d
         if { ($a != $id1) || ($b != $id2) || ($c != $id3) || ($d != $id4) } {
-            lappend newdihedrals $dihedral
+            lappend newdihedrallist $dihedral
         }
     }
-    molinfo $mol set dihedrals [list $newdihedrals]
+    molinfo $mol set dihedrals [list $newdihedrallist]
     # this is not (yet) required
     $sel delete
     return

@@ -99,7 +99,7 @@ proc ::TopoTools::retypeimpropers {sel} {
     set improperlist [improperinfo getimproperlist $sel]
     set atomtypes [$sel get type]
     set atomindex [$sel list]
-    set newimpropers {}
+    set newimproperlist {}
     
     foreach improper $improperlist {
         lassign $improper type i1 i2 i3 i4
@@ -120,9 +120,9 @@ proc ::TopoTools::retypeimpropers {sel} {
         }
         set type [join [list $a $b $c $d] "-"]
 
-        lappend newimpropers [list $type $i1 $i2 $i3 $i4]
+        lappend newimproperlist [list $type $i1 $i2 $i3 $i4]
     }
-    setimproperlist $sel $newimpropers
+    setimproperlist $sel $newimproperlist
 }
 
 
@@ -158,13 +158,13 @@ proc ::TopoTools::delimproper {mol id1 id2 id3 id4 {type unknown}} {
         set t $id1 ; set id1 $id4 ; set id4 $t 
     }
 
-    set newimpropers {}
+    set newimproperlist {}
     foreach improper [join [molinfo $mol get impropers]] {
         lassign $improper t a b c d
         if { ($a != $id1) || ($b != $id2) || ($c != $id3) || ($d != $id4) } {
-            lappend newimpropers $improper
+            lappend newimproperlist $improper
         }
     }
     $sel delete
-    molinfo $mol set impropers [list $newimpropers]
+    molinfo $mol set impropers [list $newimproperlist]
 }

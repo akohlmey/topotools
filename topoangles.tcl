@@ -95,7 +95,7 @@ proc ::TopoTools::retypeangles {sel} {
     set anglelist [angleinfo getanglelist $sel]
     set atomtypes [$sel get type]
     set atomindex [$sel list]
-    set newangles {}
+    set newanglelist {}
     
     foreach angle $anglelist {
         lassign $angle type i1 i2 i3
@@ -110,9 +110,9 @@ proc ::TopoTools::retypeangles {sel} {
         if { [string compare $a $c] > 0 } { set t $a; set a $c; set c $t }
         set type [join [list $a $b $c] "-"]
 
-        lappend newangles [list $type $i1 $i2 $i3]
+        lappend newanglelist [list $type $i1 $i2 $i3]
     }
-    setanglelist $sel $newangles
+    setanglelist $sel $newanglelist
 }
 
 # reset angles to definitions derived from bonds.
@@ -122,7 +122,7 @@ proc ::TopoTools::guessangles {sel} {
     set mol [$sel molid]
     set atomtypes [$sel get type]
     set atomindex [$sel list]
-    set newangles {}
+    set newanglelist {}
     
     set bonddata [$sel getbonds]
 
@@ -140,7 +140,7 @@ proc ::TopoTools::guessangles {sel} {
     # a topological angle is defined by two bonds that share an atom
     # bound to it that are not the bond itself
     foreach bonds $bonddata aidx $atomindex atyp $atomtypes {
-        set nbnd [llenght $bonds]
+        set nbnd [llength $bonds]
         for {set i 0} {$i < $nbnd-1} {incr i} {
             for {set j [expr {$i+1}]} {$j < $nbnd} {incr j} {
                 set b1idx [lindex $bonds $i]
@@ -158,7 +158,7 @@ proc ::TopoTools::guessangles {sel} {
                 if {([lsearch -sorted -integer $atomindex $b1idx] >= 0)          \
                         && ([lsearch -sorted -integer $atomindex $aidx] >= 0)   \
                         && ([lsearch -sorted -integer $atomindex $b2idx] >= 0) } {
-                    lappend newangles [list $type $b1idx $aidx $b2idx]
+                    lappend newanglelist [list $type $b1idx $aidx $b2idx]
                 }
             }
         }
@@ -192,13 +192,13 @@ proc ::TopoTools::delangle {mol id1 id2 id3 {type unknown}} {
     # canonicalize indices
     if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t } 
 
-    set newangles {}
+    set newanglelist {}
     foreach angle [join [molinfo $mol get angles]] {
         lassign $angle t a b c
         if { ($a != $id1) || ($b != $id2) || ($c != $id3) } {
-            lappend newangles $angle
+            lappend newanglelist $angle
         }
     }
     $sel delete
-    molinfo $mol set angles [list $newangles]
+    molinfo $mol set angles [list $newanglelist]
 }
