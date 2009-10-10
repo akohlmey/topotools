@@ -2,7 +2,7 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
 #
 # high level subroutines for CMM coarse grain forcefield support.
 

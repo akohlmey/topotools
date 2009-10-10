@@ -2,7 +2,7 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
 #
 
 # return info about angles
@@ -11,15 +11,15 @@ proc ::TopoTools::angleinfo {infotype sel {flag none}} {
 
     set numangles 0
     array set angletypes {}
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set anglelist {}
 
     foreach angle [join [molinfo [$sel molid] get angles]] {
         lassign $angle t a b c 
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0) } {
             set angletypes($t) 1
             incr numangles
             lappend anglelist $angle
@@ -35,18 +35,18 @@ proc ::TopoTools::angleinfo {infotype sel {flag none}} {
     }
 }
 
-# delete all contained angles of the selection.
+# delete all fully contained angles of the selection.
 proc ::TopoTools::clearangles {sel} {
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set anglelist {}
 
     foreach angle [join [molinfo $mol get angles]] {
         lassign $angle t a b c 
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0) } {
             lappend anglelist $angle
         }
     }
@@ -57,19 +57,19 @@ proc ::TopoTools::clearangles {sel} {
 proc ::TopoTools::setanglelist {sel anglelist} {
 
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set newanglelist {}
 
     # set defaults
     set t unknown; set a -1; set b -1; set c -1
 
     # preserve all angles definitions that are not contained in $sel
-    foreach angle [angleinfo getanglelist $sel] {
+    foreach angle [join [molinfo $mol get angles]] {
         lassign $angle t a b c 
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0) } {
             lappend newanglelist $angle
         }
     }
@@ -78,9 +78,9 @@ proc ::TopoTools::setanglelist {sel anglelist} {
     foreach angle $anglelist {
         lassign $angle t a b c 
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0) } {
             lappend newanglelist $angle
         }
     }
@@ -127,6 +127,7 @@ proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
 
     set angles [join [molinfo $mol get angles]]
     lappend angles [list $type $id1 $id2 $id3]
+    $sel delete
     molinfo $mol set angles [list $angles]
 }
 
@@ -147,5 +148,6 @@ proc ::TopoTools::delangle {mol id1 id2 id3 {type unknown}} {
             lappend newangles $angle
         }
     }
+    $sel delete
     molinfo $mol set angles [list $newangles]
 }

@@ -2,7 +2,7 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
 #
 
 # return info about impropers
@@ -11,16 +11,16 @@ proc ::TopoTools::improperinfo {infotype sel {flag none}} {
 
     set numimpropers 0
     array set impropertypes {}
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set improperlist {}
 
     foreach improper [join [molinfo [$sel molid] get impropers]] {
         lassign $improper t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $d] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0) } {
             set impropertypes($t) 1
             incr numimpropers
             lappend improperlist $improper
@@ -39,16 +39,16 @@ proc ::TopoTools::improperinfo {infotype sel {flag none}} {
 # delete all contained impropers of the selection.
 proc ::TopoTools::clearimpropers {sel} {
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set improperlist {}
 
     foreach improper [join [molinfo $mol get impropers]] {
         lassign $improper t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $d] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
             lappend improperlist $improper
         }
     }
@@ -59,20 +59,20 @@ proc ::TopoTools::clearimpropers {sel} {
 proc ::TopoTools::setimproperlist {sel improperlist} {
 
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set newimproperlist {}
 
     # set defaults
     set t unknown; set a -1; set b -1; set c -1; set d -1
 
     # preserve all impropers definitions that are not contained in $sel
-    foreach improper [improperinfo getimproperlist $sel] {
+    foreach improper [join [molinfo $mol get impropers]] {
         lassign $improper t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $d] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
             lappend newimproperlist $improper
         }
     }
@@ -81,10 +81,10 @@ proc ::TopoTools::setimproperlist {sel improperlist} {
     foreach improper $improperlist {
         lassign $improper t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $d] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0) } {
             lappend newimproperlist $improper
         }
     }
@@ -141,6 +141,7 @@ proc ::TopoTools::addimproper {mol id1 id2 id3 id4 {type unknown}} {
 
     set impropers [join [molinfo $mol get impropers]]
     lappend impropers [list $type $id1 $id2 $id3 $id4]
+    $sel delete
     molinfo $mol set impropers [list $impropers]
 }
 
@@ -164,5 +165,6 @@ proc ::TopoTools::delimproper {mol id1 id2 id3 id4 {type unknown}} {
             lappend newimpropers $improper
         }
     }
+    $sel delete
     molinfo $mol set impropers [list $newimpropers]
 }

@@ -1,6 +1,9 @@
 #!/usr/bin/tclsh
 # TopoTools, a VMD package to simplify manipulating bonds 
 # other topology related properties in VMD.
+#
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
+#
 
 # some little helper functions
 

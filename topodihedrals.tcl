@@ -2,7 +2,7 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@cmm.chem.upenn.edu>
+# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
 #
 
 # return info about dihedrals
@@ -11,16 +11,16 @@ proc ::TopoTools::dihedralinfo {infotype sel {flag none}} {
 
     set numdihedrals 0
     array set dihedraltypes {}
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set dihedrallist {}
 
     foreach dihedral [join [molinfo [$sel molid] get dihedrals]] {
         lassign $dihedral t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $d] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0) } {
             set dihedraltypes($t) 1
             incr numdihedrals
             lappend dihedrallist $dihedral
@@ -39,16 +39,16 @@ proc ::TopoTools::dihedralinfo {infotype sel {flag none}} {
 # delete all contained dihedrals of the selection.
 proc ::TopoTools::cleardihedrals {sel} {
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set dihedrallist {}
 
     foreach dihedral [join [molinfo $mol get dihedrals]] {
         lassign $dihedral t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $d] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
             lappend dihedrallist $dihedral
         }
     }
@@ -59,20 +59,20 @@ proc ::TopoTools::cleardihedrals {sel} {
 proc ::TopoTools::setdihedrallist {sel dihedrallist} {
 
     set mol [$sel molid]
-    set atidxlist [$sel list]
+    set atomindex [$sel list]
     set newdihedrallist {}
 
     # set defaults
     set t unknown; set a -1; set b -1; set c -1; set d -1
 
-    # preserve all dihedrals definitions that are not contained in $sel
-    foreach dihedral [dihedralinfo getdihedrallist $sel] {
+    # preserve all dihedrals definitions that are not fully contained in $sel
+    foreach dihedral [join [molinfo $mol get dihedrals]] {
         lassign $dihedral t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] < 0)          \
-                || ([lsearch -sorted -integer $atidxlist $b] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $c] < 0)   \
-                || ([lsearch -sorted -integer $atidxlist $d] < 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
             lappend newdihedrallist $dihedral
         }
     }
@@ -81,10 +81,10 @@ proc ::TopoTools::setdihedrallist {sel dihedrallist} {
     foreach dihedral $dihedrallist {
         lassign $dihedral t a b c d
 
-        if {([lsearch -sorted -integer $atidxlist $a] >= 0)          \
-                && ([lsearch -sorted -integer $atidxlist $b] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $c] >= 0)   \
-                && ([lsearch -sorted -integer $atidxlist $d] >= 0) } {
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0) } {
             lappend newdihedrallist $dihedral
         }
     }
@@ -142,6 +142,9 @@ proc ::TopoTools::adddihedral {mol id1 id2 id3 id4 {type unknown}} {
     set dihedrals [join [molinfo $mol get dihedrals]]
     lappend dihedrals [list $type $id1 $id2 $id3 $id4]
     molinfo $mol set dihedrals [list $dihedrals]
+    # this is not (yet) required
+    $sel delete
+    return
 }
 
 # delete a dihedral.
@@ -165,4 +168,7 @@ proc ::TopoTools::deldihedral {mol id1 id2 id3 id4 {type unknown}} {
         }
     }
     molinfo $mol set dihedrals [list $newdihedrals]
+    # this is not (yet) required
+    $sel delete
+    return
 }
