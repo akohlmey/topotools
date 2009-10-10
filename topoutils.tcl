@@ -348,7 +348,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     variable newaddsrep
     mol reanalyze $newmol
     if {$newaddsrep} {
-        adddefaultrep $mol
+        adddefaultrep $newmol
     }
 
     $oldsel delete
