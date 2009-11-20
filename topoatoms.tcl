@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.5 2009/10/10 22:42:48 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.6 2009/11/20 19:03:32 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -95,6 +95,49 @@ proc ::TopoTools::guessatomdata {sel what from} {
                 lappend elmntlist [lindex $elements $idx]
             }
             $sel set element $elmntlist
+        }
+
+        element-name {
+            set elmntlist {}
+            foreach a [$sel get name] {
+                if {[lsearch $elements $a] < 0} {
+                    set a [string range $a 0 1]
+                    if {[lsearch $elements $a] < 0} {
+                        set a [string range $a 0 0]
+                        if {[lsearch $elements $a] < 0} {
+                            set a X
+                        }
+                    }
+                }
+                lappend elmntlist $a
+            }
+            $sel set element $elmntlist
+        }
+
+        radius-element {
+            set rlist {}
+            foreach a [$sel get element] {
+                set idx [lsearch $elements $a]
+                if {$idx < 0} {
+                    lappend rlist 2.0
+                } else {
+                    lappend rlist [lindex $radii $idx]
+                }
+            }   
+            $sel set radius $rlist
+        }
+
+        mass-element {
+            set mlist {}
+            foreach a [$sel get element] {
+                set idx [lsearch $elements $a]
+                if {$idx < 0} {
+                    lappend mlist 0.0
+                } else {
+                    lappend mlist [lindex $radii $idx]
+                }
+            }   
+            $sel set mass $mlist
         }
 
         default {

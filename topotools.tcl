@@ -10,7 +10,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.16 2009/10/10 22:42:49 akohlmey Exp $
+# $Id: topotools.tcl,v 1.17 2009/11/20 19:03:32 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -114,6 +114,27 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      parameter. default value is 'full'."
     vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
+    vmdcon -info "  readvarxyz <filename>"
+    vmdcon -info "      read an xmol/xyz format trajectory with a varying numer of particles."
+    vmdcon -info "      This is normally not supported by VMD and the script circumvents this"
+    vmdcon -info "      restriction by automatically adding dummy particles and then indicating"
+    vmdcon -info "      the presence of a given atom in a given frame by setting its user field"
+    vmdcon -info "      to either 1.0 or -1.0 in case of an atom being present or not, respectively."
+    vmdcon -info "      For efficiency reasons, atoms are sorted by atom type, so atom order and bonding"
+    vmdcon -info "      are not preserved. The function returns the new molecule id or -1."
+    vmdcon -info ""
+    vmdcon -info "  writevarxyz <filename> \[selmod <selstring>\] \[first|last|step <frame>\]"
+    vmdcon -info "      write an xmol/xyz format trajectory files with a varying number of particles."
+    vmdcon -info "      This is the counter part to the 'readvarxyz' subcommand."
+    vmdcon -info "      The optional selection string in the <selstring> argument indicates"
+    vmdcon -info "      how to select the atoms. Its default is 'user > 0'."
+    vmdcon -info ""
+    vmdcon -info "  writegmxtop <filename>"
+    vmdcon -info "      write a fake gromacs topology format file that can be used in combination"
+    vmdcon -info "      with a .gro/.pdb coordinate file for generating .tpr files needed to use"
+    vmdcon -info "      Some of the more advanced gromacs analysis tools for simulation data that"
+    vmdcon -info "      was not generated with gromacs."
+    vmdcon -info ""
     return
 }
 
@@ -213,6 +234,7 @@ proc TopoTools::topo { args } {
         set cmd help
     }
 
+    # we need a few special cases for reading coordinate/topology files.
     if {[string equal $cmd readlammpsdata]} {
         set style full
         if {[llength $newargs] < 1} {
@@ -236,6 +258,16 @@ proc TopoTools::topo { args } {
         return $retval
     }
 
+    if {[string equal $cmd readvarxyz]} {
+        set fname [lindex $newargs 0]
+        set retval [readvarxyz $fname]
+        if {[info exists sel]} {
+            $sel delete
+        }
+        return $retval
+    }
+
+    # help!!!
     if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
@@ -507,6 +539,26 @@ proc TopoTools::topo { args } {
             set retval [writelammpsdata $molid $fname $style $sel]
         }
 
+        writevarxyz { ;# NOTE: readvarxyz is handled above to bypass check for sel/molid.
+            if {[llength $newargs] < 1} {
+                vmdcon -error "Not enough arguments for 'topo writevarxyz'"
+                usage
+                return
+            }
+            set fname [lindex $newargs 0]
+            set retval [writevarxyz $fname $molid $sel [lrange $newargs 1 end]]
+        }
+
+        writegmxtop { ;# NOTE: readgmxtop is handled above to bypass check for sel/molid.
+            if {[llength $newargs] < 1} {
+                vmdcon -error "Not enough arguments for 'topo writegmxtop'"
+                usage
+                return
+            }
+            set fname [lindex $newargs 0]
+            set retval [writegmxtop $fname $molid $sel [lrange $newargs 1 end]]
+        }
+
         help -
         default {
             usage
@@ -527,6 +579,8 @@ source [file join $env(TOPOTOOLSDIR) topoimpropers.tcl]
 
 # load high-level API
 source [file join $env(TOPOTOOLSDIR) topolammps.tcl]
+source [file join $env(TOPOTOOLSDIR) topogromacs.tcl]
+source [file join $env(TOPOTOOLSDIR) topovarxyz.tcl]
 source [file join $env(TOPOTOOLSDIR) topocgcmm.tcl]
 
 # load high-level utility functions

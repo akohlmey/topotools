@@ -3,7 +3,7 @@
 VMFILES = pkgIndex.tcl README topotools.tcl topoatoms.tcl \
 	topobonds.tcl topoangles.tcl topodihedrals.tcl topoimpropers.tcl \
 	topolammps.tcl topocgcmm.tcl topoutils.tcl topohelpers.tcl \
-	par_CG.prm top_CG.prm
+	topogromacs.tcl topovarxyz.tcl par_CG.prm top_CG.prm
 
 VMVERSION = 1.1
 DIR = $(PLUGINDIR)/noarch/tcl/topotools$(VMVERSION)
