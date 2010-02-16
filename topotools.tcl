@@ -10,7 +10,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.17 2009/11/20 19:03:32 akohlmey Exp $
+# $Id: topotools.tcl,v 1.18 2010/02/16 00:39:07 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -79,7 +79,8 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  sort(angle|dihedral|improper)s      sorts the list of (angle|dihedral|improper)s"
     vmdcon -info "                                      according to atom index and removes duplicates"
     vmdcon -info "  retype(angle|dihedral|improper)s    resets all angle types. "
-    vmdcon -info "  guess(angle|dihedral)s              guesses angle and dihedral definitions from bonds."
+    vmdcon -info "  guess(angle|dihedral|improper)s     guesses angle, dihedral and improper definitions from bonds."
+    vmdcon -info "                                      impropers are only defined for atoms bonded to three other atoms with a near flat structure"
     vmdcon -info ""
     vmdcon -info "  addangle <id1> <id2> <id3> \[<type>\] (re-defines) a single angle."
     vmdcon -info "  delangle <id1> <id2> <id3>  (re-defines) a single angle."
@@ -478,6 +479,10 @@ proc TopoTools::topo { args } {
 
         retypeimpropers {
             set retval [retypeimpropers $sel] 
+        }
+
+        guessimpropers {
+            set retval [guessimpropers $sel] 
         }
 
         sortimpropers {

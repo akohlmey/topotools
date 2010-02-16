@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.5 2009/10/10 22:42:49 akohlmey Exp $
+# $Id: topoimpropers.tcl,v 1.6 2010/02/16 00:39:07 akohlmey Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.
@@ -127,6 +127,66 @@ proc ::TopoTools::retypeimpropers {sel} {
     setimproperlist $sel $newimproperlist
 }
 
+# reset impropers to definitions derived from bonds.
+# this includes retyping of the impropers.
+# this step is different from guessing angles or dihedrals,
+# as we are only looking for definitions that are unusual.
+
+proc ::TopoTools::guessimpropers {sel} {
+
+    set mol [$sel molid]
+    set atomtypes [$sel get type]
+    set atomindex [$sel list]
+    set newimproperlist {}
+    
+    set bonddata [$sel getbonds]
+
+    # preserve all impropers definitions that are not fully contained in $sel
+    foreach improper [join [molinfo $mol get impropers]] {
+        lassign $improper t a b c d
+
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0) } {
+            lappend newimproperlist $improper
+        }
+    }
+
+    # a topological improper is defined by three bonds connected to
+    # the same atom and their dihedral being almost in plane.
+    foreach bonds $bonddata aidx $atomindex atyp $atomtypes {
+        set nbnd [llength $bonds]
+        if {$nbnd == 3} {
+            lassign $bonds b1 b2 b3
+            set ang [expr {abs([measure imprp [list $b1 $b2 $aidx $b3] molid $mol])}]
+            if {$ang > 175} {
+                set b1idx [lsearch -sorted -integer $atomindex $b1]
+                set b1typ [lindex $atomtypes $b1idx]
+                set b2idx [lsearch -sorted -integer $atomindex $b2]
+                set b2typ [lindex $atomtypes $b2idx]
+                set b3idx [lsearch -sorted -integer $atomindex $b3]
+                set b3typ [lindex $atomtypes $b3idx]
+                
+                if {([string compare $b1typ $b2typ]) > 0} {
+                    set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
+                    set t2 $b1; set b1 $b2; set b2 $t2 
+                }
+                if {([string compare $b2typ $b3typ]) > 0} {
+                    set t1 $b2typ; set b2typ $b3typ; set b3typ $t1
+                    set t2 $b2; set b2 $b3; set b3 $t2 
+                }
+                if {([string compare $b1typ $b2typ]) > 0} {
+                    set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
+                    set t2 $b1; set b1 $b2; set b2 $t2 
+                }
+                set type [join [list $b1typ $b2typ $atyp $b3typ] "-"]
+                lappend newimproperlist [list $type $b1 $b2 $aidx $b3]
+            }
+        }
+    }
+    setimproperlist $sel $newimproperlist
+}
 
 # define a new improper or change an existing one.
 proc ::TopoTools::addimproper {mol id1 id2 id3 id4 {type unknown}} {

@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoangles.tcl,v 1.7 2009/10/10 22:42:48 akohlmey Exp $
+# $Id: topoangles.tcl,v 1.8 2010/02/16 00:39:07 akohlmey Exp $
 
 # return info about angles
 # we list and count only angles that are entirely within the selection.
@@ -150,7 +150,8 @@ proc ::TopoTools::guessangles {sel} {
                 set idx [lsearch -sorted -integer $atomindex $b2idx]
                 set b2typ [lindex $atomtypes $idx]
                 if { ([string compare $b1typ $b2typ] > 0) } {
-                    set t $b1typ; set b1typ $b2typ; set b2typ $t 
+                    set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
+                    set t2 $b1idx; set b1idx $b2idx; set b2idx $t2 
                 }
                 set type [join [list $b1typ $atyp $b2typ] "-"]
                 
