@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.1 2009/11/20 19:03:32 akohlmey Exp $
+# $Id: topogromacs.tcl,v 1.2 2010/06/13 18:21:35 akohlmey Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -97,6 +97,8 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 puts $fp "\n\[ bonds \]\n; i  j  func"
                 foreach b $list {
                     lassign $b i j
+                    set i [expr {$i - $offs}]
+                    set j [expr {$j - $offs}]
                     incr i; incr j
                     puts $fp "$i $j 1"
                 }
@@ -106,6 +108,9 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 puts $fp "\n\[ angles \]\n; i  j  k  func"
                 foreach b $list {
                     lassign $b t i j k
+                    set i [expr {$i - $offs}]
+                    set j [expr {$j - $offs}]
+                    set k [expr {$k - $offs}]
                     incr i; incr j; incr k
                     puts $fp "$i $j $k 1"
                 }
@@ -115,6 +120,10 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
                 foreach b $list {
                     lassign $b t i j k l
+                    set i [expr {$i - $offs}]
+                    set j [expr {$j - $offs}]
+                    set k [expr {$k - $offs}]
+                    set l [expr {$l - $offs}]
                     incr i ; incr j; incr k ; incr l
                     puts $fp "$i $j $k $l 1"
                 }
