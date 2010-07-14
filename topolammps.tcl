@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.20 2009/10/10 22:42:49 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.21 2010/07/14 18:46:36 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -16,6 +16,7 @@
 # style = atomstyle 
 # flags = more flags. (currently not used)
 proc ::TopoTools::readlammpsdata {filename style {flags none}} {
+    global M_PI
     if {[catch {open $filename r} fp]} {
         vmdcon -error "readlammpsdata: problem opening data file: $fp\n"
         return -1
@@ -38,11 +39,32 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     }
     mol rename $mol [file tail $filename]
     set sel [atomselect $mol all]
-    set a [expr {$lammps(xhi) - $lammps(xlo)}]
-    set b [expr {$lammps(yhi) - $lammps(ylo)}]
-    set c [expr {$lammps(zhi) - $lammps(zlo)}]
-    set boxdim [list $a $b $c]
-    molinfo $mol set {a b c} $boxdim
+
+    if {($lammps(xy) != {}) && ($lammps(xz) != {}) && ($lammps(yz) != {})} {
+        set $lammps(triclinic) 1
+        vmdcon -info "readlammpsdata: detected triclinic cell."
+        set a [expr {$lammps(xhi) - $lammps(xlo)}]
+        set ly [expr {$lammps(yhi) - $lammps(ylo)}]
+        set lz [expr {$lammps(zhi) - $lammps(zlo)}]
+        set b [expr {sqrt($ly*$ly + $lammps(xy)*$lammps(xy))}]
+        set c [expr {sqrt($lz*$lz + $lammps(xz)*$lammps(xz) 
+                          + $lammps(yz)*$lammps(yz))}]
+        set alpha [expr {($lammps(xy)*$lammps(xz) + $ly*$lammps(yz))/($b*$c)}]
+        set beta  [expr {$lammps(xz)/$c}]
+        set gamma [expr {$lammps(yz)/$b}]
+        set alpha [expr {90.0 - asin($alpha)*180.0/$M_PI}]
+        set beta  [expr {90.0 - asin($beta)*180.0/$M_PI}]
+        set gamma [expr {90.0 - asin($gamma)*180.0/$M_PI}]
+
+        set boxdim [list $a $b $c $alpha $beta $gamma]
+        molinfo $mol set {a b c alpha beta gamma} $boxdim
+    } else {
+        set a [expr {$lammps(xhi) - $lammps(xlo)}]
+        set b [expr {$lammps(yhi) - $lammps(ylo)}]
+        set c [expr {$lammps(zhi) - $lammps(zlo)}]
+        set boxdim [list $a $b $c 90.0 90.0 90.0]
+        molinfo $mol set {a b c alpha beta gamma} $boxdim
+    }
     set atomidmap {}
     set atommasses {}
 
@@ -79,7 +101,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             }
         } elseif {[regexp {^\s*Bonds} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammsdata: Atoms section must come before Bonds in data file"
+                vmdcon -error "readlammpsdata: Atoms section must come before Bonds in data file"
                 return -1
             }
             set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap $lineno]
@@ -89,7 +111,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             }
         } elseif {[regexp {^\s*Angles} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammsdata: Atoms section must come before Angles in data file"
+                vmdcon -error "readlammpsdata: Atoms section must come before Angles in data file"
                 return -1
             }
             set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap $lineno]
@@ -99,7 +121,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             }
         } elseif {[regexp {^\s*Dihedrals} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammsdata: Atoms section must come before Dihedrals in data file"
+                vmdcon -error "readlammpsdata: Atoms section must come before Dihedrals in data file"
                 return -1
             }
             set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap $lineno]
@@ -109,7 +131,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             }
         } elseif {[regexp {^\s*Impropers} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammsdata: Atoms section must come before Impropers in data file"
+                vmdcon -error "readlammpsdata: Atoms section must come before Impropers in data file"
                 return -1
             }
             set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap $lineno]
@@ -177,8 +199,8 @@ proc ::TopoTools::readlammpsheader {fp} {
     array set lammps {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0 
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
-        xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 
-        lineno 0 cgcmm 0
+        xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy {} xz {} yz {}
+        lineno 0 cgcmm 0 triclinic 0
     }
     set x {}
 
@@ -215,7 +237,7 @@ proc ::TopoTools::readlammpsheader {fp} {
                         x lammps(ylo) lammps(yhi)] } {
         } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+zlo zhi} $line \
                         x lammps(zlo) lammps(zhi)] } {
-        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+xlo xhi} $line x lammps(xy) lammps(xz) lammps(yz)] } {
+        } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+xy\s+xz\s+yz} $line x lammps(xy) lammps(xz) lammps(yz)] } {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
         } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
             seek $fp $offs start
