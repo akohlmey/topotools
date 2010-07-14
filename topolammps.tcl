@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.21 2010/07/14 18:46:36 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.22 2010/07/14 18:59:45 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -348,9 +348,16 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
             # }
 
             if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
-            lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
-                                  [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
-                                  [expr {$zi*$boxz + $z}] $mass $radius ]
+            if {$lammps(triclinic)} {
+                lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
+                                      [expr {$xi*$boxx + $yi*$lammps(yz) + $zi*$lammps(xz) + $x}] \
+                                      [expr {$yi*$boxy + $zi*$lammps(xy) + $y}] \
+                                      [expr {$zi*$boxz + $z}] $mass $radius ]
+            } else {
+                lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
+                                      [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
+                                      [expr {$zi*$boxz + $z}] $mass $radius ]
+            }
         }
         if {$curatoms >= $numatoms} break
     }
