@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.23 2010/07/15 00:27:20 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.24 2010/07/16 21:46:55 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -39,6 +39,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     }
     mol rename $mol [file tail $filename]
     set sel [atomselect $mol all]
+    set boxdim {}
 
     if {($lammps(xy) != {}) && ($lammps(xz) != {}) && ($lammps(yz) != {})} {
         set $lammps(triclinic) 1
@@ -58,12 +59,15 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
 
         set boxdim [list $a $b $c $alpha $beta $gamma]
         molinfo $mol set {a b c alpha beta gamma} $boxdim
+        lappend boxdim $lammps(triclinic) $lammps(xy) $lammps(xz) $lammps(yz)
     } else {
+        set $lammps(triclinic) 0
         set a [expr {$lammps(xhi) - $lammps(xlo)}]
         set b [expr {$lammps(yhi) - $lammps(ylo)}]
         set c [expr {$lammps(zhi) - $lammps(zlo)}]
         set boxdim [list $a $b $c 90.0 90.0 90.0]
         molinfo $mol set {a b c alpha beta gamma} $boxdim
+        lappend boxdim $lammps(triclinic) 0.0 0.0 0.0
     }
     set atomidmap {}
     set atommasses {}
@@ -259,7 +263,15 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
     set boxx 0.0
     set boxy 0.0 
     set boxz 0.0
-    lassign $boxdata boxx boxy boxz
+    set alpha 90.0
+    set beta  90.0
+    set gamma 90.0
+    set triclinic 0
+    set xy 0.0
+    set xz 0.0
+    set yz 0.0
+
+    lassign $boxdata boxx boxy boxz alpha beta gamma triclinic xy xz yz
 
     vmdcon -info "parsing LAMMPS Atoms section with style '$style'."
 
@@ -348,10 +360,10 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
             # }
 
             if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
-            if {$lammps(triclinic)} {
+            if {$triclinic} {
                 lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
-                                      [expr {$xi*$boxx + $yi*$lammps(xy) + $zi*$lammps(xz) + $x}] \
-                                      [expr {$yi*$boxy + $zi*$lammps(yz) + $y}] \
+                                      [expr {$xi*$boxx + $yi*$xy + $zi*$xz + $x}] \
+                                      [expr {$yi*$boxy + $zi*$yz + $y}] \
                                       [expr {$zi*$boxz + $z}] $mass $radius ]
             } else {
                 lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
