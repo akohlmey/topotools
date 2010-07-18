@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.24 2010/07/16 21:46:55 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.25 2010/07/18 00:12:43 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -42,7 +42,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     set boxdim {}
 
     if {($lammps(xy) != {}) && ($lammps(xz) != {}) && ($lammps(yz) != {})} {
-        set $lammps(triclinic) 1
+        set lammps(triclinic) 1
         vmdcon -info "readlammpsdata: detected triclinic cell."
         set a [expr {$lammps(xhi) - $lammps(xlo)}]
         set ly [expr {$lammps(yhi) - $lammps(ylo)}]
@@ -52,14 +52,14 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                           + $lammps(yz)*$lammps(yz))}]
         set alpha [expr {($lammps(xy)*$lammps(xz) + $ly*$lammps(yz))/($b*$c)}]
         set beta  [expr {$lammps(xz)/$c}]
-        set gamma [expr {$lammps(yz)/$b}]
+        set gamma [expr {$lammps(xy)/$b}]
         set alpha [expr {90.0 - asin($alpha)*180.0/$M_PI}]
         set beta  [expr {90.0 - asin($beta)*180.0/$M_PI}]
         set gamma [expr {90.0 - asin($gamma)*180.0/$M_PI}]
 
         set boxdim [list $a $b $c $alpha $beta $gamma]
         molinfo $mol set {a b c alpha beta gamma} $boxdim
-        lappend boxdim $lammps(triclinic) $lammps(xy) $lammps(xz) $lammps(yz)
+        lappend boxdim $lammps(triclinic) $a $ly $lz $lammps(xy) $lammps(xz) $lammps(yz)
     } else {
         set $lammps(triclinic) 0
         set a [expr {$lammps(xhi) - $lammps(xlo)}]
@@ -67,7 +67,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         set c [expr {$lammps(zhi) - $lammps(zlo)}]
         set boxdim [list $a $b $c 90.0 90.0 90.0]
         molinfo $mol set {a b c alpha beta gamma} $boxdim
-        lappend boxdim $lammps(triclinic) 0.0 0.0 0.0
+        lappend boxdim $lammps(triclinic) $a $b $c 0.0 0.0 0.0
     }
     set atomidmap {}
     set atommasses {}
@@ -267,11 +267,14 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
     set beta  90.0
     set gamma 90.0
     set triclinic 0
+    set lz 0.0
+    set ly 0.0
+    set lz 0.0
     set xy 0.0
     set xz 0.0
     set yz 0.0
 
-    lassign $boxdata boxx boxy boxz alpha beta gamma triclinic xy xz yz
+    lassign $boxdata boxx boxy boxz alpha beta gamma triclinic lx ly lz xy xz yz
 
     vmdcon -info "parsing LAMMPS Atoms section with style '$style'."
 
@@ -362,9 +365,9 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
             if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
             if {$triclinic} {
                 lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
-                                      [expr {$xi*$boxx + $yi*$xy + $zi*$xz + $x}] \
-                                      [expr {$yi*$boxy + $zi*$yz + $y}] \
-                                      [expr {$zi*$boxz + $z}] $mass $radius ]
+                                      [expr {$x + $xi*$lx + $yi*$xy + $zi*$xz}] \
+                                      [expr {$y + $yi*$ly + $zi*$yz}] \
+                                      [expr {$z + $zi*$lz}] $mass $radius ]
             } else {
                 lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
                                       [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
@@ -373,7 +376,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
         }
         if {$curatoms >= $numatoms} break
     }
-    vmdcon -info "applying atoms data."
+    vmdcon -info "applying atoms data. sorted by atom id."
     $sel set {user resid resname name type charge x y z mass radius} \
         [lsort -integer -index 0 $atomdata]
     return $lineno
