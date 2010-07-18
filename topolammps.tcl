@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.25 2010/07/18 00:12:43 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.26 2010/07/18 18:50:02 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -267,7 +267,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
     set beta  90.0
     set gamma 90.0
     set triclinic 0
-    set lz 0.0
+    set lx 0.0
     set ly 0.0
     set lz 0.0
     set xy 0.0
