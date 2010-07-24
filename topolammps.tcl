@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.26 2010/07/18 18:50:02 akohlmey Exp $
+# Copyright (c) 2009,2010 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topolammps.tcl,v 1.27 2010/07/24 18:01:32 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -81,7 +81,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     while {[gets $fp line] >= 0} {
         incr lineno
         if {[regexp {^\s*Atoms} $line ]} {
-            set lineno [readlammpsatoms $fp $sel $style $boxdim $lineno]
+            set lineno [readlammpsatoms $fp $sel $style $lammps(cgcmm) $boxdim $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Atoms section."
                 return -1
@@ -98,7 +98,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*Masses} $line ]} {
-            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) atommasses $lineno]
+            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lammps(cgcmm) atommasses $lineno]
             if {$lineno < 0} {
                 vmdcon -error "readlammpsdata: error reading Masses section."
                 return -1
@@ -257,7 +257,7 @@ proc ::TopoTools::readlammpsheader {fp} {
 }
 
 # parse atom section
-proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
+proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
     set numatoms [$sel num]
     set atomdata {}
     set boxx 0.0
@@ -361,15 +361,22 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
             #     vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
             #    return -1
             # }
-
-            if {[string length $atomname]} {set atomtype $atomname} ; # if we have CGCMM data use that.
+            if {$cgcmm} {
+                if {[string length $atomname]} {
+                    set atomtype $atomname ; # if we have CGCMM data use that.
+                } else {
+                    set atomname $atomtype
+                }
+            } else {
+                set atomname $atomtype
+            }
             if {$triclinic} {
-                lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
+                lappend atomdata [list $atomid $resid $resname $atomname $atomtype $charge \
                                       [expr {$x + $xi*$lx + $yi*$xy + $zi*$xz}] \
                                       [expr {$y + $yi*$ly + $zi*$yz}] \
                                       [expr {$z + $zi*$lz}] $mass $radius ]
             } else {
-                lappend atomdata [list $atomid $resid $resname $atomtype $atomtype $charge \
+                lappend atomdata [list $atomid $resid $resname $atomname $atomtype $charge \
                                       [expr {$xi*$boxx + $x}] [expr {$yi*$boxy + $y}] \
                                       [expr {$zi*$boxz + $z}] $mass $radius ]
             }
@@ -383,11 +390,11 @@ proc ::TopoTools::readlammpsatoms {fp sel style boxdata lineno} {
 }
 
 # parse masses section
-proc ::TopoTools::readlammpsmasses {fp mol numtypes massmap lineno} {
+proc ::TopoTools::readlammpsmasses {fp mol numtypes cgcmm massmap lineno} {
     vmdcon -info "parsing LAMMPS Masses section."
 
     upvar $massmap massdata
-    set massmap {}
+    set massdata {}
     set curtypes 0
     while {[gets $fp line] >= 0} {
         incr lineno
@@ -405,11 +412,11 @@ proc ::TopoTools::readlammpsmasses {fp mol numtypes massmap lineno} {
             }
             lassign $line typeid mass
             if {$typeid > $numtypes} {
-                vmdcon -error "readlammpsatoms: only typeids 1-$numtypes are supported. $lineno : $line "
+                vmdcon -error "readlammpsmasses: only typeids 1-$numtypes are supported. $lineno : $line "
                 return -1
             }
             # if we have a CGCMM style data file, we have strings for types.
-            if {[string length $typename] > 0} {
+            if {$cgcmm && ([string length $typename] > 0)} {
                 lappend massdata $typename $mass
             } else {
                 lappend massdata $typeid $mass
