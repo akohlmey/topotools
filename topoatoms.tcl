@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.6 2009/11/20 19:03:32 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.7 2010/10/17 21:29:46 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -114,6 +114,32 @@ proc ::TopoTools::guessatomdata {sel what from} {
             $sel set element $elmntlist
         }
 
+        mass-element {
+            set mlist {}
+            foreach a [$sel get element] {
+                set idx [lsearch $elements $a]
+                if {$idx < 0} {
+                    lappend mlist 0.0
+                } else {
+                    lappend mlist [lindex $masses $idx]
+                }
+            }   
+            $sel set mass $mlist
+        }
+
+        name-element {
+            # name is the same as element, only we go all uppercase.
+            set nlist {}
+            foreach a [$sel get element] {
+                lappend nlist [string toupper $a]
+            }
+            $sel set name $nlist
+        }
+
+        name-type {
+            $sel set name [$sel get type]
+        }
+
         radius-element {
             set rlist {}
             foreach a [$sel get element] {
@@ -127,21 +153,23 @@ proc ::TopoTools::guessatomdata {sel what from} {
             $sel set radius $rlist
         }
 
-        mass-element {
-            set mlist {}
+        type-element {
+            # type is the same as element, only we go all uppercase.
+            set tlist {}
             foreach a [$sel get element] {
-                set idx [lsearch $elements $a]
-                if {$idx < 0} {
-                    lappend mlist 0.0
-                } else {
-                    lappend mlist [lindex $radii $idx]
-                }
+                lappend tlist [string toupper $a]
             }   
-            $sel set mass $mlist
+            $sel set name $tlist
+        }
+
+        type-name {
+            $sel set type [$sel get name]
         }
 
         default {
             vmdcon -error "guessatomdata: guessing '$what' from '$from' not implemented."
+            vmdcon -error "Available are: element<-mass, element<-name, mass<element "
+            vmdcon -error "name<element, radius<element name<type, type<element, type<name."
             return
         }
     }
