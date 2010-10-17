@@ -1,5 +1,5 @@
 VMD topotools package. Version 1.1
-Copyright (c) by 2009 Axel Kohlmeyer <akohlmey@gmail.com>
+Copyright (c) by 2009, 2010 Axel Kohlmeyer <akohlmey@gmail.com>
 -------------------
 
 A collection of tcl commands to manipulate and build 
@@ -15,6 +15,11 @@ TODO:
   - topo copybonds <fromsel> <tosel>
   - topo guessbonds <sel>  (use bondsrecalc and restore bonds 
     outside the selection)
+  - support for writing non-orthogonal cells
+    (triclinic cell read is implemented and tested).
+  - support for non-orthogonal cells with replicatemols.
+  - support for generating and replicating bonds across
+    periodic boundaries (for molecular crystal models).
   - proper documentation and a tutorial
   - more tools to read/write custom topology files 
     (e.g. gromacs top?, amber parmtop?)
