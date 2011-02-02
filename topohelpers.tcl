@@ -2,10 +2,10 @@
 # TopoTools, a VMD package to simplify manipulating bonds 
 # other topology related properties in VMD.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topohelpers.tcl,v 1.6 2009/11/20 19:03:32 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topohelpers.tcl,v 1.7 2011/02/02 21:28:53 akohlmey Exp $
 
-# some little helper functions
+# some (small) helper functions
 
 # compare two lists element by element.
 # return 0 if they are identical, or 1 if not.
@@ -23,31 +23,115 @@ proc ::TopoTools::listcmp {a b} {
 
 # angle definition list comparison function
 proc ::TopoTools::compareangles {a b} {
-    if {[lindex $a 1] < [lindex $b 1]} {
+    lassign $a at a1 a2 a3
+    lassign $b bt b1 b2 b3
+
+    # canonicalize
+    if {$a1 > $a3} { set t $a1 ; set a1 $a3; set a3 $t }
+    if {$b1 > $b3} { set t $b1 ; set b1 $b3; set b3 $t }
+
+    # compare. first center, then left, then right atom, finally type.
+    if {$a2 < $b2} {
         return -1
-    } elseif {[lindex $a 1] > [lindex $b 1]} {
+    } elseif {$a2 > $b2} {
         return 1
     } else {
-        if {[lindex $a 2] < [lindex $b 2]} {
+        if {$a1 < $b1} {
             return -1
-        } elseif {[lindex $a 2] > [lindex $b 2]} {
+        } elseif {$a1 > $b1} {
             return 1
         } else {
-            if {[lindex $a 3] < [lindex $b 3]} {
+            if {$a3 < $b3} {
                 return -1
-            } elseif {[lindex $a 3] > [lindex $b 3]} {
+            } elseif {$a3 > $b3} {
                 return 1
             } else {
-                if {[llength $a] == 4} {
-                    return 0
+                return [string compare $at $bt]
+            }
+        }
+    }
+}
+
+# dihedral definition list comparison function
+proc ::TopoTools::comparedihedrals {a b} {
+    lassign $a at a1 a2 a3 a4
+    lassign $b bt b1 b2 b3 b4
+
+    # canonicalize 
+    if {($a2 > $a3) || (($a2 == $a3) && ($a1 > $a4))} {
+        set t $a1; set a1 $a4; set a4 $t
+        set t $a2; set a2 $a3; set a3 $t
+    }
+    if {($b2 > $b3) || (($b2 == $b3) && ($b1 > $b4))} {
+        set t $b1; set b1 $b4; set b4 $t
+        set t $b2; set b2 $b3; set b3 $t
+    }
+    # compare. first center bond, then outside atoms, then type. start from left.
+    if {$a2 < $b2} {
+        return -1
+    } elseif {$a2 > $b2} {
+        return 1
+    } else {
+        if {$a3 < $b3} {
+            return -1
+        } elseif {$a3 > $b3} {
+            return 1
+        } else {
+            if {$a1 < $b1} {
+                return -1
+            } elseif {$a1 > $b1} {
+                return 1
+            } else {
+                if {$a4 < $b4} {
+                    return -1
+                } elseif {$a4 > $b4} {
+                    return 1
                 } else {
-                    if {[lindex $a 3] < [lindex $b 3]} {
-                        return -1
-                    } elseif  {[lindex $a 3] > [lindex $b 3]} {
-                        return 1
-                    } else {
-                        return 0
-                    }
+                    return [string compare $at $bt]
+                }
+            }
+        }
+    }
+}
+
+# improper dihedral definition list comparison function
+# this assumes that the improper definition follows the
+# usual convention that the 3rd atom is connected to the
+# other three via bonds.
+proc ::TopoTools::compareimpropers {a b} {
+    lassign $a at a1 a2 a3 a4
+    lassign $b bt b1 b2 b3 b4
+
+    # canonicalize. same as in guessdihedrals.
+    if {($a1 > $a2)} { set t $a1; set a1 $a2; set a2 $t }
+    if {($a2 > $a3)} { set t $a2; set a2 $a3; set a3 $t }
+    if {($a1 > $a2)} { set t $a1; set a1 $a2; set a2 $t }
+    if {($b1 > $b2)} { set t $b1; set b1 $b2; set b2 $t }
+    if {($b2 > $b3)} { set t $b2; set b2 $b3; set b3 $t }
+    if {($b1 > $b2)} { set t $b1; set b1 $b2; set b2 $t }
+
+    # compare. first center atom, then outside atoms, then type. start from left.
+    if {$a3 < $b3} {
+        return -1
+    } elseif {$a3 > $b3} {
+        return 1
+    } else {
+        if {$a1 < $b1} {
+            return -1
+        } elseif {$a1 > $b1} {
+            return 1
+        } else {
+            if {$a2 < $b2} {
+                return -1
+            } elseif {$a2 > $b2} {
+                return 1
+            } else {
+                if {$a4 < $b4} {
+                    return -1
+                } elseif {$a4 > $b4} {
+                    return 1
+                } else {
+                    return [string compare $at $bt]
                 }
             }
         }
@@ -56,6 +140,7 @@ proc ::TopoTools::compareangles {a b} {
 
 # sort angle/dihedral/improper list and remove duplicates
 proc ::TopoTools::sortsomething {what sel} {
+
     switch $what {
         angle     {
             setanglelist $sel [lsort -unique -command compareangles \
