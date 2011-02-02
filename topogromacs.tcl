@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds and other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.2 2010/06/13 18:21:35 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topogromacs.tcl,v 1.3 2011/02/02 21:33:29 akohlmey Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #

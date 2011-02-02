@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topocgcmm.tcl,v 1.4 2009/10/10 22:42:48 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topocgcmm.tcl,v 1.5 2011/02/02 21:33:29 akohlmey Exp $
 
 # high level subroutines for CMM coarse grain forcefield support.
 

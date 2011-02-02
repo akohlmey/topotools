@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topovarxyz.tcl,v 1.1 2009/11/20 19:03:33 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topovarxyz.tcl,v 1.2 2011/02/02 21:33:29 akohlmey Exp $
 
 # high level subroutines for supporting xyz 
 # trajectories with a varying number of particles.

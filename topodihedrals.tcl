@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topodihedrals.tcl,v 1.7 2010/02/13 18:11:24 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topodihedrals.tcl,v 1.8 2011/02/02 21:33:29 akohlmey Exp $
 
 # return info about dihedrals
 # we list and count only dihedrals that are entirely within the selection.

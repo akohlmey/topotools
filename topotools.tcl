@@ -9,8 +9,8 @@
 # - topogmx.tcl   : interface to gromacs (at least for postprocessing)
 # - topoamber.tcl : interface to amber's parmtop
 #
-# Copyright (c) 2009 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.18 2010/02/16 00:39:07 akohlmey Exp $
+# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topotools.tcl,v 1.19 2011/02/02 21:33:29 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
