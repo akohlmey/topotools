@@ -1,13 +1,18 @@
 VMD topotools package. Version 1.1
-Copyright (c) by 2009, 2010 Axel Kohlmeyer <akohlmey@gmail.com>
+Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
 -------------------
 
 A collection of tcl commands to manipulate and build 
 topologies (i.e. bonds, angles, dihedrals, etc. and
 their corresponding properties (type, order, etc.).
 
-Please contact me, if you have any additional ideas
-or want to implement a specific feature.
+Please contact me at akohlmey@gmail.com, if you have any 
+additional ideas or want to implement a specific feature.
+
+Updated and bugfix versions are also available from:
+http://sites.google.com/site/akohlmey/software/topotools
+That page also links to tutorials demonstrating the use
+of the package for different purposes.
 
 TODO:
   - improve "topo setbonds" to be more efficient for large sets 
@@ -20,6 +25,6 @@ TODO:
   - support for non-orthogonal cells with replicatemols.
   - support for generating and replicating bonds across
     periodic boundaries (for molecular crystal models).
-  - proper documentation and a tutorial
+  - better documentation
   - more tools to read/write custom topology files 
     (e.g. gromacs top?, amber parmtop?)
