@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.29 2011/02/07 00:04:53 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.30 2011/02/07 00:54:31 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -694,6 +694,23 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
 
     # write out supported data file sections
     writelammpsheader $fp [array get lammps]
+
+    # write out hints about type to number mappings
+    # for coefficient settings
+    writelammpscoeffhint $fp $sel atoms
+    if {$lammps(bonds) > 0} {
+        writelammpscoeffhint $fp $sel bonds
+    }
+    if {$lammps(angles) > 0} {
+        writelammpscoeffhint $fp $sel angles
+    }
+    if {$lammps(dihedrals) > 0} {
+        writelammpscoeffhint $fp $sel dihedrals
+    }
+    if {$lammps(impropers) > 0} {
+        writelammpscoeffhint $fp $sel impropers
+    }
+
     writelammpsmasses $fp $sel
     writelammpsatoms $fp $sel $style
     set atomidmap  [$sel list]
@@ -936,4 +953,57 @@ proc ::TopoTools::checklammpsstyle {style} {
             return 1
         }
     }
+}
+
+# write hints about type coefficient mappings
+proc ::TopoTools::writelammpscoeffhint {fp sel type} {
+    switch $type {
+        atoms {
+            puts $fp "\# Pair Coeffs\n\#"
+            set aid 1
+            set atlist [lsort -ascii -unique [$sel get {type}]]
+            foreach at $atlist {
+                puts $fp "\# $aid  $at"
+                incr aid
+            }
+        }
+        bonds {
+            puts $fp "\# Bond Coeffs\n\#"
+            set bid 1
+            foreach bt [bondinfo bondtypenames $sel type] {
+                puts $fp "\# $bid  $bt"
+                incr bid
+            }
+        }
+        angles {
+            puts $fp "\# Angle Coeffs\n\#"
+            set aid 1
+            foreach at [angleinfo angletypenames $sel] {
+                puts $fp "\# $aid  $at"
+                incr aid
+            }
+        }
+        dihedrals {
+            puts $fp "\# Dihedral Coeffs\n\#"
+            set did 1
+            foreach dt [dihedralinfo dihedraltypenames $sel] {
+                puts $fp "\# $did  $dt"
+                incr did
+            }
+        }
+        impropers {
+            puts $fp "\# Improper Coeffs\n\#"
+            set iid 1
+            foreach it [improperinfo impropertypenames $sel] {
+                puts $fp "\# $iid  $it"
+                incr iid
+            }
+        }
+        default {
+            vmdcon -warn "writelammpscoeffhint: don't know how to write hints for '$type'"
+            return 1
+        }
+    }
+    puts $fp ""
+    return
 }
