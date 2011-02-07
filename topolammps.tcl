@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.28 2011/02/02 21:26:34 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.29 2011/02/07 00:04:53 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -696,7 +696,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     writelammpsheader $fp [array get lammps]
     writelammpsmasses $fp $sel
     writelammpsatoms $fp $sel $style
-    set atomidmap  [$sel get serial]
+    set atomidmap  [$sel list]
     if {$lammps(bonds) > 0} {
         writelammpsbonds $fp $sel $atomidmap
     }
@@ -831,10 +831,12 @@ proc ::TopoTools::writelammpsbonds {fp sel atomidmap} {
     foreach bdat $bonddata {
         incr bondid
         lassign $bdat a b t
-        set at1 [lindex $atomidmap $a]
-        set at2 [lindex $atomidmap $b]
-        set type [expr 1 + [lsearch -ascii $bondtypes $t]]
-   
+        set at1  [lsearch -integer -sorted $atomidmap $a]
+        set at2  [lsearch -integer -sorted $atomidmap $b]
+        set type [lsearch -ascii $bondtypes $t]
+
+        # go from 0-based to 1-based indexing and write out
+        incr at1; incr at2; incr type
         puts $fp [format "%d %d %d %d" $bondid $type $at1 $at2]
     }
     puts $fp ""
@@ -852,11 +854,13 @@ proc ::TopoTools::writelammpsangles {fp sel atomidmap} {
     foreach adat $angledata {
         incr angleid
         lassign $adat t a b c
-        set at1 [lindex $atomidmap $a]
-        set at2 [lindex $atomidmap $b]
-        set at3 [lindex $atomidmap $c]
-        set type [expr 1 + [lsearch -ascii $angletypes $t]]
+        set at1  [lsearch -integer -sorted $atomidmap $a]
+        set at2  [lsearch -integer -sorted $atomidmap $b]
+        set at3  [lsearch -integer -sorted $atomidmap $c]
+        set type [lsearch -ascii $angletypes $t]
    
+        # go from 0-based to 1-based indexing and write out
+        incr at1; incr at2; incr at3; incr type
         puts $fp [format "%d %d %d %d %d" $angleid $type $at1 $at2 $at3]
     }
     puts $fp ""
@@ -874,12 +878,14 @@ proc ::TopoTools::writelammpsdihedrals {fp sel atomidmap} {
     foreach adat $dihedraldata {
         incr dihedralid
         lassign $adat t a b c d
-        set at1 [lindex $atomidmap $a]
-        set at2 [lindex $atomidmap $b]
-        set at3 [lindex $atomidmap $c]
-        set at4 [lindex $atomidmap $d]
-        set type [expr 1 + [lsearch -ascii $dihedraltypes $t]]
+        set at1  [lsearch -integer -sorted $atomidmap $a]
+        set at2  [lsearch -integer -sorted $atomidmap $b]
+        set at3  [lsearch -integer -sorted $atomidmap $c]
+        set at4  [lsearch -integer -sorted $atomidmap $d]
+        set type [lsearch -ascii $dihedraltypes $t]
    
+        # go from 0-based to 1-based indexing and write out
+        incr at1; incr at2; incr at3; incr at4; incr type
         puts $fp [format "%d %d %d %d %d %d" $dihedralid $type $at1 $at2 $at3 $at4]
     }
     puts $fp ""
@@ -897,12 +903,14 @@ proc ::TopoTools::writelammpsimpropers {fp sel atomidmap} {
     foreach adat $improperdata {
         incr improperid
         lassign $adat t a b c d
-        set at1 [lindex $atomidmap $a]
-        set at2 [lindex $atomidmap $b]
-        set at3 [lindex $atomidmap $c]
-        set at4 [lindex $atomidmap $d]
-        set type [expr 1 + [lsearch -ascii $impropertypes $t]]
+        set at1  [lsearch -integer -sorted $atomidmap $a]
+        set at2  [lsearch -integer -sorted $atomidmap $b]
+        set at3  [lsearch -integer -sorted $atomidmap $c]
+        set at4  [lsearch -integer -sorted $atomidmap $d]
+        set type [lsearch -ascii $impropertypes $t]
    
+        # go from 0-based to 1-based indexing and write out
+        incr at1; incr at2; incr at3; incr at4; incr type
         puts $fp [format "%d %d %d %d %d %d" $improperid $type $at1 $at2 $at3 $at4]
     }
     puts $fp ""
