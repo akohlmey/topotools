@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.7 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topoimpropers.tcl,v 1.8 2011/02/09 02:07:05 akohlmey Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.
@@ -132,7 +132,21 @@ proc ::TopoTools::retypeimpropers {sel} {
 # this step is different from guessing angles or dihedrals,
 # as we are only looking for definitions that are unusual.
 
-proc ::TopoTools::guessimpropers {sel} {
+proc ::TopoTools::guessimpropers {sel {flags {}}} {
+    # default tolerance is 5 degrees from planar
+    set tolerance 5
+
+    # parse optional flags
+    foreach {key value} $flags {
+        switch -- $key {
+            tol -
+            tolerance {set tolerance  $value}
+            default {
+                vmdcon -error "guessimpropers: unknown flag: $key"
+                return -1
+            }
+        }
+    }
 
     set mol [$sel molid]
     set atomtypes [$sel get type]
@@ -140,6 +154,7 @@ proc ::TopoTools::guessimpropers {sel} {
     set newimproperlist {}
     
     set bonddata [$sel getbonds]
+    set minangle [expr {180.0 - $tolerance}]
 
     # preserve all impropers definitions that are not fully contained in $sel
     foreach improper [join [molinfo $mol get impropers]] {
@@ -160,7 +175,7 @@ proc ::TopoTools::guessimpropers {sel} {
         if {$nbnd == 3} {
             lassign $bonds b1 b2 b3
             set ang [expr {abs([measure imprp [list $b1 $b2 $aidx $b3] molid $mol])}]
-            if {$ang > 175} {
+            if {$ang > $minangle} {
                 set b1idx [lsearch -sorted -integer $atomindex $b1]
                 set b1typ [lindex $atomtypes $b1idx]
                 set b2idx [lsearch -sorted -integer $atomindex $b2]

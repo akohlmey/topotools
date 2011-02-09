@@ -10,7 +10,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.19 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topotools.tcl,v 1.20 2011/02/09 02:07:05 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -79,8 +79,11 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  sort(angle|dihedral|improper)s      sorts the list of (angle|dihedral|improper)s"
     vmdcon -info "                                      according to atom index and removes duplicates"
     vmdcon -info "  retype(angle|dihedral|improper)s    resets all angle types. "
-    vmdcon -info "  guess(angle|dihedral|improper)s     guesses angle, dihedral and improper definitions from bonds."
-    vmdcon -info "                                      impropers are only defined for atoms bonded to three other atoms with a near flat structure"
+    vmdcon -info ""
+    vmdcon -info "  guess(angle|dihedral)s              guesses angle and dihedral definitions from bonds."
+    vmdcon -info "  guessimproper [tolerance <degrees>] guesses improper definitions from bonds. impropers are only defined"
+    vmdcon -info "                                      for atoms bonded to three other atoms with a near flat structure."
+    vmdcon -info "                                      the tolerance flag changes the allowed deviation from 180 deg (default: 5 deg)."
     vmdcon -info ""
     vmdcon -info "  addangle <id1> <id2> <id3> \[<type>\] (re-defines) a single angle."
     vmdcon -info "  delangle <id1> <id2> <id3>  (re-defines) a single angle."
@@ -482,7 +485,7 @@ proc TopoTools::topo { args } {
         }
 
         guessimpropers {
-            set retval [guessimpropers $sel] 
+            set retval [guessimpropers $sel $newargs] 
         }
 
         sortimpropers {
