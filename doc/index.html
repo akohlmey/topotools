@@ -28,9 +28,9 @@ flexible script commands that make it easier to use the low-level interface in V
 <p>Finally, <b>topotools</b> also contains some utilities and applications for more 
 complex operations like combining multiple molecules (=different files) or 
 multiple selections into one new molecule, or building larger systems by replicating
-a given unitcell.</p>
+a given unit cell.</p>
 
-<p>Updates and bugfixed for topotools between VMD releases are available from 
+<p>Updates and bug fixes for topotools between VMD releases are available from 
 <a href="http://sites.google.com/site/akohlmey/software/topotools">http://sites.google.com/site/akohlmey/software/topotools</a>. 
 This page also links to a set of tutorial examples that demonstrate in more detail,
 how the commands in the plugin can be used to build topology data files for different
@@ -143,7 +143,7 @@ Combines multiple separate molecules into one file. Usage:<br>
 
 Example usage:
 <pre>
-package require topotools 1.0
+package require topotools 1.1
 
 # load to be merged molecules into VMD
 set midlist {}
@@ -171,7 +171,7 @@ into one new molecule. Usage:<br>
 
 Example usage:
 <pre>
-package require topotools 1.0
+package require topotools 1.1
 
 set sellist {}
 set sel [atomselect 0 protein]
