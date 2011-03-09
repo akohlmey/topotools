@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.30 2011/02/07 00:54:31 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.31 2011/03/09 02:08:32 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -188,6 +188,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     if {$newaddsrep} {
         adddefaultrep $mol
     }
+    $sel delete
     return $mol
 }
 
