@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.8 2011/02/02 21:33:28 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.9 2011/03/09 02:10:26 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -67,9 +67,16 @@ proc ::TopoTools::guessatomdata {sel what from} {
         2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0}
 
     switch -- "$what-$from" {
+        lammps-data {
+            # shortcut for lammps data files
+            guessatomdata $sel element mass
+            guessatomdata $sel name element
+            guessatomdata $sel radius element
+        }
+
         element-mass {
-            set elmntlist {}
-            foreach a [$sel get mass] {
+            foreach a [lsort -real -unique [$sel get mass]] {
+                set s [atomselect [$sel molid] "mass $a and index [$sel list]"]
                 set idx 0
                 foreach m $masses {
                     # this catches most cases. 
@@ -92,14 +99,14 @@ proc ::TopoTools::guessatomdata {sel what from} {
                         set idx 27
                     }
                 }
-                lappend elmntlist [lindex $elements $idx]
+                $s set element [lindex $elements $idx]
+                $s delete
             }
-            $sel set element $elmntlist
         }
 
         element-name {
-            set elmntlist {}
-            foreach a [$sel get name] {
+            foreach n [lsort -ascii -unique [$sel get name]] {
+                set s [atomselect [$sel molid] "name $n and index [$sel list]"]
                 if {[lsearch $elements $a] < 0} {
                     set a [string range $a 0 1]
                     if {[lsearch $elements $a] < 0} {
@@ -109,31 +116,32 @@ proc ::TopoTools::guessatomdata {sel what from} {
                         }
                     }
                 }
-                lappend elmntlist $a
+                $s set element $a
+                $s delete
             }
-            $sel set element $elmntlist
         }
 
         mass-element {
-            set mlist {}
-            foreach a [$sel get element] {
+            foreach e [lsort -ascii -unique [$sel get element]] {
+                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
                 set idx [lsearch $elements $a]
-                if {$idx < 0} {
-                    lappend mlist 0.0
-                } else {
-                    lappend mlist [lindex $masses $idx]
+                set m 0.0
+                if {$idx >= 0} {
+                    set m [lindex $masses $idx]
                 }
+                $s set mass $m
+                $s delete
             }   
             $sel set mass $mlist
         }
 
         name-element {
             # name is the same as element, only we go all uppercase.
-            set nlist {}
-            foreach a [$sel get element] {
-                lappend nlist [string toupper $a]
+            foreach e [lsort -ascii -unique [$sel get element]] {
+                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                $s set name [string toupper $e]
+                $s delete
             }
-            $sel set name $nlist
         }
 
         name-type {
@@ -141,25 +149,25 @@ proc ::TopoTools::guessatomdata {sel what from} {
         }
 
         radius-element {
-            set rlist {}
-            foreach a [$sel get element] {
-                set idx [lsearch $elements $a]
-                if {$idx < 0} {
-                    lappend rlist 2.0
-                } else {
-                    lappend rlist [lindex $radii $idx]
+            foreach e [lsort -ascii -unique [$sel get element]] {
+                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                set idx [lsearch $elements $e]
+                set r 2.0
+                if {$idx >= 0} {
+                    set r [lindex $radii $idx]
                 }
-            }   
-            $sel set radius $rlist
+                $s set radius $r
+                $s delete
+            }
         }
 
         type-element {
             # type is the same as element, only we go all uppercase.
-            set tlist {}
-            foreach a [$sel get element] {
-                lappend tlist [string toupper $a]
-            }   
-            $sel set name $tlist
+            foreach e [lsort -ascii -unique [$sel get element]] {
+                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                $s set type [string toupper $e]
+                $s delete
+            }
         }
 
         type-name {
