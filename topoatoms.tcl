@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.9 2011/03/09 02:10:26 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.10 2011/04/04 01:58:02 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -107,16 +107,51 @@ proc ::TopoTools::guessatomdata {sel what from} {
         element-name {
             foreach n [lsort -ascii -unique [$sel get name]] {
                 set s [atomselect [$sel molid] "name $n and index [$sel list]"]
-                if {[lsearch $elements $a] < 0} {
-                    set a [string range $a 0 1]
-                    if {[lsearch $elements $a] < 0} {
-                        set a [string range $a 0 0]
-                        if {[lsearch $elements $a] < 0} {
-                            set a X
+                set idx [lsearch -nocase $elements $n]
+                if { $idx < 0} {
+                    set n [string range $n 0 1]
+                    set idx [lsearch -nocase $elements $n]
+                    if {$idx < 0} {
+                        set n [string range $n 0 0]
+                        set idx [lsearch -nocase $elements $n]
+                        if {$idx < 0} {
+                            set n X
+                        } else {
+                            set n [lindex $elements $idx]
                         }
+                    } else {
+                        set n [lindex $elements $idx]
                     }
+                } else {
+                    set n [lindex $elements $idx]
                 }
-                $s set element $a
+                $s set element $n
+                $s delete
+            }
+        }
+
+        element-type {
+            foreach t [lsort -ascii -unique [$sel get type]] {
+                set s [atomselect [$sel molid] "type $t and index [$sel list]"]
+                set idx [lsearch -nocase $elements $t]
+                if { $idx < 0} {
+                    set t [string range $t 0 1]
+                    set idx [lsearch -nocase $elements $t]
+                    if {$idx < 0} {
+                        set t [string range $t 0 0]
+                        set idx [lsearch -nocase $elements $t]
+                        if {$idx < 0} {
+                            set t X
+                        } else {
+                            set t [lindex $elements $idx]
+                        }
+                    } else {
+                        set t [lindex $elements $idx]
+                    }
+                } else {
+                    set t [lindex $elements $idx]
+                }
+                $s set element $t
                 $s delete
             }
         }
@@ -124,7 +159,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         mass-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
                 set s [atomselect [$sel molid] "element $e and index [$sel list]"]
-                set idx [lsearch $elements $a]
+                set idx [lsearch -nocase $elements $a]
                 set m 0.0
                 if {$idx >= 0} {
                     set m [lindex $masses $idx]
