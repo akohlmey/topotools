@@ -6,16 +6,15 @@
 # - topotools.tcl : some operations on bonds can be very slow.
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
-# - topogmx.tcl   : interface to gromacs (at least for postprocessing)
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.20 2011/02/09 02:07:05 akohlmey Exp $
+# $Id: topotools.tcl,v 1.21 2011/04/04 02:02:27 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
     # depending on this package. we'll have to expect
-    variable version 1.1
+    variable version 1.2
     # location of additional data files containing 
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -39,8 +38,9 @@ proc ::TopoTools::usage {} {
     vmdcon -info ""
     vmdcon -info "common flags:"
     vmdcon -info "  -molid     <num>|top    molecule id (default: 'top')"
-    vmdcon -info "  -sel       <selection>  atom selection function or text"
-    vmdcon -info "                          (default: 'all')"
+    vmdcon -info "  -sel       <selection>  atom selection function or text (default: 'all')"
+#    vmdcon -info "  -relindex  0|1          indices in arguments are interpreted as absolute"
+    vmdcon -info "                          or relative. (default: '0')"
     vmdcon -info "flags only applicable to 'bond' commands:"
     vmdcon -info "  -bondtype  <typename>   bond type name (default: unknown)"
     vmdcon -info "  -bondorder <bondorder>  bond order parameter (default: 1)"
@@ -53,13 +53,16 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  atomtypenames           returns the list of atom types names."
     vmdcon -info ""
     vmdcon -info "  guessatom <what> <from> (re-)set atom data heuristically. currently supported:"
-    vmdcon -info "                          element from mass."
+    vmdcon -info "    element from mass, element from name, element from type, mass from element,"
+    vmdcon -info "    name from element, name from type, radius from element, type from element,"
+    vmdcon -info "    type from name, lammps from data (= element<-mass, name & radius<-element)"
     vmdcon -info ""
     vmdcon -info "  numbonds                returns the number of unique bonds."
     vmdcon -info "  numbondtypes            returns the number of bond types."
     vmdcon -info "  bondtypenames           returns the list of bond types names."
     vmdcon -info "  clearbonds              deletes all bonds. "
     vmdcon -info "  retypebonds             resets all bond types. "
+    vmdcon -info "  guessbonds              guesses bonds from atom radii (currently only works for selection 'all')."
     vmdcon -info ""
     vmdcon -info "  addbond <id1> <id2>     (re-)defines a single bond."
     vmdcon -info "  delbond <id1> <id2>     deletes a single bond, if it exists."
@@ -81,14 +84,14 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  retype(angle|dihedral|improper)s    resets all angle types. "
     vmdcon -info ""
     vmdcon -info "  guess(angle|dihedral)s              guesses angle and dihedral definitions from bonds."
-    vmdcon -info "  guessimproper [tolerance <degrees>] guesses improper definitions from bonds. impropers are only defined"
+    vmdcon -info "  guessimproper \[tolerance <degrees>\] guesses improper definitions from bonds. impropers are only defined"
     vmdcon -info "                                      for atoms bonded to three other atoms with a near flat structure."
     vmdcon -info "                                      the tolerance flag changes the allowed deviation from 180 deg (default: 5 deg)."
     vmdcon -info ""
     vmdcon -info "  addangle <id1> <id2> <id3> \[<type>\] (re-defines) a single angle."
     vmdcon -info "  delangle <id1> <id2> <id3>  (re-defines) a single angle."
-    vmdcon -info "  add(dihedral|improper) <id1> <id2> <id3> <id4> \[<type>\] (re-defines) a single (dihedral|improper)."
-    vmdcon -info "  del(dihedral|improper) <id1> <id2> <id3> <id4> (re-defines) a single (dihedral|improper)."
+    vmdcon -info "  add(dihedral|improper) <id1> <id2> <id3> <id4> \[<type>\] (re-)defines a single (dihedral|improper)."
+    vmdcon -info "  del(dihedral|improper) <id1> <id2> <id3> <id4> deletes a single (dihedral|improper)."
     vmdcon -info ""
     vmdcon -info ""
     vmdcon -info "  getanglelist  returns the list of angle definitions"
@@ -324,6 +327,10 @@ proc TopoTools::topo { args } {
 
         clearbonds {
             set retval [clearbonds $sel] 
+        }
+
+        guessbonds {
+            set retval [guessbonds $sel] 
         }
 
         addbond {
