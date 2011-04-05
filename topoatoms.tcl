@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.10 2011/04/04 01:58:02 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.11 2011/04/05 20:34:01 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -159,7 +159,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         mass-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
                 set s [atomselect [$sel molid] "element $e and index [$sel list]"]
-                set idx [lsearch -nocase $elements $a]
+                set idx [lsearch -nocase $elements $e]
                 set m 0.0
                 if {$idx >= 0} {
                     set m [lindex $masses $idx]
@@ -167,7 +167,6 @@ proc ::TopoTools::guessatomdata {sel what from} {
                 $s set mass $m
                 $s delete
             }   
-            $sel set mass $mlist
         }
 
         name-element {
