@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.11 2011/04/05 20:34:01 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.12 2011/05/12 18:46:45 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -106,7 +106,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         element-name {
             foreach n [lsort -ascii -unique [$sel get name]] {
-                set s [atomselect [$sel molid] "name $n and index [$sel list]"]
+                set s [atomselect [$sel molid] "name '$n' and index [$sel list]"]
                 set idx [lsearch -nocase $elements $n]
                 if { $idx < 0} {
                     set n [string range $n 0 1]
@@ -132,7 +132,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         element-type {
             foreach t [lsort -ascii -unique [$sel get type]] {
-                set s [atomselect [$sel molid] "type $t and index [$sel list]"]
+                set s [atomselect [$sel molid] "type '$t' and index [$sel list]"]
                 set idx [lsearch -nocase $elements $t]
                 if { $idx < 0} {
                     set t [string range $t 0 1]
@@ -158,7 +158,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         mass-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
                 set idx [lsearch -nocase $elements $e]
                 set m 0.0
                 if {$idx >= 0} {
@@ -172,7 +172,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         name-element {
             # name is the same as element, only we go all uppercase.
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
                 $s set name [string toupper $e]
                 $s delete
             }
@@ -184,7 +184,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         radius-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
                 set idx [lsearch $elements $e]
                 set r 2.0
                 if {$idx >= 0} {
@@ -198,7 +198,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         type-element {
             # type is the same as element, only we go all uppercase.
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element $e and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
                 $s set type [string toupper $e]
                 $s delete
             }
