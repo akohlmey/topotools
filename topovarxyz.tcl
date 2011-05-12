@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topovarxyz.tcl,v 1.2 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topovarxyz.tcl,v 1.3 2011/05/12 18:44:23 akohlmey Exp $
 
 # high level subroutines for supporting xyz 
 # trajectories with a varying number of particles.
@@ -37,8 +37,14 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
     # have to parse and store away the whole trajectory and while
     # doing so count the number of atom types in each frame.
     while {[gets $fp line] >= 0} {
-        # first line is number of atoms
-        set numlines $line
+        set numlines -1
+        if {[regexp {^\s*([0-9]+)} $line x numlines]} {
+            # first line is number of atoms
+        } else {
+            set numlines -1
+        }
+        if {$numlines < 0} break
+
         # skip next line
         if {[catch {gets $fp line} msg]} {
             vmdcon -error "readvarxyz: error reading frame $nframes of xyz file: $msg. "
