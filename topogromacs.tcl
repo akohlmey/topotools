@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.3 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topogromacs.tcl,v 1.4 2011/06/07 00:06:44 akohlmey Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -80,17 +80,38 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             puts $fp "; nr  type  resnr residue atom cgnr charge  mass"
             set offs [lindex [$fsel get index] 0]
             set resoffs [lindex [$fsel get residue] 0]
+            # for charge group handling
+            set cgnr 1
+            set cgnum 0
+            set cgsum 0.0
             foreach nr [$fsel get serial] type [$fsel get type] \
                 name [$fsel get name] residue [$fsel get residue] \
                 resname [$fsel get resname] charge [$fsel get charge] \
                 mass [$fsel get mass] {
+
+                    # assume that charge group atoms are consecutively
+                    # in the structure we are working on. gromacs also
+                    # imposes a 32 atom limit on charge groups that we 
+                    # have to honor. to allow for rounding erros we assume
+                    # that 0.01 is zero.
+                    set cgcut 0.01
+                    set cgmax 32
+                    set cgsum [expr {$cgsum + $charge}]
+                    incr cgnum
+                    if { (($cgnum > 1) && (abs($cgsum - floor($cgsum + 0.5*$cgcut)) < $cgcut)) || ($cgnum > $cgmax) } {
+                        set cgnum 0
+                        incr cgnr
+                        set cgsum 0.0
+                    }
+
                     # fix up some data that gromacs cannok grok
                     if {[string is integer $type]} {set type "type$type"}
                     if {[string is integer $resname]} {set resname "RES$resname"}
+
                     puts $fp [format "% 6d %11s % 6d %8s %6s % 6d %10.4f %10.4f"  \
                                   [expr {$nr - $offs}]  $type \
                                   [expr {$residue - $resoffs + 1}] $resname $name \
-                                  [expr {$residue - $resoffs + 1}] $charge $mass ]
+                                  $cgnr $charge $mass ]
             }
             set list [bondinfo getbondlist $fsel none]
             if {[llength $list]} {
