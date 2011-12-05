@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.4 2011/06/07 00:06:44 akohlmey Exp $
+# $Id: topogromacs.tcl,v 1.5 2011/12/05 16:50:41 akohlmey Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -78,13 +78,14 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             puts $fp "; Name      nrexcl\n$molname     3"
             puts $fp "\n\[ atoms \]"
             puts $fp "; nr  type  resnr residue atom cgnr charge  mass"
-            set offs [lindex [$fsel get index] 0]
-            set resoffs [lindex [$fsel get residue] 0]
+            set atmmap [$fsel get index]
+            set resmap [lsort -integer -unique [$fsel get residue]]
+            set nr 1
             # for charge group handling
             set cgnr 1
             set cgnum 0
             set cgsum 0.0
-            foreach nr [$fsel get serial] type [$fsel get type] \
+            foreach idx [$fsel get index] type [$fsel get type] \
                 name [$fsel get name] residue [$fsel get residue] \
                 resname [$fsel get resname] charge [$fsel get charge] \
                 mass [$fsel get mass] {
@@ -95,7 +96,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                     # have to honor. to allow for rounding erros we assume
                     # that 0.01 is zero.
                     set cgcut 0.01
-                    set cgmax 32
+                    set cgmax 30
                     set cgsum [expr {$cgsum + $charge}]
                     incr cgnum
                     if { (($cgnum > 1) && (abs($cgsum - floor($cgsum + 0.5*$cgcut)) < $cgcut)) || ($cgnum > $cgmax) } {
@@ -107,19 +108,19 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                     # fix up some data that gromacs cannok grok
                     if {[string is integer $type]} {set type "type$type"}
                     if {[string is integer $resname]} {set resname "RES$resname"}
-
+                    set resid [lsearch -sorted -integer $resmap $residue]
+                    incr resid
                     puts $fp [format "% 6d %11s % 6d %8s %6s % 6d %10.4f %10.4f"  \
-                                  [expr {$nr - $offs}]  $type \
-                                  [expr {$residue - $resoffs + 1}] $resname $name \
-                                  $cgnr $charge $mass ]
+                               $nr $type $resid $resname $name $cgnr $charge $mass ]
+                    incr nr
             }
             set list [bondinfo getbondlist $fsel none]
             if {[llength $list]} {
                 puts $fp "\n\[ bonds \]\n; i  j  func"
                 foreach b $list {
                     lassign $b i j
-                    set i [expr {$i - $offs}]
-                    set j [expr {$j - $offs}]
+                    set i [lsearch -sorted -integer $atmmap $i]
+                    set j [lsearch -sorted -integer $atmmap $j]
                     incr i; incr j
                     puts $fp "$i $j 1"
                 }
@@ -129,9 +130,9 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 puts $fp "\n\[ angles \]\n; i  j  k  func"
                 foreach b $list {
                     lassign $b t i j k
-                    set i [expr {$i - $offs}]
-                    set j [expr {$j - $offs}]
-                    set k [expr {$k - $offs}]
+                    set i [lsearch -sorted -integer $atmmap $i]
+                    set j [lsearch -sorted -integer $atmmap $j]
+                    set k [lsearch -sorted -integer $atmmap $k]
                     incr i; incr j; incr k
                     puts $fp "$i $j $k 1"
                 }
@@ -141,10 +142,10 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
                 foreach b $list {
                     lassign $b t i j k l
-                    set i [expr {$i - $offs}]
-                    set j [expr {$j - $offs}]
-                    set k [expr {$k - $offs}]
-                    set l [expr {$l - $offs}]
+                    set i [lsearch -sorted -integer $atmmap $i]
+                    set j [lsearch -sorted -integer $atmmap $j]
+                    set k [lsearch -sorted -integer $atmmap $k]
+                    set l [lsearch -sorted -integer $atmmap $l]
                     incr i ; incr j; incr k ; incr l
                     puts $fp "$i $j $k $l 1"
                 }
