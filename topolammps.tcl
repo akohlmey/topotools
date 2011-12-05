@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.31 2011/03/09 02:08:32 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.32 2011/12/05 16:51:54 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -158,9 +158,25 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno] 
         } elseif {[regexp {^\s*(Angle Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+        } elseif {[regexp {^\s*(BondBond Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+        } elseif {[regexp {^\s*(BondAngle Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
         } elseif {[regexp {^\s*(Dihedral Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(MiddleBondTorsion Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(EndBondTorsion Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(AngleTorsion Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(AngleAngleTorsion Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+        } elseif {[regexp {^\s*(BondBond13 Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
         } elseif {[regexp {^\s*(Improper Coeffs)} $line ]} {
+            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
+        } elseif {[regexp {^\s*(AngleAngle Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines silently
@@ -665,6 +681,45 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     set lammps(dihedraltypes) [dihedralinfo numdihedraltypes $sel]
     set lammps(impropertypes) [improperinfo numimpropertypes $sel]
     set lammps(style) $style
+
+    # correct system information to allow only information valid
+    # for the selected atom style
+    switch $style {
+        atomic -
+        charge -
+        dpd {
+            set lammps(bonds) 0
+            set lammps(angles) 0
+            set lammps(dihedrals) 0
+            set lammps(impropers) 0
+            set lammps(bondtypes) 0
+            set lammps(angletypes) 0
+            set lammps(dihedraltypes) 0
+            set lammps(impropertypes) 0
+        }
+
+        bond  {
+            set lammps(angles) 0
+            set lammps(dihedrals) 0
+            set lammps(impropers) 0
+            set lammps(angletypes) 0
+            set lammps(dihedraltypes) 0
+            set lammps(impropertypes) 0
+        }
+
+        angle  {
+            set lammps(dihedrals) 0
+            set lammps(impropers) 0
+            set lammps(dihedraltypes) 0
+            set lammps(impropertypes) 0
+        }
+
+        molecular -
+        full -
+        hybrid -
+        default { ; # print all sections
+        }
+    }
 
     # initialize simulation cell dimensions from min/max search
     lassign [measure minmax $sel -withradii] min max
