@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.32 2011/12/05 16:51:54 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.33 2012/01/15 02:46:10 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -848,12 +848,12 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
 
     puts $fp " Atoms\n"
     set typemap [lsort -unique -ascii [$sel get type]]
-    set resmap  [lsort -unique -integer [$sel get residue]]
+    set resmap  [lsort -unique -integer [$sel get resid]]
     set atomid 0
-    foreach adat [$sel get {type residue charge x y z resname}] {
-        lassign $adat type residue charge x y z resname
+    foreach adat [$sel get {type resid charge x y z resname}] {
+        lassign $adat type resid charge x y z resname
         set atomtype [lsearch -sorted -ascii $typemap $type]
-        set resid    [lsearch -sorted -integer $resmap $residue]
+        set resid    [lsearch -sorted -integer $resmap $resid]
         incr atomid
         incr atomtype
         incr resid
@@ -878,7 +878,7 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
                               $atomid $resid $atomtype $charge $x $y $z $type $resname] 
             }
             hybrid      { 
-                puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
+                puts $fp [format "%d %d %.6f %.6f %.6f %d %.6f \# %s %s" \
                               $atomid $atomtype $x $y $z $resid $charge $type $resname] 
             }
             default   {
