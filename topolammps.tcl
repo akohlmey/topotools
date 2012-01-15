@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.33 2012/01/15 02:46:10 akohlmey Exp $
+# Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topolammps.tcl,v 1.34 2012/01/15 02:50:08 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #

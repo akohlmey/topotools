@@ -1,10 +1,10 @@
 VMD topotools package. Version 1.2
-Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
+Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
 -------------------
 
-A collection of tcl commands to manipulate and build 
-topologies (i.e. bonds, angles, dihedrals, etc. and
-their corresponding properties (type, order, etc.).
+A collection of Tcl commands to manipulate, build, read
+and write topologies (i.e. bonds, angles, dihedrals, etc.
+and their corresponding properties (type, order, etc.).
 
 Please contact me at akohlmey@gmail.com, if you have any 
 additional ideas or want to implement a specific feature.
@@ -28,3 +28,4 @@ TODO:
   - better documentation
   - more tools to read/write custom topology files 
     (e.g. gromacs top?, amber parmtop?)
+  - API to read/parse/store force field database information.
