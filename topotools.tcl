@@ -9,7 +9,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.22 2012/02/16 00:37:23 akohlmey Exp $
+# $Id: topotools.tcl,v 1.23 2012/02/16 01:43:56 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -241,6 +241,24 @@ proc TopoTools::topo { args } {
         set cmd help
     }
 
+    # check whether we have a valid command.
+    set validcmd {readvarxyz writevarxyz readlammpsdata writelammpsdata
+        writegmxtop help numatoms numatomtypes atomtypenames guessatom
+        getbondlist bondtypenames numbondtypes numbonds setbondlist
+        retypebonds clearbonds guessbonds addbond delbond getanglelist
+        angletypenames numangletypes numangles setanglelist retypeangles
+        clearangles guessangles addangle delangle getdihedrallist
+        dihedraltypenames numdihedraltypes numdihedrals setdihedrallist
+        retypedihedrals cleardihedrals guessdihedrals adddihedral
+        deldihedral getimproperlist impropertypenames numimpropertypes
+        numimpropers setimproperlist retypeimpropers clearimpropers
+        guessimpropers addimproper delimproper}
+    if {[lsearch -exact $validcmd $cmd] < 0} {
+        vmdcon -error "Unknown topotools command '$cmd'"
+        usage
+        return
+    }
+
     # we need a few special cases for reading coordinate/topology files.
     if {[string equal $cmd readlammpsdata]} {
         set style full
@@ -275,7 +293,7 @@ proc TopoTools::topo { args } {
     }
 
     # help!!!
-    if { [string equal $cmd help] } {
+    if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
             return
