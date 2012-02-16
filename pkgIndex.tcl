@@ -8,4 +8,4 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded topotools 1.2 "set env(TOPOTOOLSDIR) {$dir}; [list source [file join $dir topotools.tcl]]"
+package ifneeded topotools 1.3 "set env(TOPOTOOLSDIR) {$dir}; [list source [file join $dir topotools.tcl]]"

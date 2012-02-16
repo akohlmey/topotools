@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.12 2011/05/12 18:46:45 akohlmey Exp $
+# Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topoatoms.tcl,v 1.13 2012/02/16 01:05:26 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -23,6 +23,7 @@ proc ::TopoTools::atominfo {infotype sel {flag none}} {
 # taken from the corresponding lists in the molfile plugin header.
 # TODO: additional guesses: element-name, mass-element, radius-element, ...
 proc ::TopoTools::guessatomdata {sel what from} {
+    set selstr [$sel text]
 
     # element names from PTE
     set elements {X H He Li Be B C N O F Ne Na Mg Al Si P
@@ -76,7 +77,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         element-mass {
             foreach a [lsort -real -unique [$sel get mass]] {
-                set s [atomselect [$sel molid] "mass $a and index [$sel list]"]
+                set s [atomselect [$sel molid] "mass $a and ( $selstr )"]
                 set idx 0
                 foreach m $masses {
                     # this catches most cases. 
@@ -106,7 +107,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         element-name {
             foreach n [lsort -ascii -unique [$sel get name]] {
-                set s [atomselect [$sel molid] "name '$n' and index [$sel list]"]
+                set s [atomselect [$sel molid] "name '$n' and ( $selstr )"]
                 set idx [lsearch -nocase $elements $n]
                 if { $idx < 0} {
                     set n [string range $n 0 1]
@@ -132,7 +133,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         element-type {
             foreach t [lsort -ascii -unique [$sel get type]] {
-                set s [atomselect [$sel molid] "type '$t' and index [$sel list]"]
+                set s [atomselect [$sel molid] "type '$t' and ( $selstr )"]
                 set idx [lsearch -nocase $elements $t]
                 if { $idx < 0} {
                     set t [string range $t 0 1]
@@ -158,7 +159,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         mass-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and ( $selstr )"]
                 set idx [lsearch -nocase $elements $e]
                 set m 0.0
                 if {$idx >= 0} {
@@ -172,7 +173,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         name-element {
             # name is the same as element, only we go all uppercase.
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and ( $selstr )"]
                 $s set name [string toupper $e]
                 $s delete
             }
@@ -184,7 +185,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
 
         radius-element {
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and ( $selstr )"]
                 set idx [lsearch $elements $e]
                 set r 2.0
                 if {$idx >= 0} {
@@ -198,7 +199,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         type-element {
             # type is the same as element, only we go all uppercase.
             foreach e [lsort -ascii -unique [$sel get element]] {
-                set s [atomselect [$sel molid] "element '$e' and index [$sel list]"]
+                set s [atomselect [$sel molid] "element '$e' and ( $selstr )"]
                 $s set type [string toupper $e]
                 $s delete
             }

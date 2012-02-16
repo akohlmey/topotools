@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.34 2012/01/15 02:50:08 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.35 2012/02/16 01:05:26 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -381,6 +381,13 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
                 default   {
                     # ignore this unsupported style
                 }
+            }
+
+            # sanity check on input data. if x/y/z are empty the atom style
+            # must have been specified wrong. sufficient to check for $z
+            if { [string length $z] == 0 } {
+                vmdcon -error "readlammpsatoms: not enough data for style '$style' in line $lineno."
+                return -1
             }
 
             # XXX: no reason to discriminate by atomid. we store the 
@@ -818,9 +825,9 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
     set typemap  [lsort -unique -ascii [$sel get type]]
     set masslist {}
     set mol [$sel molid]
-    set idx [$sel list]
+    set selstr [$sel text]
     foreach type $typemap {
-        set tsel [atomselect $mol "(index $idx) and (type $type)"]
+        set tsel [atomselect $mol "( $selstr ) and (type $type)"]
         set mass [lsort -unique -real [$tsel get mass]]
         $tsel delete
         if {[llength $mass] != 1} return
