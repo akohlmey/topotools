@@ -8,13 +8,13 @@
 #                   implementation in VMD for that.
 # - topoamber.tcl : interface to amber's parmtop
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.21 2011/04/04 02:02:27 akohlmey Exp $
+# Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topotools.tcl,v 1.22 2012/02/16 00:37:23 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
     # depending on this package. we'll have to expect
-    variable version 1.2
+    variable version 1.3
     # location of additional data files containing 
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -275,7 +275,7 @@ proc TopoTools::topo { args } {
     }
 
     # help!!!
-    if { ![string equal $cmd help] } {
+    if { [string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
             return
