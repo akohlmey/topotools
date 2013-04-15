@@ -9,7 +9,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.23 2012/02/16 01:43:56 akohlmey Exp $
+# $Id: topotools.tcl,v 1.24 2013/04/15 09:19:29 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -172,7 +172,7 @@ proc TopoTools::topo { args } {
             switch -- $arg {
                 -molid { 
                     if {[catch {molinfo $val get name} res]} {
-                        vmdcon -error "Invalid -molid argument '$val': $res"
+                        vmdcon -err "Invalid -molid argument '$val': $res"
                         return
                     }
                     set molid $val
@@ -185,7 +185,7 @@ proc TopoTools::topo { args } {
                 -sel { 
                     if {[info commands $val] != ""} {
                         if {[catch {$val text} res]} {
-                            vmdcon -error "Invalid -sel argument '$val': $res"
+                            vmdcon -err "Invalid -sel argument '$val': $res"
                             return
                         }
                         set selmol [$val molid]
@@ -198,7 +198,7 @@ proc TopoTools::topo { args } {
 
                 -bondtype { 
                     if {[string length $val] < 1} {
-                        vmdcon -error "Invalid -bondtype argument '$val'"
+                        vmdcon -err "Invalid -bondtype argument '$val'"
                         return
                     }
                     set bondtype $val
@@ -207,7 +207,7 @@ proc TopoTools::topo { args } {
 
                 -bondorder { 
                     if {[string length $val] < 1} {
-                        vmdcon -error "Invalid -bondorder argument '$val'"
+                        vmdcon -err "Invalid -bondorder argument '$val'"
                         return
                     }
                     set bondorder $val
@@ -254,7 +254,7 @@ proc TopoTools::topo { args } {
         numimpropers setimproperlist retypeimpropers clearimpropers
         guessimpropers addimproper delimproper}
     if {[lsearch -exact $validcmd $cmd] < 0} {
-        vmdcon -error "Unknown topotools command '$cmd'"
+        vmdcon -err "Unknown topotools command '$cmd'"
         usage
         return
     }
@@ -263,7 +263,7 @@ proc TopoTools::topo { args } {
     if {[string equal $cmd readlammpsdata]} {
         set style full
         if {[llength $newargs] < 1} {
-            vmdcon -error "Not enough arguments for 'topo readlammpsdata'"
+            vmdcon -err "Not enough arguments for 'topo readlammpsdata'"
             usage
             return
         }
@@ -272,7 +272,7 @@ proc TopoTools::topo { args } {
             set style [lindex $newargs 1]
         }
         if {[checklammpsstyle $style]} {
-            vmdcon -error "Atom style '$style' not supported."
+            vmdcon -err "Atom style '$style' not supported."
             usage
             return
         }
@@ -295,11 +295,11 @@ proc TopoTools::topo { args } {
     # help!!!
     if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
-            vmdcon -error "Molid from selection '$selmol' does not match -molid argument '$molid'"
+            vmdcon -err "Molid from selection '$selmol' does not match -molid argument '$molid'"
             return
         }
         if {[catch {atomselect $molid $seltxt} sel]} {
-            vmdcon -error "Problem with atom selection: $sel"
+            vmdcon -err "Problem with atom selection: $sel"
             return
         }
     }
@@ -315,7 +315,7 @@ proc TopoTools::topo { args } {
 
         guessatom {
             if {[llength $newargs] < 2} {
-                vmdcon -error "'topo guessatom' requires two arguments: <what> <from>"
+                vmdcon -err "'topo guessatom' requires two arguments: <what> <from>"
                 return
             }
             set retval [guessatomdata $sel [lindex $newargs 0] [lindex $newargs 1]]
@@ -353,7 +353,7 @@ proc TopoTools::topo { args } {
 
         addbond {
             if {[llength $newargs] < 2} {
-                vmdcon -error "Not enough arguments for 'topo addbond'"
+                vmdcon -err "Not enough arguments for 'topo addbond'"
                 usage
                 return
             }
@@ -365,7 +365,7 @@ proc TopoTools::topo { args } {
 
         delbond {
             if {[llength $newargs] < 2} {
-                vmdcon -error "Not enough arguments for 'topo addbond'"
+                vmdcon -err "Not enough arguments for 'topo addbond'"
                 usage
                 return
             }
@@ -406,7 +406,7 @@ proc TopoTools::topo { args } {
         addangle {
             set atype unknown
             if {[llength $newargs] < 3} {
-                vmdcon -error "Not enough arguments for 'topo addangle'"
+                vmdcon -err "Not enough arguments for 'topo addangle'"
                 usage
                 return
             }
@@ -423,7 +423,7 @@ proc TopoTools::topo { args } {
         delangle {
             set atype unknown
             if {[llength $newargs] < 3} {
-                vmdcon -error "Not enough arguments for 'topo delangle'"
+                vmdcon -err "Not enough arguments for 'topo delangle'"
                 usage
                 return
             }
@@ -464,7 +464,7 @@ proc TopoTools::topo { args } {
         adddihedral {
             set atype unknown
             if {[llength $newargs] < 4} {
-                vmdcon -error "Not enough arguments for 'topo adddihedral'"
+                vmdcon -err "Not enough arguments for 'topo adddihedral'"
                 usage
                 return
             }
@@ -482,7 +482,7 @@ proc TopoTools::topo { args } {
         deldihedral {
             set atype unknown
             if {[llength $newargs] < 4} {
-                vmdcon -error "Not enough arguments for 'topo deldihedral'"
+                vmdcon -err "Not enough arguments for 'topo deldihedral'"
                 usage
                 return
             }
@@ -524,7 +524,7 @@ proc TopoTools::topo { args } {
         addimproper {
             set atype unknown
             if {[llength $newargs] < 4} {
-                vmdcon -error "Not enough arguments for 'topo addimproper'"
+                vmdcon -err "Not enough arguments for 'topo addimproper'"
                 usage
                 return
             }
@@ -542,7 +542,7 @@ proc TopoTools::topo { args } {
         delimproper {
             set atype unknown
             if {[llength $newargs] < 4} {
-                vmdcon -error "Not enough arguments for 'topo delimproper'"
+                vmdcon -err "Not enough arguments for 'topo delimproper'"
                 usage
                 return
             }
@@ -556,7 +556,7 @@ proc TopoTools::topo { args } {
         writelammpsdata { ;# NOTE: readlammpsdata is handled above to bypass check for sel/molid.
             set style full
             if {[llength $newargs] < 1} {
-                vmdcon -error "Not enough arguments for 'topo writelammpsdata'"
+                vmdcon -err "Not enough arguments for 'topo writelammpsdata'"
                 usage
                 return
             }
@@ -565,7 +565,7 @@ proc TopoTools::topo { args } {
                 set style [lindex $newargs 1]
             }
             if {[checklammpsstyle $style]} {
-                vmdcon -error "Atom style '$style' not supported."
+                vmdcon -err "Atom style '$style' not supported."
                 usage
                 return
             }
@@ -574,7 +574,7 @@ proc TopoTools::topo { args } {
 
         writevarxyz { ;# NOTE: readvarxyz is handled above to bypass check for sel/molid.
             if {[llength $newargs] < 1} {
-                vmdcon -error "Not enough arguments for 'topo writevarxyz'"
+                vmdcon -err "Not enough arguments for 'topo writevarxyz'"
                 usage
                 return
             }
@@ -584,7 +584,7 @@ proc TopoTools::topo { args } {
 
         writegmxtop { ;# NOTE: readgmxtop is handled above to bypass check for sel/molid.
             if {[llength $newargs] < 1} {
-                vmdcon -error "Not enough arguments for 'topo writegmxtop'"
+                vmdcon -err "Not enough arguments for 'topo writegmxtop'"
                 usage
                 return
             }

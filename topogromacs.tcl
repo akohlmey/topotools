@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.5 2011/12/05 16:50:41 akohlmey Exp $
+# $Id: topogromacs.tcl,v 1.6 2013/04/15 09:19:28 akohlmey Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -25,7 +25,7 @@
 proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
 
     if {[catch {open $filename w} fp]} {
-        vmdcon -error "writegmxtop: problem opening gromacs topology file: $fp\n"
+        vmdcon -err "writegmxtop: problem opening gromacs topology file: $fp\n"
         return -1
     }
 

@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.35 2012/02/16 01:05:26 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.36 2013/04/15 09:19:28 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -18,14 +18,14 @@
 proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     global M_PI
     if {[catch {open $filename r} fp]} {
-        vmdcon -error "readlammpsdata: problem opening data file: $fp\n"
+        vmdcon -err "readlammpsdata: problem opening data file: $fp\n"
         return -1
     }
     
     # parse lammps header section.
     array set lammps [readlammpsheader $fp]
     if {$lammps(atoms) < 1} {
-        vmdcon -error "readlammpsdata: failed to parse lammps data header. abort."
+        vmdcon -err "readlammpsdata: failed to parse lammps data header. abort."
         return -1
     }
 
@@ -41,7 +41,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     # create an empty molecule and timestep
     set mol -1
     if {[catch {mol new atoms $lammps(atoms)} mol]} {
-        vmdcon -error "readlammpsdata: problem creating empty molecule: $mol"
+        vmdcon -err "readlammpsdata: problem creating empty molecule: $mol"
         return -1
     } else {
         animate dup $mol
@@ -92,7 +92,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         if {[regexp {^\s*Atoms} $line ]} {
             set lineno [readlammpsatoms $fp $sel $style $lammps(cgcmm) $boxdim $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Atoms section."
+                vmdcon -err "readlammpsdata: error reading Atoms section."
                 return -1
             }
             # retrieve map of atomids from user field and convert back to integer.
@@ -103,53 +103,53 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         } elseif {[regexp {^\s*Velocities} $line ]} {
             set lineno [readlammpsvelocities $fp $sel $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Velocities section."
+                vmdcon -err "readlammpsdata: error reading Velocities section."
                 return -1
             }
         } elseif {[regexp {^\s*Masses} $line ]} {
             set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lammps(cgcmm) atommasses $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Masses section."
+                vmdcon -err "readlammpsdata: error reading Masses section."
                 return -1
             }
         } elseif {[regexp {^\s*Bonds} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammpsdata: Atoms section must come before Bonds in data file"
+                vmdcon -err "readlammpsdata: Atoms section must come before Bonds in data file"
                 return -1
             }
             set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Bonds section."
+                vmdcon -err "readlammpsdata: error reading Bonds section."
                 return -1
             }
         } elseif {[regexp {^\s*Angles} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammpsdata: Atoms section must come before Angles in data file"
+                vmdcon -err "readlammpsdata: Atoms section must come before Angles in data file"
                 return -1
             }
             set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Angles section."
+                vmdcon -err "readlammpsdata: error reading Angles section."
                 return -1
             }
         } elseif {[regexp {^\s*Dihedrals} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammpsdata: Atoms section must come before Dihedrals in data file"
+                vmdcon -err "readlammpsdata: Atoms section must come before Dihedrals in data file"
                 return -1
             }
             set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Dihedrals section."
+                vmdcon -err "readlammpsdata: error reading Dihedrals section."
                 return -1
             }
         } elseif {[regexp {^\s*Impropers} $line ]} {
             if {[llength $atomidmap] < 1} {
-                vmdcon -error "readlammpsdata: Atoms section must come before Impropers in data file"
+                vmdcon -err "readlammpsdata: Atoms section must come before Impropers in data file"
                 return -1
             }
             set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap $lineno]
             if {$lineno < 0} {
-                vmdcon -error "readlammpsdata: error reading Impropers section."
+                vmdcon -err "readlammpsdata: error reading Impropers section."
                 return -1
             }
         } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
@@ -181,8 +181,8 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines silently
         } else { 
-            vmdcon -error "readlammpsdata: unkown header line: $lineno : $line "
-            vmdcon -error "readlammpsdata: cannot continue. "
+            vmdcon -err "readlammpsdata: unkown header line: $lineno : $line "
+            vmdcon -err "readlammpsdata: cannot continue. "
             return -1
         }    
         set lammps(lineno) $lineno
@@ -386,7 +386,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
             # sanity check on input data. if x/y/z are empty the atom style
             # must have been specified wrong. sufficient to check for $z
             if { [string length $z] == 0 } {
-                vmdcon -error "readlammpsatoms: not enough data for style '$style' in line $lineno."
+                vmdcon -err "readlammpsatoms: not enough data for style '$style' in line $lineno."
                 return -1
             }
 
@@ -396,7 +396,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
             # use it for mapping bonds, angles, etc to it.
             ################
             # if {$atomid > $numatoms} {
-            #     vmdcon -error "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
+            #     vmdcon -err "readlammpsatoms: only atomids 1-$numatoms are supported. $lineno : $line "
             #    return -1
             # }
             if {$cgcmm} {
@@ -450,7 +450,7 @@ proc ::TopoTools::readlammpsmasses {fp mol numtypes cgcmm massmap lineno} {
             }
             lassign $line typeid mass
             if {$typeid > $numtypes} {
-                vmdcon -error "readlammpsmasses: only typeids 1-$numtypes are supported. $lineno : $line "
+                vmdcon -err "readlammpsmasses: only typeids 1-$numtypes are supported. $lineno : $line "
                 return -1
             }
             # if we have a CGCMM style data file, we have strings for types.
@@ -489,7 +489,7 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
             lassign $line atomid vx vy vz 
 
             #if {$atomid > $numatoms} {
-            #    vmdcon -error "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
+            #    vmdcon -err "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
             #    return -1
             #}
             lappend veldata [list $atomid $vx $vy $vz]
@@ -526,7 +526,7 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
             set aidx [lsearch -sorted -integer $atomidmap $a]
             set bidx [lsearch -sorted -integer $atomidmap $b]
             if {($aidx < 0) || ($bidx < 0)} {
-                vmdcon -error "readlammpsdata: bond with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsdata: bond with non-existent atomid on line: $lineno"
                 return -1
             }
             lappend bonddata [list $aidx $bidx $type]
@@ -563,7 +563,7 @@ proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
             set bidx [lsearch -sorted -integer $atomidmap $b]
             set cidx [lsearch -sorted -integer $atomidmap $c]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0)} {
-                vmdcon -error "readlammpsdata: angle with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsdata: angle with non-existent atomid on line: $lineno"
                 return -1
             }
             lappend angledata [list $type $aidx $bidx $cidx]
@@ -602,7 +602,7 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
             set cidx [lsearch -sorted -integer $atomidmap $c]
             set didx [lsearch -sorted -integer $atomidmap $d]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
-                vmdcon -error "readlammpsdata: dihedral with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsdata: dihedral with non-existent atomid on line: $lineno"
                 return -1
             }
             lappend dihedraldata [list $type $aidx $bidx $cidx $didx]
@@ -641,7 +641,7 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
             set cidx [lsearch -sorted -integer $atomidmap $c]
             set didx [lsearch -sorted -integer $atomidmap $d]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
-                vmdcon -error "readlammpsdata: improper with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsdata: improper with non-existent atomid on line: $lineno"
                 return -1
             }
             lappend improperdata [list $type $aidx $bidx $cidx $didx]
@@ -665,7 +665,7 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
 # flags = more flags. (currently not used)
 proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     if {[catch {open $filename w} fp]} {
-        vmdcon -error "writelammpsdata: problem opening data file: $fp\n"
+        vmdcon -err "writelammpsdata: problem opening data file: $fp\n"
         return -1
     }
 

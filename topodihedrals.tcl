@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topodihedrals.tcl,v 1.8 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topodihedrals.tcl,v 1.9 2013/04/15 09:19:28 akohlmey Exp $
 
 # return info about dihedrals
 # we list and count only dihedrals that are entirely within the selection.
@@ -188,7 +188,7 @@ proc ::TopoTools::guessdihedrals {sel} {
 # define a new dihedral or change an existing one.
 proc ::TopoTools::adddihedral {mol id1 id2 id3 id4 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
-        vmdcon -error "topology adddihedral: Invalid atom indices: $sel"
+        vmdcon -err "topology adddihedral: Invalid atom indices: $sel"
         return
     }
 
@@ -209,7 +209,7 @@ proc ::TopoTools::adddihedral {mol id1 id2 id3 id4 {type unknown}} {
 # delete a dihedral.
 proc ::TopoTools::deldihedral {mol id1 id2 id3 id4 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
-        vmdcon -error "topology deldihedral: Invalid atom indices: $sel"
+        vmdcon -err "topology deldihedral: Invalid atom indices: $sel"
         return
     }
 

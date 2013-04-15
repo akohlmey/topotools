@@ -3,7 +3,7 @@
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoutils.tcl,v 1.11 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topoutils.tcl,v 1.12 2013/04/15 09:19:29 akohlmey Exp $
 
 # utility commands
 
@@ -18,7 +18,7 @@ proc ::TopoTools::mergemols {mids} {
     set numlist {}
     foreach m $mids {
         if {[catch {molinfo $m get numatoms} natoms]} {
-            vmdcon -error "molecule id $m does not exist."
+            vmdcon -err "molecule id $m does not exist."
             return -1
         } else {
             # record number of atoms and offsets for later use.
@@ -29,14 +29,14 @@ proc ::TopoTools::mergemols {mids} {
     }
 
     if {!$ntotal} {
-        vmdcon -error "mergemols: combined molecule has no atoms."
+        vmdcon -err "mergemols: combined molecule has no atoms."
         return -1
     }
 
     # create new molecule to hold data.
     set mol -1
     if {[catch {mol new atoms $ntotal} mol]} {
-        vmdcon -error "mergemols: could not create new molecule: $mol"
+        vmdcon -err "mergemols: could not create new molecule: $mol"
         return -1
     } else {
         animate dup $mol
@@ -122,7 +122,7 @@ proc ::TopoTools::selections2mol {sellist} {
     set numlist {}
     foreach s $sellist {
         if {[catch {$s num} natoms]} {
-            vmdcon -error "selection access error: $natoms"
+            vmdcon -err "selection access error: $natoms"
             return -1
         } else {
             # record number of atoms and offsets for later use.
@@ -133,14 +133,14 @@ proc ::TopoTools::selections2mol {sellist} {
     }
 
     if {!$ntotal} {
-        vmdcon -error "selections2mol: combined molecule has no atoms."
+        vmdcon -err "selections2mol: combined molecule has no atoms."
         return -1
     }
 
     # create new molecule to hold data.
     set mol -1
     if {[catch {mol new atoms $ntotal} mol]} {
-        vmdcon -error "selection2mol: could not create new molecule: $mol"
+        vmdcon -err "selection2mol: could not create new molecule: $mol"
         return -1
     } else {
         animate dup $mol
@@ -257,26 +257,26 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     # compute total number of atoms.
     set nrepl  [llength $transvecs]
     if {!$nrepl} {
-        vmdcon -error "replicatemol: no or bad nx/ny/nz replications given."
+        vmdcon -err "replicatemol: no or bad nx/ny/nz replications given."
         return -1
     }
     set ntotal 0
     set natoms 0
     if {[catch {molinfo $mol get numatoms} natoms]} {
-        vmdcon -error "replicatemol: molecule id $mol does not exist."
+        vmdcon -err "replicatemol: molecule id $mol does not exist."
         return -1
     } else {
         set ntotal [expr {$natoms * $nrepl}]
     }
     if {!$natoms} {
-        vmdcon -error "replicatemol: cannot replicate an empty molecule."
+        vmdcon -err "replicatemol: cannot replicate an empty molecule."
         return -1
     }
 
     set molname replicatedmol-$nrepl-x-$mol
     set newmol -1
     if {[catch {mol new atoms $ntotal} newmol]} {
-        vmdcon -error "replicatemol: could not create new molecule: $mol"
+        vmdcon -err "replicatemol: could not create new molecule: $mol"
         return -1
     } else {
         animate dup $newmol

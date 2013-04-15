@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topovarxyz.tcl,v 1.3 2011/05/12 18:44:23 akohlmey Exp $
+# $Id: topovarxyz.tcl,v 1.4 2013/04/15 09:19:29 akohlmey Exp $
 
 # high level subroutines for supporting xyz 
 # trajectories with a varying number of particles.
@@ -22,7 +22,7 @@
 # flags = more flags. (currently not used)
 proc ::TopoTools::readvarxyz {filename {flags none}} {
     if {[catch {open $filename r} fp]} {
-        vmdcon -error "readvarxyz: problem opening xyz file: $fp\n"
+        vmdcon -err "readvarxyz: problem opening xyz file: $fp\n"
         return -1
     }
 
@@ -47,7 +47,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
 
         # skip next line
         if {[catch {gets $fp line} msg]} {
-            vmdcon -error "readvarxyz: error reading frame $nframes of xyz file: $msg. "
+            vmdcon -err "readvarxyz: error reading frame $nframes of xyz file: $msg. "
             break
         }
 
@@ -55,7 +55,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
         set frame {}
         for {set i 0} {$i < $numlines} {incr i} {
             if {[catch {gets $fp line} msg]} {
-                vmdcon -error "readvarxyz: error reading frame $nframes of xyz file: $msg. "
+                vmdcon -err "readvarxyz: error reading frame $nframes of xyz file: $msg. "
                 break
             }
             lassign $line a x y z
@@ -103,7 +103,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
     # create an empty molecule and timestep
     set mol -1
     if {[catch {mol new atoms $natoms} mol]} {
-        vmdcon -error "readvarxyz: problem creating empty molecule: $mol"
+        vmdcon -err "readvarxyz: problem creating empty molecule: $mol"
         return -1
     }
     mol rename $mol [file tail $filename]
@@ -174,7 +174,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
 # flags = more flags. (currently not used)
 proc ::TopoTools::writevarxyz {filename mol sel {flags {}}} {
     if {[catch {open $filename w} fp]} {
-        vmdcon -error "writevarxyz: problem opening xyz file: $fp\n"
+        vmdcon -err "writevarxyz: problem opening xyz file: $fp\n"
         return -1
     }
 
@@ -196,7 +196,7 @@ proc ::TopoTools::writevarxyz {filename mol sel {flags {}}} {
             step   {set step   $value}
             selmod {set selmod $value}
             default {
-                vmdcon -error "writevarxyz: unknown flag: $key"
+                vmdcon -err "writevarxyz: unknown flag: $key"
                 return -1
             }
         }

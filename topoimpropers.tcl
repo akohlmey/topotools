@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.8 2011/02/09 02:07:05 akohlmey Exp $
+# $Id: topoimpropers.tcl,v 1.9 2013/04/15 09:19:28 akohlmey Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.
@@ -142,7 +142,7 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
             tol -
             tolerance {set tolerance  $value}
             default {
-                vmdcon -error "guessimpropers: unknown flag: $key"
+                vmdcon -err "guessimpropers: unknown flag: $key"
                 return -1
             }
         }
@@ -206,7 +206,7 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
 # define a new improper or change an existing one.
 proc ::TopoTools::addimproper {mol id1 id2 id3 id4 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
-        vmdcon -error "topology addimproper: Invalid atom indices: $sel"
+        vmdcon -err "topology addimproper: Invalid atom indices: $sel"
         return
     }
 
@@ -225,7 +225,7 @@ proc ::TopoTools::addimproper {mol id1 id2 id3 id4 {type unknown}} {
 # delete a improper.
 proc ::TopoTools::delimproper {mol id1 id2 id3 id4 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
-        vmdcon -error "topology delimproper: Invalid atom indices: $sel"
+        vmdcon -err "topology delimproper: Invalid atom indices: $sel"
         return
     }
 

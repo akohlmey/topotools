@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoangles.tcl,v 1.9 2011/02/02 21:33:28 akohlmey Exp $
+# $Id: topoangles.tcl,v 1.10 2013/04/15 09:19:28 akohlmey Exp $
 
 # return info about angles
 # we list and count only angles that are entirely within the selection.
@@ -170,7 +170,7 @@ proc ::TopoTools::guessangles {sel} {
 # define a new angle or change an existing one.
 proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3"} sel]} {
-        vmdcon -error "topology addangle: Invalid atom indices: $sel"
+        vmdcon -err "topology addangle: Invalid atom indices: $sel"
         return
     }
 
@@ -186,7 +186,7 @@ proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
 # delete an angle.
 proc ::TopoTools::delangle {mol id1 id2 id3 {type unknown}} {
     if {[catch {atomselect $mol "index $id1 $id2 $id3"} sel]} {
-        vmdcon -error "topology delangle: Invalid atom indices: $sel"
+        vmdcon -err "topology delangle: Invalid atom indices: $sel"
         return
     }
 

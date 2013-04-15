@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topocgcmm.tcl,v 1.5 2011/02/02 21:33:29 akohlmey Exp $
+# $Id: topocgcmm.tcl,v 1.6 2013/04/15 09:19:28 akohlmey Exp $
 
 # high level subroutines for CMM coarse grain forcefield support.
 
@@ -22,7 +22,7 @@ proc ::TopoTools::parse_cgcmm_parms {{filename par_CG.prm}} {
     set fn [file join $datadir $filename]
             
     if {[catch {open $fn r} fp]} {
-        vmdcon -error "could not open parm file $fn: $fp"
+        vmdcon -err "could not open parm file $fn: $fp"
         return {}
     }
 
@@ -70,7 +70,7 @@ proc ::TopoTools::parse_cgcmm_parms {{filename par_CG.prm}} {
                 vmdcon -warn "$section keyword not yet supported. skipping..."
             }
             default {
-                vmdcon -error "unknown keyword $section. aborting..."
+                vmdcon -err "unknown keyword $section. aborting..."
                 close $fp
                 return {}
             }
@@ -101,7 +101,7 @@ proc ::TopoTools::parse_cgcmm_topo {molname {filename top_CG.prm}} {
     set fn [file join $datadir $filename]
 
     if {[catch {open $fn r} fp]} {
-        vmdcon -error "could not open parm file $fn: $fp"
+        vmdcon -err "could not open parm file $fn: $fp"
         return {}
     }
 
@@ -168,7 +168,7 @@ proc ::TopoTools::parse_cgcmm_topo {molname {filename top_CG.prm}} {
     }
     close $fp
 
-    vmdcon -error "parse_cgcmm_topo: entry '$molname' not found in $filename."
+    vmdcon -err "parse_cgcmm_topo: entry '$molname' not found in $filename."
     return {}
 }
 

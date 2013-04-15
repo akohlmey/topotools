@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoatoms.tcl,v 1.13 2012/02/16 01:05:26 akohlmey Exp $
+# $Id: topoatoms.tcl,v 1.14 2013/04/15 09:19:28 akohlmey Exp $
 
 # Return info about atoms
 # we list and count only bonds that are entirely within the selection.
@@ -210,9 +210,9 @@ proc ::TopoTools::guessatomdata {sel what from} {
         }
 
         default {
-            vmdcon -error "guessatomdata: guessing '$what' from '$from' not implemented."
-            vmdcon -error "Available are: element<-mass, element<-name, mass<element "
-            vmdcon -error "name<element, radius<element name<type, type<element, type<name."
+            vmdcon -err "guessatomdata: guessing '$what' from '$from' not implemented."
+            vmdcon -err "Available are: element<-mass, element<-name, mass<element "
+            vmdcon -err "name<element, radius<element name<type, type<element, type<name."
             return
         }
     }

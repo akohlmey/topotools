@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topobonds.tcl,v 1.11 2011/04/04 02:02:27 akohlmey Exp $
+# $Id: topobonds.tcl,v 1.12 2013/04/15 09:19:28 akohlmey Exp $
 
 # Return info about bonds.
 # we list and count only bonds that are entirely within the selection.
@@ -72,7 +72,7 @@ proc ::TopoTools::guessbonds {sel} {
         mol bondsrecalc $mol
         return
     } else {
-        vmdcon -error "topo guessbonds: this feature currently only works with an 'all' selection"
+        vmdcon -err "topo guessbonds: this feature currently only works with an 'all' selection"
         return
     }
 }
@@ -188,12 +188,12 @@ proc ::TopoTools::retypebonds {sel} {
 # define a new bond or change an existing one.
 proc ::TopoTools::addbond {mol id1 id2 type order} {
     if {$id1 == $id2} {
-        vmdcon -error "topo addbond: invalid atom indices: $id1 $id2"
+        vmdcon -err "topo addbond: invalid atom indices: $id1 $id2"
         return
     }
 
     if {[catch {atomselect $mol "index $id1 $id2"} sel]} {
-        vmdcon -error "topo addbond: Invalid atom indices: $sel"
+        vmdcon -err "topo addbond: Invalid atom indices: $sel"
         return
     }
 
@@ -247,7 +247,7 @@ proc ::TopoTools::addbond {mol id1 id2 type order} {
 # delete a bond.
 proc ::TopoTools::delbond {mol id1 id2 {type unknown} {order 1.0}} {
     if {[catch {atomselect $mol "index $id1 $id2"} sel]} {
-        vmdcon -error "topology delbond: Invalid atom indices: $sel"
+        vmdcon -err "topology delbond: Invalid atom indices: $sel"
         return
     }
 
