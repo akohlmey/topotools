@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topobonds.tcl,v 1.12 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topobonds.tcl,v 1.13 2013/04/19 20:20:55 johns Exp $
 
 # Return info about bonds.
 # we list and count only bonds that are entirely within the selection.
@@ -69,7 +69,14 @@ proc ::TopoTools::guessbonds {sel} {
     set mol [$sel molid]
     # special optimization for "all" selection.
     if {[string equal "all" [$sel text]]} {
+        # Use VMD's built-in bond determination heuristic to guess the bonds
         mol bondsrecalc $mol
+
+        # Mark the bonds as "validated" so VMD will write
+        # them out when the structure gets written out,
+        # e.g. to a PSF file, even if no other bond editing was done.
+        mol dataflag $mol set bonds
+
         return
     } else {
         vmdcon -err "topo guessbonds: this feature currently only works with an 'all' selection"
