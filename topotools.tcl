@@ -9,7 +9,7 @@
 # - topoamber.tcl : interface to amber's parmtop
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.24 2013/04/15 09:19:29 akohlmey Exp $
+# $Id: topotools.tcl,v 1.25 2013/04/25 11:53:29 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -40,7 +40,7 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  -molid     <num>|top    molecule id (default: 'top')"
     vmdcon -info "  -sel       <selection>  atom selection function or text (default: 'all')"
 #    vmdcon -info "  -relindex  0|1          indices in arguments are interpreted as absolute"
-    vmdcon -info "                          or relative. (default: '0')"
+#    vmdcon -info "                          or relative. (default: '0')"
     vmdcon -info "flags only applicable to 'bond' commands:"
     vmdcon -info "  -bondtype  <typename>   bond type name (default: unknown)"
     vmdcon -info "  -bondorder <bondorder>  bond order parameter (default: 1)"
@@ -149,15 +149,17 @@ proc ::TopoTools::usage {} {
 # this takes care of all sanity checks on arguments and
 # then dispatches the subcommands to the corresponding
 # subroutines. 
-proc TopoTools::topo { args } {
+proc ::TopoTools::topo { args } {
 
     set molid -1
     set seltxt all
+    set localsel 1
     set selmol -1
     set bondtype unknown
     set bondorder 1.0
 
-    set cmd ""
+    set cmd {}
+    set sel {} ; # need to initialize it here for scoping
 
     # process generic arguments and remove them
     # from argument list.
@@ -183,16 +185,15 @@ proc TopoTools::topo { args } {
                 }
 
                 -sel { 
-                    if {[info commands $val] != ""} {
-                        if {[catch {$val text} res]} {
-                            vmdcon -err "Invalid -sel argument '$val': $res"
-                            return
-                        }
+                    # check if the argument to -sel is a valid atomselect command
+                    if {([info commands $val] != "") && ([string equal -length 10 $val atomselect])} {
+                        set localsel 0
                         set selmol [$val molid]
+                        set sel $val
                     } else {
-                        set res $val
+                        set localsel 1
+                        set seltxt $val
                     }
-                    set seltxt $res
                     incr i
                 }
 
@@ -277,30 +278,27 @@ proc TopoTools::topo { args } {
             return
         }
         set retval [readlammpsdata $fname $style]
-        if {[info exists sel]} {
-            $sel delete
-        }
         return $retval
     }
 
     if {[string equal $cmd readvarxyz]} {
         set fname [lindex $newargs 0]
         set retval [readvarxyz $fname]
-        if {[info exists sel]} {
-            $sel delete
-        }
         return $retval
     }
 
-    # help!!!
     if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -err "Molid from selection '$selmol' does not match -molid argument '$molid'"
             return
         }
-        if {[catch {atomselect $molid $seltxt} sel]} {
-            vmdcon -err "Problem with atom selection: $sel"
-            return
+
+	if {$localsel} {
+            # need to create a selection
+            if {[catch {atomselect $molid $seltxt} sel]} {
+                vmdcon -err "Problem with atom selection using '$seltxt': $sel"
+                return
+            }
         }
     }
 
@@ -597,7 +595,7 @@ proc TopoTools::topo { args } {
             usage
         }
     }
-    if {[info exists sel]} {
+    if {$localsel} {
         $sel delete
     }
     return $retval

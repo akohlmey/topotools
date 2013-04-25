@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topocgcmm.tcl,v 1.6 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topocgcmm.tcl,v 1.7 2013/04/25 11:53:29 akohlmey Exp $
 
 # high level subroutines for CMM coarse grain forcefield support.
 
@@ -193,7 +193,7 @@ proc ::TopoTools::citation_reminder {args} {
 
 # little proc to convert the lj type flag to the LAMMPS version,
 # which is supported by both, LAMMPS and HOOMD.
-proc TopoTools::canonical_cgcmm_ljtype {ljtype} {
+proc ::TopoTools::canonical_cgcmm_ljtype {ljtype} {
     switch -exact -- $ljtype {
         124    -
         lj12_4 -
