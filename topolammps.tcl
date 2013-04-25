@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.36 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.37 2013/04/25 15:24:26 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -154,6 +154,9 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             }
         } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(atomtypes) $lineno] 
+        } elseif {[regexp {^\s*(PairIJ Coeffs)} $line ]} {
+            set skip [expr {$lammps(atomtypes)*($lammps(atomtypes)-1)}]
+            set lineno [skiplammpslines $fp $skip $lineno] 
         } elseif {[regexp {^\s*(Bond Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno] 
         } elseif {[regexp {^\s*(Angle Coeffs)} $line ]} {
