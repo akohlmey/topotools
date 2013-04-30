@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.37 2013/04/25 15:24:26 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.38 2013/04/30 15:46:29 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -676,7 +676,8 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     array set lammps {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0 
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
-        xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 style unknown
+        xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 triclinic 0
+        style unknown
     }
 
     # gather available system information
@@ -756,8 +757,25 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         set lammps(zlo)  [expr {-0.5*$boxz + $lammps(zmid)}]
         set lammps(zhi)  [expr { 0.5*$boxz + $lammps(zmid)}]
     }
-    # XXX: need check for non-orthogonal cells.
 
+    # if angle is not set assume orthogonal.
+    if {$alpha == 0.0} { set alpha 90.0 }
+    if {$beta  == 0.0} { set beta  90.0 }
+    if {$gamma == 0.0} { set gamma 90.0 }
+
+    if {($alpha != 90.0) || ($beta != 90.0) || ($gamma != 90.0)} {
+        set conv 0.01745329251994329576; # pi/180.0
+        set lammps(triclinic) 1
+        set lammps(xy) [expr {$boxy * cos($gamma*$conv)}]
+        set lammps(xz) [expr {$boxz * cos($beta*$conv)}]
+        set lammps(yz) 0.0
+        set ly [expr {sqrt($boxy*$boxy - $lammps(xy)*$lammps(xy))}]
+        if {abs($ly) > $small} {
+            set lammps(yz) [expr {($boxy*$boxz*cos($alpha*$conv) 
+                                   - $lammps(xy)*$lammps(xz)) / $ly}]
+        }
+    }
+        
     # write out supported data file sections
     writelammpsheader $fp [array get lammps]
 
@@ -815,6 +833,10 @@ proc ::TopoTools::writelammpsheader {fp flags} {
     puts $fp [format " %.6f %.6f  xlo xhi" $lammps(xlo) $lammps(xhi)]
     puts $fp [format " %.6f %.6f  ylo yhi" $lammps(ylo) $lammps(yhi)]
     puts $fp [format " %.6f %.6f  zlo zhi" $lammps(zlo) $lammps(zhi)]
+
+    if {$lammps(triclinic)} {
+        puts $fp [format " %.6f %.6f %.6f xy xz yz" $lammps(xy) $lammps(xz) $lammps(yz)]
+    }
 
     puts $fp ""
     return
