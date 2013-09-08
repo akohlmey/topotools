@@ -1,0 +1,145 @@
+#!/usr/bin/tclsh
+# This file is part of TopoTools, a VMD package to simplify 
+# manipulating bonds other topology related properties.
+#
+# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+#
+# $Id: topocrossterms.tcl,v 1.1 2013/09/08 13:10:05 akohlmey Exp $
+
+
+proc ::TopoTools::crossterminfo {infotype sel {flag none}} {
+
+    set numcrossterms 0
+    set atomindex [$sel list]
+    set crosstermlist {}
+
+    foreach crossterm [join [molinfo [$sel molid] get crossterms]] {
+        lassign $crossterm a b c d e f g h
+
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $e] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $f] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $g] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $h] >= 0)} {
+            incr numcrossterms
+            lappend crosstermlist $crossterm
+        }
+    }
+    switch $infotype {
+
+        numcrossterms      { return $numcrossterms }
+        getcrosstermlist   { return $crosstermlist }
+        default        { return "bug! shoot the programmer?"}
+    }
+}
+
+# delete all contained crossterms of the selection.
+proc ::TopoTools::clearcrossterms {sel} {
+    set mol [$sel molid]
+    set atomindex [$sel list]
+    set crosstermlist {}
+
+    foreach crossterm [join [molinfo $mol get crossterms]] {
+        lassign $crossterm a b c d e f g h
+
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $e] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $f] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $g] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $h] < 0)} {
+            lappend crosstermlist $crossterm
+        }
+    }
+    molinfo $mol set crossterms [list $crosstermlist]
+}
+
+# reset crossterms to data in crosstermlist
+proc ::TopoTools::setcrosstermlist {sel crosstermlist} {
+
+    set mol [$sel molid]
+    set atomindex [$sel list]
+    set newcrosstermlist {}
+
+    # set defaults
+    set a -1; set b -1; set c -1; set d -1; set e -1; set f -1; set g -1; set h -1
+
+    # preserve all crossterms definitions that are not contained in $sel
+    foreach crossterm [join [molinfo $mol get crossterms]] {
+        lassign $crossterm a b c d e f g h
+
+        if {([lsearch -sorted -integer $atomindex $a] < 0)          \
+                || ([lsearch -sorted -integer $atomindex $b] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $c] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $d] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $e] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $f] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $g] < 0)   \
+                || ([lsearch -sorted -integer $atomindex $h] < 0)} {
+            lappend crosstermlist $crossterm
+        }
+    }
+
+    # append new ones, but only those contained in $sel
+    foreach crossterm $crosstermlist {
+        lassign $crossterm a b c d e f g h
+
+        if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
+                && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $c] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $d] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $e] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $f] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $g] >= 0)   \
+                && ([lsearch -sorted -integer $atomindex $h] >= 0)} {
+            lappend newcrosstermlist $crossterm
+        }
+    }
+
+    molinfo $mol set crossterms [list $newcrosstermlist]
+}
+
+# define a new crossterm or change an existing one.
+proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
+    if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8"} sel]} {
+        vmdcon -err "topology addcrossterm: Invalid atom indices: $sel"
+        return
+    }
+
+    # canonicalize indices
+    #if {$id2 > $id3} {
+    #    set t $id2 ; set id2 $id3 ; set id3 $t 
+    #    set t $id1 ; set id1 $id4 ; set id4 $t 
+    #}
+
+    set crossterms [join [molinfo $mol get crossterms]]
+    lappend crossterms [list $type $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8]
+    $sel delete
+    molinfo $mol set crossterms [list $crossterms]
+}
+
+# delete a crossterm.
+proc ::TopoTools::delcrossterm {mol id1 id2 id3 id4 {type unknown}} {
+    if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
+        vmdcon -err "topology delcrossterm: Invalid atom indices: $sel"
+        return
+    }
+
+    # canonicalize indices
+    # Not done here. Don't know how crossterms SHOULD be ordered.
+    set newcrosstermlist {}
+    foreach crossterm [join [molinfo $mol get crossterms]] {
+        lassign $crossterm a b c d e f g h
+        if { ($a != $id1) || ($b != $id2) || ($c != $id3) || ($d != $id4) || 
+            ($e != $id5) || ($f != $id6) || ($g != $id7) || ($h != $id8) } {
+            lappend newcrosstermlist $crossterm
+        }
+    }
+    $sel delete
+    molinfo $mol set crossterms [list $newcrosstermlist]
+}

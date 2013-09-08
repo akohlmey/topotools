@@ -2,8 +2,10 @@
 # TopoTools, a VMD package to simplify manipulating bonds 
 # other topology related properties in VMD.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoutils.tcl,v 1.12 2013/04/15 09:19:29 akohlmey Exp $
+# Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
+# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+#
+# $Id: topoutils.tcl,v 1.13 2013/09/08 13:10:05 akohlmey Exp $
 
 # utility commands
 
@@ -48,6 +50,7 @@ proc ::TopoTools::mergemols {mids} {
     set anglelist {}
     set dihedrallist {}
     set improperlist {}
+    set ctermlist {}
     foreach m $mids off $offset num $numlist {
         set oldsel [atomselect $m all]
         set newsel [atomselect $mol "index $off to [expr {$off+$num-1}]"]
@@ -82,6 +85,14 @@ proc ::TopoTools::mergemols {mids} {
             lappend improperlist [list $t [expr {$a + $off}] [expr {$b + $off}] \
                                     [expr {$c + $off}] [expr {$d + $off}]]
         }
+        set list [topo getcrosstermlist -molid $m]
+        foreach l $list {
+        	lassign $l a b c d e f g h
+            lappend ctermlist [list [expr {$a + $off}] [expr {$b + $off}] \
+                                    [expr {$c + $off}] [expr {$d + $off}] \
+                                    [expr {$e + $off}] [expr {$f + $off}] \
+                                    [expr {$g + $off}] [expr {$h + $off}]]
+        }
         $oldsel delete
         $newsel delete
     }
@@ -91,7 +102,7 @@ proc ::TopoTools::mergemols {mids} {
     topo setanglelist -molid $mol $anglelist
     topo setdihedrallist -molid $mol $dihedrallist
     topo setimproperlist -molid $mol $improperlist
-
+	topo setcrosstermlist -molid $mol $ctermlist
     # set box to be largest of the available boxes
     set amax 0.0
     set bmax 0.0
@@ -152,6 +163,7 @@ proc ::TopoTools::selections2mol {sellist} {
     set anglelist {}
     set dihedrallist {}
     set improperlist {}
+    set ctermlist {}
     foreach sel $sellist off $offset num $numlist {
         set newsel [atomselect $mol "index $off to [expr {$off+$num-1}]"]
 
@@ -199,6 +211,20 @@ proc ::TopoTools::selections2mol {sellist} {
             set dnew [expr [lsearch -sorted -integer $atomidmap $d] + $off]
             lappend improperlist [list $t  $anew $bnew $cnew $dnew]
         }
+        
+        set list [topo getcrosstermlist -sel $sel]
+        foreach l $list {
+        	lassign $l a b c d e f g h
+        	set anew [expr [lsearch -sorted -integer $atomidmap $a] + $off]
+            set bnew [expr [lsearch -sorted -integer $atomidmap $b] + $off]
+            set cnew [expr [lsearch -sorted -integer $atomidmap $c] + $off]
+            set dnew [expr [lsearch -sorted -integer $atomidmap $d] + $off]
+            set enew [expr [lsearch -sorted -integer $atomidmap $e] + $off]
+            set fnew [expr [lsearch -sorted -integer $atomidmap $f] + $off]
+            set gnew [expr [lsearch -sorted -integer $atomidmap $g] + $off]
+            set hnew [expr [lsearch -sorted -integer $atomidmap $h] + $off]
+        	lappend ctermlist [list $anew $bnew $cnew $dnew $enew $fnew $gnew $hnew]
+        }
         $newsel delete
     }
 
@@ -207,7 +233,7 @@ proc ::TopoTools::selections2mol {sellist} {
     topo setanglelist -molid $mol $anglelist
     topo setdihedrallist -molid $mol $dihedrallist
     topo setimproperlist -molid $mol $improperlist
-        
+    topo setcrosstermlist -molid $mol $ctermlist
     # set box to be largest of the available boxes
     set amax 0.0
     set bmax 0.0
@@ -289,12 +315,14 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     set anglelist {}
     set dihedrallist {}
     set improperlist {}
-
+	set ctermlist {}
+	
     set oldsel [atomselect $mol all]
     set obndlist [topo getbondlist both -molid $mol]
     set oanglist [topo getanglelist -molid $mol]
     set odihlist [topo getdihedrallist -molid $mol]
     set oimplist [topo getimproperlist -molid $mol]
+    set octermlist [topo getcrosstermlist -molid $mol]
 
     set box [molinfo $mol get {a b c}]
     molinfo $newmol set {a b c} [vecmul $box [list $nx $ny $nz]]
@@ -336,7 +364,13 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
             lappend improperlist [list $t [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
                                     [expr {$c + $ntotal}] [expr {$d + $ntotal}]]
         }
-
+		foreach l $octermlist {
+            lassign $l a b c d e f g h
+			lappend ctermlist [list [expr {$a + $ntotal}] [expr {$b + $ntotal}] \
+                                    [expr {$c + $ntotal}] [expr {$d + $ntotal}] \
+                                    [expr {$e + $ntotal}] [expr {$f + $ntotal}] \
+                                    [expr {$g + $ntotal}] [expr {$h + $ntotal}]]
+		}
         incr ntotal [$oldsel num]            
         $newsel delete
     }
@@ -345,6 +379,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
     topo setanglelist -molid $newmol $anglelist
     topo setdihedrallist -molid $newmol $dihedrallist
     topo setimproperlist -molid $newmol $improperlist
+    topo setcrosstermlist -molid $mol $ctermlist
     
     variable newaddsrep
     mol reanalyze $newmol

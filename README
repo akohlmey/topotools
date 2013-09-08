@@ -1,5 +1,5 @@
-VMD topotools package. Version 1.3
-Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
+VMD topotools package. Version 1.4
+Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 -------------------
 
 A collection of Tcl commands to manipulate, build, read

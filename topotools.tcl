@@ -6,15 +6,16 @@
 # - topotools.tcl : some operations on bonds can be very slow.
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
-# - topoamber.tcl : interface to amber's parmtop
 #
-# Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topotools.tcl,v 1.25 2013/04/25 11:53:29 akohlmey Exp $
+# Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
+# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+#
+# $Id: topotools.tcl,v 1.26 2013/09/08 13:10:05 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
     # depending on this package. we'll have to expect
-    variable version 1.3
+    variable version 1.4
     # location of additional data files containing 
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -253,7 +254,8 @@ proc ::TopoTools::topo { args } {
         retypedihedrals cleardihedrals guessdihedrals adddihedral
         deldihedral getimproperlist impropertypenames numimpropertypes
         numimpropers setimproperlist retypeimpropers clearimpropers
-        guessimpropers addimproper delimproper}
+        guessimpropers addimproper delimproper getcrosstermlist numcrossterms
+        setcrosstermlist clearcrossterms addcrossterm delcrossterm}
     if {[lsearch -exact $validcmd $cmd] < 0} {
         vmdcon -err "Unknown topotools command '$cmd'"
         usage
@@ -551,6 +553,56 @@ proc ::TopoTools::topo { args } {
                             [lindex $newargs 3] ]
         }
 
+        getcrosstermlist   -
+        numcrossterms {
+            if {[llength $newargs] < 1} {set newargs none}
+            set retval [crossterminfo $cmd $sel $newargs]
+        }
+
+        setcrosstermlist  {
+            set retval [setcrosstermlist $sel [lindex $newargs 0]]
+        }
+
+        clearcrossterms {
+            set retval [clearcrossterms $sel] 
+        }
+
+        addcrossterm {
+            if {[llength $newargs] < 8} {
+                vmdcon -err "Not enough arguments for 'topo addcrossterm'"
+                usage
+                return
+            }
+            set retval [addcrossterm $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] \
+                            [lindex $newargs 4] \
+                            [lindex $newargs 5] \
+                            [lindex $newargs 6] \
+                            [lindex $newargs 7] ]
+        }
+
+        delcrossterm {
+            set atype unknown
+            if {[llength $newargs] < 8} {
+                vmdcon -err "Not enough arguments for 'topo delcrossterm'"
+                usage
+                return
+            }
+            set retval [delcrossterm $molid \
+                            [lindex $newargs 0] \
+                            [lindex $newargs 1] \
+                            [lindex $newargs 2] \
+                            [lindex $newargs 3] \
+                            [lindex $newargs 4] \
+                            [lindex $newargs 5] \
+                            [lindex $newargs 6] \
+                            [lindex $newargs 7] ]
+        }
+
+
         writelammpsdata { ;# NOTE: readlammpsdata is handled above to bypass check for sel/molid.
             set style full
             if {[llength $newargs] < 1} {
@@ -607,6 +659,7 @@ source [file join $env(TOPOTOOLSDIR) topobonds.tcl]
 source [file join $env(TOPOTOOLSDIR) topoangles.tcl]
 source [file join $env(TOPOTOOLSDIR) topodihedrals.tcl]
 source [file join $env(TOPOTOOLSDIR) topoimpropers.tcl]
+source [file join $env(TOPOTOOLSDIR) topocrossterms.tcl]
 
 # load high-level API
 source [file join $env(TOPOTOOLSDIR) topolammps.tcl]
