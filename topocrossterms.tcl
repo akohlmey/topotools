@@ -2,9 +2,9 @@
 # This file is part of TopoTools, a VMD package to simplify 
 # manipulating bonds other topology related properties.
 #
-# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+# support for crossterms contributed by Josh Vermaas <vermaas2@illinois.edu>
 #
-# $Id: topocrossterms.tcl,v 1.1 2013/09/08 13:10:05 akohlmey Exp $
+# $Id: topocrossterms.tcl,v 1.2 2013/09/13 16:08:56 akohlmey Exp $
 
 
 proc ::TopoTools::crossterminfo {infotype sel {flag none}} {
@@ -112,10 +112,15 @@ proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
     }
 
     # canonicalize indices
-    #if {$id2 > $id3} {
-    #    set t $id2 ; set id2 $id3 ; set id3 $t 
-    #    set t $id1 ; set id1 $id4 ; set id4 $t 
-    #}
+    #Cross terms are just two adjacent dihedrals, and so we apply the canonicalization operations seperately.
+    if {$id2 > $id3} {
+        set t $id2 ; set id2 $id3 ; set id3 $t 
+        set t $id1 ; set id1 $id4 ; set id4 $t 
+    }
+    if {$id6 > $id7} {
+        set t $id6 ; set id2 $id7 ; set id7 $t 
+        set t $id5 ; set id5 $id8 ; set id8 $t 
+    }
 
     set crossterms [join [molinfo $mol get crossterms]]
     lappend crossterms [list $type $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8]
@@ -124,14 +129,23 @@ proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
 }
 
 # delete a crossterm.
-proc ::TopoTools::delcrossterm {mol id1 id2 id3 id4 {type unknown}} {
-    if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4"} sel]} {
+proc ::TopoTools::delcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
+    if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8"} sel]} {
         vmdcon -err "topology delcrossterm: Invalid atom indices: $sel"
         return
     }
 
     # canonicalize indices
-    # Not done here. Don't know how crossterms SHOULD be ordered.
+    #Cross terms are just two adjacent dihedrals, and so we apply the canonicalization operations seperately.
+    if {$id2 > $id3} {
+        set t $id2 ; set id2 $id3 ; set id3 $t 
+        set t $id1 ; set id1 $id4 ; set id4 $t 
+    }
+    if {$id6 > $id7} {
+        set t $id6 ; set id2 $id7 ; set id7 $t 
+        set t $id5 ; set id5 $id8 ; set id8 $t 
+    }
+    
     set newcrosstermlist {}
     foreach crossterm [join [molinfo $mol get crossterms]] {
         lassign $crossterm a b c d e f g h
