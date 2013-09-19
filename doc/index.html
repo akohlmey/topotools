@@ -24,10 +24,10 @@
         <li class="goog-toc"><a href="#TOC-delbond-id1-id2-"><strong>3.12 </strong>delbond &lt;id1&gt; &lt;id2&gt;</a></li>
         <li class="goog-toc"><a href="#TOC-getbondlist-type-order-both-none-"><strong>3.13 </strong>getbondlist [type|order|both|none]</a></li>
         <li class="goog-toc"><a href="#TOC-setbondlist-type-order-both-none-li"><strong>3.14 </strong>setbondlist [type|order|both|none] &lt;list&gt;</a></li>
-        <li class="goog-toc"><a href="#TOC-num-angle-dihedral-improper-s"><strong>3.15 </strong>num(angle|dihedral|improper)s</a></li>
+        <li class="goog-toc"><a href="#TOC-num-angle-dihedral-improper-s"><strong>3.15 </strong>num(angle|dihedral|improper|crossterm)s</a></li>
         <li class="goog-toc"><a href="#TOC-num-angle-dihedral-improper-types"><strong>3.16 </strong>num(angle|dihedral|improper)types</a></li>
         <li class="goog-toc"><a href="#TOC-angle-dihedral-improper-typenames"><strong>3.17 </strong>(angle|dihedral|improper)typenames</a></li>
-        <li class="goog-toc"><a href="#TOC-clear-angle-dihedral-improper-s"><strong>3.18 </strong>clear(angle|dihedral|improper)s</a></li>
+        <li class="goog-toc"><a href="#TOC-clear-angle-dihedral-improper-s"><strong>3.18 </strong>clear(angle|dihedral|improper|crossterm)s</a></li>
         <li class="goog-toc"><a href="#TOC-sort-angle-dihedral-improper-s"><strong>3.19 </strong>sort(angle|dihedral|improper)s</a></li>
         <li class="goog-toc"><a href="#TOC-retype-angle-dihedral-improper-s"><strong>3.20 </strong>retype(angle|dihedral|improper)s</a></li>
         <li class="goog-toc"><a href="#TOC-guess-angle-dihedral-s"><strong>3.21 </strong>guess(angle|dihedral)s</a></li>
@@ -42,6 +42,10 @@
         <li class="goog-toc"><a href="#TOC-delimproper-id1-id2-id3-id4-"><strong>3.30 </strong>delimproper &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;</a></li>
         <li class="goog-toc"><a href="#TOC-get-dihedral-improper-list"><strong>3.31 </strong>get(dihedral|improper)list</a></li>
         <li class="goog-toc"><a href="#TOC-set-dihedral-improper-list-list-"><strong>3.32 </strong>set(dihedral|improper)list &lt;list&gt;</a></li>
+        <li class="goog-toc"><a href="#TOC-getcrosstermlist"><strong>3.33 </strong>getcrosstermlist</a></li>
+        <li class="goog-toc"><a href="#TOC-setcrosstermlist"><strong>3.34 </strong>setcrosstemlist &lt;list&gt;</a></li>
+        <li class="goog-toc"><a href="#TOC-addcrossterm"><strong>3.35 </strong>addcrossterm &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; &lt;id5&gt; &lt;id6&gt; &lt;id7&gt; &lt;id8&gt;</a></li>
+        <li class="goog-toc"><a href="#TOC-delcrossterm"><strong>3.36 </strong>delcrossterm &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; &lt;id5&gt; &lt;id6&gt; &lt;id7&gt; &lt;id8&gt;</a></li>
       </ul>
     </li>
     <li class="goog-toc"><a href="#TOC-File-I-O-Commands"><strong>4 </strong>File I/O Commands</a>
@@ -155,14 +159,14 @@
 <p align="justify">Returns a list of unique bonds, the individual bond is a list of the atom indices forming the bond and optionally added the bond type name and/or the bond order value.</p>
 <h4><a name="TOC-setbondlist-type-order-both-none-li"></a>setbondlist [type|order|both|none] &lt;list&gt;</h4>
 <p align="justify">Defines bonds from a list in a format as returned by <code>topo getbondlist</code>. This is essentially a shortcut for calling <code>topo clearbonds</code> and a sequence of <code>topo addbond</code> commands with some optimization for the case of a selection encompassing all atoms.</p>
-<h4><a name="TOC-num-angle-dihedral-improper-s"></a>num(angle|dihedral|improper)s</h4>
-<p align="justify">Returns the number of angles, dihedrals, or impropers.</p>
+<h4><a name="TOC-num-angle-dihedral-improper-s"></a>num(angle|dihedral|improper|crossterm)s</h4>
+<p align="justify">Returns the number of angles, dihedrals, impropers or crossterms.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-num-angle-dihedral-improper-types"></a>num(angle|dihedral|improper)types</h4>
 <p align="justify">Returns the number of unique angle-, dihedral-, or improper-types.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-angle-dihedral-improper-typenames"></a>(angle|dihedral|improper)typenames</h4>
 <p align="justify">Returns a list of all unique angles, dihedrals, or impropers. The list has <code style="color:rgb(0, 96, 0)">topo num(angle|dihedral|improper)types</code> entries.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-clear-angle-dihedral-improper-s"></a>clear(angle|dihedral|improper)s</h4>
-<p align="justify">Deletes the currently defined angles, dihedrals, or impropers.</p>
+<p align="justify">Deletes the currently defined angles, dihedrals, impropers, or crossterms.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-sort-angle-dihedral-improper-s"></a>sort(angle|dihedral|improper)s</h4>
 <p align="justify">Sorts and canonicalizes the list of angles, dihedrals, or impropers. Duplicates are removed and the list is sorted by atom types.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-retype-angle-dihedral-improper-s"></a>retype(angle|dihedral|improper)s</h4>
@@ -180,17 +184,26 @@
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-setanglelist-list-"></a>setanglelist &lt;list&gt;</h4>
 <p align="justify">Resets the angle definitions from a list in a format as returned by <code style="color:rgb(0, 96, 0)">topo getanglelist</code>. This is essentially a shortcut for calling <code style="color:rgb(0, 96, 0)">topo clearbonds</code> and a sequence of <code style="color:rgb(0, 96, 0)">topo addangle</code> commands with some optimization for the case of a selection encompassing all atoms.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-adddihedral-type-id1-id2-id3-id4-"></a>adddihedral &lt;type&gt; &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;</h4>
-<p align="justify">Defines a dihedral or improper of type <code style="color:rgb(0, 96, 0)">&lt;type&gt;</code> between the four specified atoms. All four atoms have to be contained in the specified atom selection ('all' if none is given) or else the command is ignored. No further checks are being performed on the input.</p>
+<p align="justify">Defines a dihedral of type <code style="color:rgb(0, 96, 0)">&lt;type&gt;</code> between the four specified atoms. All four atoms have to be contained in the specified atom selection ('all' if none is given) or else the command is ignored. No further checks are being performed on the input.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-deldihedral-idx1-id2-id3-id4-"></a>deldihedral &lt;idx1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;</h4>
-<p align="justify">Deletes the dihedral or improper between the four specified atoms. Does nothing if not all four atom indices are contained within the given selection (default 'all').</p>
+<p align="justify">Deletes the dihedral between the four specified atoms. Does nothing if not all four atom indices are contained within the given selection (default 'all').</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-addimproper-type-id1-id2-id3-id4-"></a>addimproper &lt;type&gt; &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;</h4>
-<p align="justify">Defines a dihedral or improper of type <code style="color:rgb(0, 96, 0)">&lt;type&gt;</code> between the four specified atoms. All four atoms have to be contained in the specified atom selection ('all' if none is given) or else the command is ignored. No further checks are being performed on the input.</p>
+<p align="justify">Defines an improper of type <code style="color:rgb(0, 96, 0)">&lt;type&gt;</code> between the four specified atoms. All four atoms have to be contained in the specified atom selection ('all' if none is given) or else the command is ignored. No further checks are being performed on the input.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-delimproper-id1-id2-id3-id4-"></a>delimproper &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt;</h4>
-<p align="justify">Deletes the dihedral or improper between the four specified atoms. Does nothing if not all four atom indices are contained within the given selection (default 'all').</p>
+<p align="justify">Deletes the improper between the four specified atoms. Does nothing if not all four atom indices are contained within the given selection (default 'all').</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-get-dihedral-improper-list"></a>get(dihedral|improper)list</h4>
 <p align="justify">Returns a list of defined dihedrals or impropers with each entry in the format <code style="color:rgb(0, 96, 0)">{type &lt;index 1&gt; &lt;index 2&gt; &lt;index 3&gt; &lt;index 4&gt;}</code>. The type name may be set to <code style="color:rgb(0, 96, 0)">{}</code>, if no type has been set. The list is printed unsorted as it is stored in VMD.</p>
 <h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-set-dihedral-improper-list-list-"></a>set(dihedral|improper)list &lt;list&gt;</h4>
-<p align="justify">Resets the dihedral or improper definitions from a list in a format as returned by <code style="color:rgb(0, 96, 0)">topo getdihedrallist </code>or <code style="color:rgb(0, 96, 0)">topo getimproperlist</code>. This is essentially a shortcut notations for clearning and then resetting them individually.</p>
+<p align="justify">Resets the dihedral or improper definitions from a list in a format as returned by <code style="color:rgb(0, 96, 0)">topo getdihedrallist </code>or <code style="color:rgb(0, 96, 0)">topo getimproperlist</code>. This is essentially a shortcut notation for clearning and then resetting them individually.</p>
+<h4 style="color:rgb(51,51,51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-getcrosstermlist"></a>getcrosstermlist</h4>
+<p align="justify">Returns a list of defined crossterms with each entry in the format&nbsp;<code style="color:rgb(0,96,0)">{&lt;index 1&gt; &lt;index 2&gt; &lt;index 3&gt; &lt;index 4&gt;&nbsp;</code><span style="color:rgb(0,96,0);font-family:monospace;line-height:1.25;font-size:10pt">&lt;index 5&gt; &lt;index 6&gt; &lt;index 7&gt; &lt;index 8</span><code style="text-align:left;line-height:1.25;font-size:10pt">&gt;}</code><span style="text-align:left;line-height:1.25;font-size:10pt">. </span><span style="text-align:left;line-height:1.25;font-size:10pt">The list is printed unsorted as it is stored in VMD.</span></p>
+<h4 style="color:rgb(51,51,51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-setcrosstermlist"></s>setcrosstermlist &lt;list&gt;</h4>
+<p align="justify">Resets the crossterm definitions from a list in a format as returned by&nbsp;<code style="color:rgb(0,96,0)">topo getcrosstermlist</code>.&nbsp;This is essentially a shortcut notations for clearing and then resetting them individually.</p>
+<h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-addcrossterm"></a>addcrossterm &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; &lt;id5&gt; &lt;id6&gt; &lt;id7&gt; &lt;id8&gt;</h4>
+<p align="justify">Defines a crossterm between the eight specified atoms. All eight atoms have to be contained in the specified atom selection ('all' if none is given) or else the command is ignored. No further checks are being performed on the input.</p>
+<h4 style="color:rgb(51, 51, 51);margin-top:5px;margin-right:0px;margin-bottom:5px;margin-left:0px"><a name="TOC-delcrossterm"></a>delcrossterm  &lt;id1&gt; &lt;id2&gt; &lt;id3&gt; &lt;id4&gt; &lt;id5&gt; &lt;id6&gt; &lt;id7&gt; &lt;id8&gt;</h4>
+<p align="justify">Deletes the crossterm between the eight specified atoms. Does nothing if not all eight atom indices are contained within the given selection (default 'all').</p>
+
 <h3><a name="TOC-File-I-O-Commands"></a>File I/O Commands</h3>
 <p align="justify">TopoTools provides a number of file I/O commands that contrast from the molfile plugins in such that they use Tcl scripting to read and write files. This provides additional flexibility and allows to easily pass flags to the reader or writer, that are not available in the molfile plugin API, however, it may also results in reduced reading performance. All of the file I/O commands also use the topo prefix and support the commonly supported optional flags for specifying molecule id and atom selection.</p>
 <h4><a name="TOC-readlammpsdata-file-name-atom-style"></a>readlammpsdata &lt;file name&gt; [&lt;atom style&gt;]</h4>
