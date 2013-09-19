@@ -10,7 +10,7 @@
 # Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
-# $Id: topotools.tcl,v 1.26 2013/09/08 13:10:05 akohlmey Exp $
+# $Id: topotools.tcl,v 1.27 2013/09/19 16:11:47 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts 
@@ -107,6 +107,16 @@ proc ::TopoTools::usage {} {
     vmdcon -info "                format as retured by 'topo get(dihedral|improper)list'"
     vmdcon -info "NOTE: for angle, dihedral, and improper lists, the"
     vmdcon -info "      type field currently has to be always present."
+    vmdcon -info ""
+    vmdcon -info "  numcrossterms      returns the number of crossterms."
+    vmdcon -info "  clearcrossterms    deletes all crossterms. "
+    vmdcon -info "  addcrossterm <id1> <id2> <id3> <id4> <id5> <id6> <id7> <id8> (re-)defines a single crossterm."
+    vmdcon -info "  delcrossterm <id1> <id2> <id3> <id4> <id5> <id6> <id7> <id8> deletes a single crossterm."
+    vmdcon -info "  getcrosstermlist   returns the list of crossterm definitions"
+    vmdcon -info "                in the form {<id1> <id2> <id3> <id4> <id5> <id6> <id7> <id8>}"
+    vmdcon -info "  setcrosstermlist   <list>"
+    vmdcon -info "                resets crossterm definitions from a list in the same"
+    vmdcon -info "                format as retured by 'topo getcrosstermlist'"
     vmdcon -info ""
     vmdcon -info ""
     vmdcon -info "  readlammpsdata <filename> \[<atomstyle>\]"
