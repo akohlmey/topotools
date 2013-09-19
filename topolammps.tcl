@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.38 2013/04/30 15:46:29 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.39 2013/09/19 16:12:49 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -1028,7 +1028,6 @@ proc ::TopoTools::checklammpsstyle {style} {
 
         atomic -
         dpd   -
-        hybrid -
         bond  -
         angle -
         molecular -
@@ -1037,6 +1036,7 @@ proc ::TopoTools::checklammpsstyle {style} {
             return 0
         }
 
+        hybrid -
         default {
             return 1
         }
