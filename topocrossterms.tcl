@@ -4,7 +4,7 @@
 #
 # support for crossterms contributed by Josh Vermaas <vermaas2@illinois.edu>
 #
-# $Id: topocrossterms.tcl,v 1.2 2013/09/13 16:08:56 akohlmey Exp $
+# $Id: topocrossterms.tcl,v 1.3 2013/09/19 16:11:10 akohlmey Exp $
 
 
 proc ::TopoTools::crossterminfo {infotype sel {flag none}} {
@@ -13,7 +13,14 @@ proc ::TopoTools::crossterminfo {infotype sel {flag none}} {
     set atomindex [$sel list]
     set crosstermlist {}
 
-    foreach crossterm [join [molinfo [$sel molid] get crossterms]] {
+    # for backward compatibility with VMD versions before 1.9.2
+    set ct {}
+    if {[catch {molinfo [$sel molid] get crossterms} ct]} {
+        vmdcon -warn "topotools: VMD [vmdinfo version] does not support crossterms"
+        set ct {}
+    }
+
+    foreach crossterm [join $ct] {
         lassign $crossterm a b c d e f g h
 
         if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
@@ -42,7 +49,14 @@ proc ::TopoTools::clearcrossterms {sel} {
     set atomindex [$sel list]
     set crosstermlist {}
 
-    foreach crossterm [join [molinfo $mol get crossterms]] {
+    # for backward compatibility with VMD versions before 1.9.2
+    set ct {}
+    if {[catch {molinfo [$sel molid] get crossterms} ct]} {
+        vmdcon -warn "topotools: VMD [vmdinfo version] does not support crossterms"
+        return -1
+    }
+
+    foreach crossterm [join $ct] {
         lassign $crossterm a b c d e f g h
 
         if {([lsearch -sorted -integer $atomindex $a] < 0)          \
@@ -65,6 +79,13 @@ proc ::TopoTools::setcrosstermlist {sel crosstermlist} {
     set mol [$sel molid]
     set atomindex [$sel list]
     set newcrosstermlist {}
+
+    # for backward compatibility with VMD versions before 1.9.2
+    set ct {}
+    if {[catch {molinfo $mol get crossterms} ct]} {
+        vmdcon -warn "topotools: VMD [vmdinfo version] does not support crossterms"
+        return -1
+    }
 
     # set defaults
     set a -1; set b -1; set c -1; set d -1; set e -1; set f -1; set g -1; set h -1
@@ -106,6 +127,14 @@ proc ::TopoTools::setcrosstermlist {sel crosstermlist} {
 
 # define a new crossterm or change an existing one.
 proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
+
+    # for backward compatibility with VMD versions before 1.9.2
+    set ct {}
+    if {[catch {molinfo $mol get crossterms} ct]} {
+        vmdcon -warn "topotools: VMD [vmdinfo version] does not support crossterms"
+        return -1
+    }
+
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8"} sel]} {
         vmdcon -err "topology addcrossterm: Invalid atom indices: $sel"
         return
@@ -130,6 +159,14 @@ proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
 
 # delete a crossterm.
 proc ::TopoTools::delcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
+
+    # for backward compatibility with VMD versions before 1.9.2
+    set ct {}
+    if {[catch {molinfo $mol get crossterms} ct]} {
+        vmdcon -warn "topotools: VMD [vmdinfo version] does not support crossterms"
+        return -1
+    }
+
     if {[catch {atomselect $mol "index $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8"} sel]} {
         vmdcon -err "topology delcrossterm: Invalid atom indices: $sel"
         return
