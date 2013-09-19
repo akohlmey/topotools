@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topobonds.tcl,v 1.13 2013/04/19 20:20:55 johns Exp $
+# $Id: topobonds.tcl,v 1.14 2013/09/19 16:14:56 akohlmey Exp $
 
 # Return info about bonds.
 # we list and count only bonds that are entirely within the selection.
@@ -37,7 +37,7 @@ proc ::TopoTools::bondinfo {infotype sel {flag none}} {
     switch $infotype {
         numbonds      { return $numbonds }
         numbondtypes  { return [array size bondtypes] }
-        bondtypenames { return [array names bondtypes] }
+        bondtypenames { return [lsort -ascii [array names bondtypes]] }
         getbondlist   { return $bidxlist }
         default       { return "bug? shoot the programmer!"}
     }

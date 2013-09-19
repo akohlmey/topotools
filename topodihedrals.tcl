@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topodihedrals.tcl,v 1.9 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topodihedrals.tcl,v 1.10 2013/09/19 16:14:56 akohlmey Exp $
 
 # return info about dihedrals
 # we list and count only dihedrals that are entirely within the selection.
@@ -30,7 +30,7 @@ proc ::TopoTools::dihedralinfo {infotype sel {flag none}} {
 
         numdihedrals      { return $numdihedrals }
         numdihedraltypes  { return [array size dihedraltypes] }
-        dihedraltypenames { return [array names dihedraltypes] }
+        dihedraltypenames { return [lsort -ascii [array names dihedraltypes]] }
         getdihedrallist   { return $dihedrallist }
         default        { return "bug! shoot the programmer?"}
     }

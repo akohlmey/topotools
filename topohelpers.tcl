@@ -3,7 +3,7 @@
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topohelpers.tcl,v 1.7 2011/02/02 21:28:53 akohlmey Exp $
+# $Id: topohelpers.tcl,v 1.8 2013/09/19 16:14:56 akohlmey Exp $
 
 # some (small) helper functions
 
@@ -174,3 +174,4 @@ proc ::TopoTools::adddefaultrep {mol {selmod none}} {
     mol addrep $mol
     display resetview
 }
+

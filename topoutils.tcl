@@ -5,7 +5,7 @@
 # Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
-# $Id: topoutils.tcl,v 1.13 2013/09/08 13:10:05 akohlmey Exp $
+# $Id: topoutils.tcl,v 1.14 2013/09/19 16:14:56 akohlmey Exp $
 
 # utility commands
 
@@ -389,5 +389,106 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
 
     $oldsel delete
     return $newmol
+}
+
+# rename numerical atom/bond/angle/dihedral/improper types to remain in order
+# only works on the entire system
+proc ::TopoTools::fixupnumtypes {{mol top} {types all}} {
+
+    set mysel {}
+    if {[catch {atomselect $mol all} mysel]} {
+        vmdcon -err "fixupnumtypes: $mysel."
+        return -1
+    }
+
+    if {"$types" == "all"} {
+        set types [list atoms bonds angles dihedrals impropers crossterms]
+    }
+
+    foreach what $types {
+        set typelist {}
+
+        switch $what {
+            atom  -
+            atoms {
+                foreach t [atominfo atomtypenames $mysel] {
+                    if {![string is integer $t]} continue
+                    set s [atomselect [$mysel molid] "type $t"]
+                    $s set type [format {%08d} $t]
+                    $s delete
+                }
+            }
+
+            bond  -
+            bonds {
+                set blist {}
+                foreach b [bondinfo getbondlist $mysel type] {
+                    set t [lindex $b 2]
+                    if {[string is integer $t]} {
+                        lappend blist [lreplace $b 2 2 [format {%08d} $t]]
+                    } else {lappend blist $b}
+                }
+                setbondlist $mysel type $blist
+            }
+
+            angle  -
+            angles {
+                set alist {}
+                foreach a [angleinfo getanglelist $mysel] {
+                    set t [lindex $a 0]
+                    if {[string is integer $t]} {
+                        lappend alist [lreplace $a 0 0 [format {%08d} $t]]
+                    } else {lappend alist $a}
+                }
+                setanglelist $mysel $alist
+            }
+
+            dihedral  -
+            dihedrals {
+                set dlist {}
+                foreach d [dihedralinfo getdihedrallist $mysel] {
+                    set t [lindex $d 0]
+                    if {[string is integer $t]} {
+                        lappend dlist [lreplace $d 0 0 [format {%08d} $t]]
+                    } else {lappend dlist $d}
+                }
+                setdihedrallist $mysel $dlist
+            }
+
+            improper  -
+            impropers {
+                set ilist {}
+                foreach i [improperinfo getimproperlist $mysel] {
+                    set t [lindex $i 0]
+                    if {[string is integer $t]} {
+                        lappend ilist [lreplace $i 0 0 [format {%08d} $t]]
+                    } else {lappend ilist $i}
+                }
+                setimproperlist $mysel $ilist
+            }
+
+            crossterm  -
+            crossterms {
+                # for backward compatibility with VMD versions before 1.9.2
+                # we don't need to write a warning here. it'll come whenever
+                # somebody tries to access the crossterms directly.
+                if {![catch {molinfo $mol get crossterms} tmp]} {
+                    set clist {}
+                    foreach c [crossterminfo getcrosstermlist $mysel] {
+                        set t [lindex $c 0]
+                        if {[string is integer $t]} {
+                            lappend clist [lreplace $c 0 0 [format {%08d} $t]]
+                        } else {lappend clist $c}
+                    }
+                    setcrosstermlist $mysel $clist
+                }
+            }
+
+            default {
+                vmdcon -err "fixupnumtypes: unsupported type: $what"
+                return -1
+            }
+        }
+    }
 }
 

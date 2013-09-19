@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.9 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topoimpropers.tcl,v 1.10 2013/09/19 16:14:56 akohlmey Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.
@@ -30,7 +30,7 @@ proc ::TopoTools::improperinfo {infotype sel {flag none}} {
 
         numimpropers      { return $numimpropers }
         numimpropertypes  { return [array size impropertypes] }
-        impropertypenames { return [array names impropertypes] }
+        impropertypenames { return [lsort -ascii [array names impropertypes]] }
         getimproperlist   { return $improperlist }
         default        { return "bug! shoot the programmer?"}
     }

@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoangles.tcl,v 1.10 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topoangles.tcl,v 1.11 2013/09/19 16:14:56 akohlmey Exp $
 
 # return info about angles
 # we list and count only angles that are entirely within the selection.
@@ -29,7 +29,7 @@ proc ::TopoTools::angleinfo {infotype sel {flag none}} {
 
         numangles      { return $numangles }
         numangletypes  { return [array size angletypes] }
-        angletypenames { return [array names angletypes] }
+        angletypenames { return [lsort -ascii [array names angletypes]] }
         getanglelist   { return $anglelist }
         default        { return "bug! shoot the programmer?"}
     }
