@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.39 2013/09/19 16:12:49 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.40 2013/09/23 19:29:02 akohlmey Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -197,7 +197,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     # we have to set it here after the parsing.
     if {[llength atommasses] > 0} {
         foreach {t m} $atommasses {
-            set msel [atomselect $mol "type $t"]
+            set msel [atomselect $mol "type '$t'"]
             $msel set mass $m
             $msel delete
         }
@@ -852,7 +852,7 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
     set mol [$sel molid]
     set selstr [$sel text]
     foreach type $typemap {
-        set tsel [atomselect $mol "( $selstr ) and (type $type)"]
+        set tsel [atomselect $mol "( $selstr ) and (type '$type')"]
         set mass [lsort -unique -real [$tsel get mass]]
         $tsel delete
         if {[llength $mass] != 1} return
