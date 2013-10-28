@@ -6,13 +6,16 @@ A collection of Tcl commands to manipulate, build, read
 and write topologies (i.e. bonds, angles, dihedrals, etc.
 and their corresponding properties (type, order, etc.).
 
-Please contact me at akohlmey@gmail.com, if you have any 
-additional ideas or want to implement a specific feature.
 
 Updated and bugfix versions are also available from:
 http://sites.google.com/site/akohlmey/software/topotools
+and: https://github.com/akohlmey/topotools
 That page also links to tutorials demonstrating the use
 of the package for different purposes.
+
+Please report any problems, bugs, suggestions, inquiries
+or code contributions to the github hosted SCM page at:
+https://github.com/akohlmey/topotools/issues
 
 TODO:
   - improve "topo setbonds" to be more efficient for large sets 
@@ -20,8 +23,6 @@ TODO:
   - topo copybonds <fromsel> <tosel>
   - topo guessbonds <sel>  (use bondsrecalc and restore bonds 
     outside the selection)
-  - support for writing non-orthogonal cells
-    (triclinic cell read is implemented and tested).
   - support for non-orthogonal cells with replicatemols.
   - support for generating and replicating bonds across
     periodic boundaries (for molecular crystal models).
