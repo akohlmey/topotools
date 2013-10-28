@@ -746,16 +746,28 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         set lammps(xmid) [expr {($xlo + $xhi) * 0.5}]
         set lammps(xlo)  [expr {-0.5*$boxx + $lammps(xmid)}]
         set lammps(xhi)  [expr { 0.5*$boxx + $lammps(xmid)}]
+    } else {
+        set lammps(xmid)  0.0
+        set lammps(xlo)  -0.5
+        set lammps(xhi)   0.5
     }
     if {$boxy > $small} {
         set lammps(ymid) [expr {($ylo + $yhi) * 0.5}]
         set lammps(ylo)  [expr {-0.5*$boxy + $lammps(ymid)}]
         set lammps(yhi)  [expr { 0.5*$boxy + $lammps(ymid)}]
+    } else {
+        set lammps(ymid)  0.0
+        set lammps(ylo)  -0.5
+        set lammps(yhi)   0.5
     }
     if {$boxz > $small} {
         set lammps(zmid) [expr {($zlo + $zhi) * 0.5}]
         set lammps(zlo)  [expr {-0.5*$boxz + $lammps(zmid)}]
         set lammps(zhi)  [expr { 0.5*$boxz + $lammps(zmid)}]
+    } else {
+        set lammps(zmid)  0.0
+        set lammps(zlo)  -0.5
+        set lammps(zhi)   0.5
     }
 
     # if angle is not set assume orthogonal.
@@ -773,6 +785,16 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         if {abs($ly) > $small} {
             set lammps(yz) [expr {($boxy*$boxz*cos($alpha*$conv) 
                                    - $lammps(xy)*$lammps(xz)) / $ly}]
+        }
+        set lz [expr {sqrt($boxz*$boxz - $lammps(xz)*$lammps(xz) - $lammps(yz)*$lammps(yz))}]
+        # update y/z-box boundaries for tilt
+        if {$ly > $small} {
+            set lammps(ylo)  [expr {-0.5*$ly + $lammps(ymid)}]
+            set lammps(yhi)  [expr { 0.5*$ly + $lammps(ymid)}]
+        }
+        if {$lz > $small} {
+            set lammps(zlo)  [expr {-0.5*$lz + $lammps(zmid)}]
+            set lammps(zhi)  [expr { 0.5*$lz + $lammps(zmid)}]
         }
     }
         
