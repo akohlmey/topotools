@@ -326,6 +326,8 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
 
     set box [molinfo $mol get {a b c}]
     molinfo $newmol set {a b c} [vecmul $box [list $nx $ny $nz]]
+    set boxtilt [molinfo $mol get {alpha beta gamma}]
+    molinfo $newmol set {alpha beta gamma} $boxtilt
 
     foreach v $transvecs {
         set newsel [atomselect $newmol \
@@ -336,12 +338,34 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
                          resname resid chain segname}
         $newsel set $cpylist [$oldsel get $cpylist]
 
+	# calculate movevec for nonorthogonal boxes
         set movevec {0.0 0.0 0.0}
-        if {[catch {vecmul $v $box} movevec]} {
-            vmdcon -warn "failure to compute translation vector from $v: $movevec. skipping..."
-            continue
-        }
-        $newsel moveby $movevec
+	set deg2rad [expr 3.141592 / 180]
+	set alpharad [expr [lindex $boxtilt 0] * $deg2rad ]
+	set betarad  [expr [lindex $boxtilt 1] * $deg2rad ]
+	set gammarad [expr [lindex $boxtilt 2] * $deg2rad ]
+	set ax [lindex $box 0]
+	set bx [expr [lindex $box 1] * cos($gammarad) ]
+	set by [expr [lindex $box 1] * sin($gammarad) ]
+	set cx [expr [lindex $box 2] * cos($betarad)  ]
+	set cy [expr [lindex $box 2] * [ expr cos($betarad) -cos($betarad) * cos($gammarad)] / sin($gammarad)]
+	# calc cz                                                                                                
+	set V1  [expr [lindex $box 0] *  [lindex $box 1] * [lindex $box 2] ]
+	set V21  [expr 1 - cos($alpharad)*cos($alpharad) \
+		      - cos($betarad)*cos($betarad) - cos($gammarad)*cos($gammarad) ]
+	set V22  [expr 2 * [ expr cos($alpharad) * cos($betarad)*cos($gammarad) ] ]
+	set V [expr $V1 * { sqrt ([ expr $V21 + $V22 ]) } ]
+	set cz [expr $V / [expr [lindex $box 0] * [lindex $box 1] * sin($gammarad) ] ]
+	# define vecs as vectors
+	set avec [list $ax 0.0 0.0]
+	set bvec [list $bx $by 0.0]
+	set cvec [list $cx $cy $cz]
+	set movevec [vecadd \
+			 [vecscale [lindex $v 0] $avec]  \
+			 [vecscale [lindex $v 1] $bvec]  \
+			 [vecscale [lindex $v 2] $cvec] ]
+
+	$newsel moveby $movevec
         # assign structure data. we need to renumber indices
         foreach l $obndlist {
             lassign $l a b t o
