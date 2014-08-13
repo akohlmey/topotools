@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -100,7 +100,7 @@ proc ::TopoTools::retypedihedrals {sel} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newdihedrallist {}
-    
+
     foreach dihedral $dihedrallist {
         lassign $dihedral type i1 i2 i3 i4
 
@@ -115,10 +115,10 @@ proc ::TopoTools::retypedihedrals {sel} {
 
         if { ([string compare $b $c] > 0) \
                  || ( [string equal $b $c] && [string compare $a $d] > 0 ) } {
-            set t $a; set a $d; set d $t 
-            set t $b; set b $c; set c $t 
-            set t $i1; set i1 $i4; set i4 $t 
-            set t $i2; set i2 $i3; set i3 $t 
+            set t $a; set a $d; set d $t
+            set t $b; set b $c; set c $t
+            set t $i1; set i1 $i4; set i4 $t
+            set t $i2; set i2 $i3; set i3 $t
         }
         set type [join [list $a $b $c $d] "-"]
 
@@ -136,7 +136,7 @@ proc ::TopoTools::guessdihedrals {sel} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newdihedrallist {}
-    
+
     set bondlist [bondinfo getbondlist $sel]
     set bonddata [$sel getbonds]
 
@@ -155,7 +155,7 @@ proc ::TopoTools::guessdihedrals {sel} {
     # a topological dihedral is defined by a bond and atoms
     # bound to it that are not the bond itself
     foreach bond $bondlist {
-        lassign $bond b1 b2 
+        lassign $bond b1 b2
         set b1idx [lsearch -sorted -integer $atomindex $b1]
         set b1typ [lindex $atomtypes $b1idx]
         set b2idx [lsearch -sorted -integer $atomindex $b2]
@@ -170,7 +170,7 @@ proc ::TopoTools::guessdihedrals {sel} {
                 set o2idx [lsearch -sorted -integer $atomindex $o2]
                 set o2typ [lindex $atomtypes $o2idx]
                 if { ([string compare $b1typ $b2typ] > 0) \
-                 || ( [string equal $b1typ $b2typ] 
+                 || ( [string equal $b1typ $b2typ]
                       && [string compare $o1typ $o2typ] > 0 ) } {
                     set type [join [list $o2typ $b2typ $b1typ $o1typ] "-"]
                     lappend newdihedrallist [list $type $o2 $b2 $b1 $o1]
@@ -194,8 +194,8 @@ proc ::TopoTools::adddihedral {mol id1 id2 id3 id4 {type unknown}} {
 
     # canonicalize indices
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
 
     set dihedrals [join [molinfo $mol get dihedrals]]
@@ -215,8 +215,8 @@ proc ::TopoTools::deldihedral {mol id1 id2 id3 id4 {type unknown}} {
 
     # canonicalize indices
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
 
     set newdihedrallist {}

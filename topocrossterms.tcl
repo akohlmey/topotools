@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # support for crossterms contributed by Josh Vermaas <vermaas2@illinois.edu>
@@ -143,12 +143,12 @@ proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
     # canonicalize indices
     #Cross terms are just two adjacent dihedrals, and so we apply the canonicalization operations seperately.
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
     if {$id6 > $id7} {
-        set t $id6 ; set id2 $id7 ; set id7 $t 
-        set t $id5 ; set id5 $id8 ; set id8 $t 
+        set t $id6 ; set id2 $id7 ; set id7 $t
+        set t $id5 ; set id5 $id8 ; set id8 $t
     }
 
     set crossterms [join [molinfo $mol get crossterms]]
@@ -175,18 +175,18 @@ proc ::TopoTools::delcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
     # canonicalize indices
     #Cross terms are just two adjacent dihedrals, and so we apply the canonicalization operations seperately.
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
     if {$id6 > $id7} {
-        set t $id6 ; set id2 $id7 ; set id7 $t 
-        set t $id5 ; set id5 $id8 ; set id8 $t 
+        set t $id6 ; set id2 $id7 ; set id7 $t
+        set t $id5 ; set id5 $id8 ; set id8 $t
     }
-    
+
     set newcrosstermlist {}
     foreach crossterm [join [molinfo $mol get crossterms]] {
         lassign $crossterm a b c d e f g h
-        if { ($a != $id1) || ($b != $id2) || ($c != $id3) || ($d != $id4) || 
+        if { ($a != $id1) || ($b != $id2) || ($c != $id3) || ($d != $id4) ||
             ($e != $id5) || ($f != $id6) || ($g != $id7) || ($h != $id8) } {
             lappend newcrosstermlist $crossterm
         }

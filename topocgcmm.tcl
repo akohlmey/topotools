@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -20,7 +20,7 @@ proc ::TopoTools::parse_cgcmm_parms {{filename par_CG.prm}} {
     array set dihedraltypes {}
     array set impropertypes {}
     set fn [file join $datadir $filename]
-            
+
     if {[catch {open $fn r} fp]} {
         vmdcon -err "could not open parm file $fn: $fp"
         return {}
@@ -148,7 +148,7 @@ proc ::TopoTools::parse_cgcmm_topo {molname {filename top_CG.prm}} {
                         BOND { set blist [join [list $blist $dat] " " ] }
                     }
                     if {([llength $alist] >= $numatoms) && ([llength $blist] >= 2*$numbonds) } {
-                        break 
+                        break
                     }
                     continue
                 }
