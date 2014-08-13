@@ -259,7 +259,8 @@ proc ::TopoTools::selections2mol {sellist} {
 # create a larger system by replicating the original unitcell
 # arguments: molecule id of molecule to replicate
 #            multiples of the cell vectors defaulting to 1
-# notes:     the cell is assumed to be orthorhombic.
+# support for non-orthogonal cells contributed by Konstantin W
+#            https://github.com/koniweb/
 #
 proc ::TopoTools::replicatemol {mol nx ny nz} {
 
