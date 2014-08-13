@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -17,7 +17,7 @@ proc ::TopoTools::bondinfo {infotype sel {flag none}} {
     set bondlist [$sel getbonds]
     set btyplist [$sel getbondtypes]
     set bordlist [$sel getbondorders]
-    
+
     foreach a $aidxlist bl $bondlist tl $btyplist ol $bordlist {
         foreach b $bl t $tl o $ol {
             if {($a < $b) && ([lsearch -sorted -integer $aidxlist $b] != -1)} {
@@ -45,7 +45,7 @@ proc ::TopoTools::bondinfo {infotype sel {flag none}} {
 
 # delete all contained bonds of the selection.
 proc ::TopoTools::clearbonds {sel} {
-    
+
     # special optimization for "all" selection.
     if {[string equal "all" [$sel text]]} {
         set nulllist {}
@@ -65,7 +65,7 @@ proc ::TopoTools::clearbonds {sel} {
 # guess bonds from atom radii. Interface to "mol bondsrecalc".
 # XXX: currently only works for selection "all".
 proc ::TopoTools::guessbonds {sel} {
-    
+
     set mol [$sel molid]
     # special optimization for "all" selection.
     if {[string equal "all" [$sel text]]} {
@@ -99,7 +99,7 @@ proc ::TopoTools::setbondlist {sel flag bondlist} {
     set b -1
     set fract  [expr {100.0/$nbnd}]
     set deltat 2000
-    set newt   $deltat 
+    set newt   $deltat
 
     # special optimization for "all" selection.
     if {[string equal "all" [$sel text]]} {

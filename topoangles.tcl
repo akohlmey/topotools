@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -15,7 +15,7 @@ proc ::TopoTools::angleinfo {infotype sel {flag none}} {
     set anglelist {}
 
     foreach angle [join [molinfo [$sel molid] get angles]] {
-        lassign $angle t a b c 
+        lassign $angle t a b c
 
         if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
                 && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
@@ -42,7 +42,7 @@ proc ::TopoTools::clearangles {sel} {
     set anglelist {}
 
     foreach angle [join [molinfo $mol get angles]] {
-        lassign $angle t a b c 
+        lassign $angle t a b c
 
         if {([lsearch -sorted -integer $atomindex $a] < 0)          \
                 || ([lsearch -sorted -integer $atomindex $b] < 0)   \
@@ -65,7 +65,7 @@ proc ::TopoTools::setanglelist {sel anglelist} {
 
     # preserve all angles definitions that are not contained in $sel
     foreach angle [join [molinfo $mol get angles]] {
-        lassign $angle t a b c 
+        lassign $angle t a b c
 
         if {([lsearch -sorted -integer $atomindex $a] < 0)          \
                 || ([lsearch -sorted -integer $atomindex $b] < 0)   \
@@ -76,7 +76,7 @@ proc ::TopoTools::setanglelist {sel anglelist} {
 
     # append new ones, but only those fully contained in $sel
     foreach angle $anglelist {
-        lassign $angle t a b c 
+        lassign $angle t a b c
 
         if {([lsearch -sorted -integer $atomindex $a] >= 0)          \
                 && ([lsearch -sorted -integer $atomindex $b] >= 0)   \
@@ -96,7 +96,7 @@ proc ::TopoTools::retypeangles {sel} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newanglelist {}
-    
+
     foreach angle $anglelist {
         lassign $angle type i1 i2 i3
 
@@ -123,12 +123,12 @@ proc ::TopoTools::guessangles {sel} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newanglelist {}
-    
+
     set bonddata [$sel getbonds]
 
     # preserve all angles definitions that are not fully contained in $sel
     foreach angle [angleinfo getanglelist $sel] {
-        lassign $angle t a b c 
+        lassign $angle t a b c
 
         if {([lsearch -sorted -integer $atomindex $a] < 0)          \
                 || ([lsearch -sorted -integer $atomindex $b] < 0)   \
@@ -151,10 +151,10 @@ proc ::TopoTools::guessangles {sel} {
                 set b2typ [lindex $atomtypes $idx]
                 if { ([string compare $b1typ $b2typ] > 0) } {
                     set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
-                    set t2 $b1idx; set b1idx $b2idx; set b2idx $t2 
+                    set t2 $b1idx; set b1idx $b2idx; set b2idx $t2
                 }
                 set type [join [list $b1typ $atyp $b2typ] "-"]
-                
+
                 # append only angles that are full contained in $sel
                 if {([lsearch -sorted -integer $atomindex $b1idx] >= 0)          \
                         && ([lsearch -sorted -integer $atomindex $aidx] >= 0)   \
@@ -175,7 +175,7 @@ proc ::TopoTools::addangle {mol id1 id2 id3 {type unknown}} {
     }
 
     # canonicalize indices
-    if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t } 
+    if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t }
 
     set angles [join [molinfo $mol get angles]]
     lappend angles [list $type $id1 $id2 $id3]
@@ -191,7 +191,7 @@ proc ::TopoTools::delangle {mol id1 id2 id3 {type unknown}} {
     }
 
     # canonicalize indices
-    if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t } 
+    if {$id1 > $id3} {set t $id1 ; set id1 $id3 ; set id3 $t }
 
     set newanglelist {}
     foreach angle [join [molinfo $mol get angles]] {

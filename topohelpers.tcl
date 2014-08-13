@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# TopoTools, a VMD package to simplify manipulating bonds 
+# TopoTools, a VMD package to simplify manipulating bonds
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -57,7 +57,7 @@ proc ::TopoTools::comparedihedrals {a b} {
     lassign $a at a1 a2 a3 a4
     lassign $b bt b1 b2 b3 b4
 
-    # canonicalize 
+    # canonicalize
     if {($a2 > $a3) || (($a2 == $a3) && ($a1 > $a4))} {
         set t $a1; set a1 $a4; set a4 $t
         set t $a2; set a2 $a3; set a3 $t
@@ -160,7 +160,7 @@ proc ::TopoTools::sortsomething {what sel} {
 # emulate the behavior of loading a molecule through
 # the regular "mol new" command. the options $selmod
 # argument allows to append an additional modified to
-# the selection, e.g. 'user > 0.1' for variable number 
+# the selection, e.g. 'user > 0.1' for variable number
 # particle xyz trajectories.
 proc ::TopoTools::adddefaultrep {mol {selmod none}} {
     mol color [mol default color]
@@ -169,9 +169,51 @@ proc ::TopoTools::adddefaultrep {mol {selmod none}} {
         mol selection [mol default selection]
     } else {
         mol selection "([mol default selection]) and $selmod"
-    }        
+    }
     mol material [mol default material]
     mol addrep $mol
     display resetview
 }
 
+# guess the atomic number in the peridic table from the mass
+proc ::TopoTools::ptefrommass {{amass 0.0}} {
+    variable masses
+
+    set idx 0
+    foreach m $masses {
+        # this catches most cases.
+        # we check the few exceptions later.
+        if {[expr abs($amass-$m)] < 0.65} {
+            set idx [lsearch $masses $m]
+        }
+        # this is a hydrogen or deuterium and we flag it as hydrogen.
+        if {($amass > 0.0 && $amass < 2.2)} {
+            set idx 1
+        }
+        # Differentiate between Bismutium and Polonium.
+        # The normal search will detect Polonium.
+        if {($amass > 207.85 && $amass < 208.99)} {
+            set idx 83
+        }
+        # Differentiate between Cobalt and Nickel
+        # The normal search will detect Nickel.
+        if {($amass > 56.50 && $amass < 58.8133)} {
+            set idx 27
+        }
+    }
+    return $idx
+}
+
+# This exists to eliminate unneeded parameters from CHARMM parameter files.
+# There are some oddly formatted files (particularly older ones) that will
+# give parameters for atoms that aren't given LJ parameters.
+# Naturally, this is a problem, so we don't include parameters
+# for atomtypes not present in the psf or that include a wildcard.
+proc ::TopoTools::findInTypes {types l} {
+    foreach element $l {
+        if { [lsearch $types $element] == -1 && $element != "X"} {
+            return 0
+        }
+    }
+    return 1
+}

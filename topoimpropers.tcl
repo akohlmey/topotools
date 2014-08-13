@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -100,7 +100,7 @@ proc ::TopoTools::retypeimpropers {sel} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newimproperlist {}
-    
+
     foreach improper $improperlist {
         lassign $improper type i1 i2 i3 i4
 
@@ -115,9 +115,9 @@ proc ::TopoTools::retypeimpropers {sel} {
 
         if { ([string compare $b $c] > 0) \
                  || ( [string equal $b $c] && [string compare $a $d] > 0 ) } {
-            set t $a; set a $d; set d $t 
-            set t $b; set b $c; set c $t 
-            set t $i1; set i1 $i4; set i4 $t 
+            set t $a; set a $d; set d $t
+            set t $b; set b $c; set c $t
+            set t $i1; set i1 $i4; set i4 $t
             set t $i2; set i2 $i3; set i3 $t
         }
         set type [join [list $a $b $c $d] "-"]
@@ -152,7 +152,7 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
     set atomtypes [$sel get type]
     set atomindex [$sel list]
     set newimproperlist {}
-    
+
     set bonddata [$sel getbonds]
     set minangle [expr {180.0 - $tolerance}]
 
@@ -182,18 +182,18 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
                 set b2typ [lindex $atomtypes $b2idx]
                 set b3idx [lsearch -sorted -integer $atomindex $b3]
                 set b3typ [lindex $atomtypes $b3idx]
-                
+
                 if {([string compare $b1typ $b2typ]) > 0} {
                     set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
-                    set t2 $b1; set b1 $b2; set b2 $t2 
+                    set t2 $b1; set b1 $b2; set b2 $t2
                 }
                 if {([string compare $b2typ $b3typ]) > 0} {
                     set t1 $b2typ; set b2typ $b3typ; set b3typ $t1
-                    set t2 $b2; set b2 $b3; set b3 $t2 
+                    set t2 $b2; set b2 $b3; set b3 $t2
                 }
                 if {([string compare $b1typ $b2typ]) > 0} {
                     set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
-                    set t2 $b1; set b1 $b2; set b2 $t2 
+                    set t2 $b1; set b1 $b2; set b2 $t2
                 }
                 set type [join [list $b1typ $b2typ $atyp $b3typ] "-"]
                 lappend newimproperlist [list $type $b1 $b2 $aidx $b3]
@@ -212,8 +212,8 @@ proc ::TopoTools::addimproper {mol id1 id2 id3 id4 {type unknown}} {
 
     # canonicalize indices
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
 
     set impropers [join [molinfo $mol get impropers]]
@@ -231,8 +231,8 @@ proc ::TopoTools::delimproper {mol id1 id2 id3 id4 {type unknown}} {
 
     # canonicalize indices
     if {$id2 > $id3} {
-        set t $id2 ; set id2 $id3 ; set id3 $t 
-        set t $id1 ; set id1 $id4 ; set id4 $t 
+        set t $id2 ; set id2 $id3 ; set id3 $t
+        set t $id1 ; set id1 $id4 ; set id4 $t
     }
 
     set newimproperlist {}

@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
@@ -10,10 +10,10 @@
 # import a LAMMPS data file.
 # this behaves almost like a molfile plugin and will create a
 # new molecule (but no representation) and return its molecule id.
-# 
+#
 # Arguments:
 # filename = name of data file
-# style = atomstyle 
+# style = atomstyle
 # flags = more flags. (currently not used)
 proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     global M_PI
@@ -21,7 +21,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         vmdcon -err "readlammpsdata: problem opening data file: $fp\n"
         return -1
     }
-    
+
     # parse lammps header section.
     array set lammps [readlammpsheader $fp]
     if {$lammps(atoms) < 1} {
@@ -57,7 +57,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         set ly [expr {$lammps(yhi) - $lammps(ylo)}]
         set lz [expr {$lammps(zhi) - $lammps(zlo)}]
         set b [expr {sqrt($ly*$ly + $lammps(xy)*$lammps(xy))}]
-        set c [expr {sqrt($lz*$lz + $lammps(xz)*$lammps(xz) 
+        set c [expr {sqrt($lz*$lz + $lammps(xz)*$lammps(xz)
                           + $lammps(yz)*$lammps(yz))}]
         set alpha [expr {($lammps(xy)*$lammps(xz) + $ly*$lammps(yz))/($b*$c)}]
         set beta  [expr {$lammps(xz)/$c}]
@@ -153,41 +153,41 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(atomtypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(atomtypes) $lineno]
         } elseif {[regexp {^\s*(PairIJ Coeffs)} $line ]} {
             set skip [expr {$lammps(atomtypes)*($lammps(atomtypes)-1)}]
-            set lineno [skiplammpslines $fp $skip $lineno] 
+            set lineno [skiplammpslines $fp $skip $lineno]
         } elseif {[regexp {^\s*(Bond Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno]
         } elseif {[regexp {^\s*(Angle Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno]
         } elseif {[regexp {^\s*(BondBond Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno]
         } elseif {[regexp {^\s*(BondAngle Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(angletypes) $lineno]
         } elseif {[regexp {^\s*(Dihedral Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(MiddleBondTorsion Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(EndBondTorsion Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(AngleTorsion Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(AngleAngleTorsion Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(BondBond13 Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(dihedraltypes) $lineno]
         } elseif {[regexp {^\s*(Improper Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno]
         } elseif {[regexp {^\s*(AngleAngle Coeffs)} $line ]} {
-            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno] 
+            set lineno [skiplammpslines $fp $lammps(impropertypes) $lineno]
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines silently
-        } else { 
+        } else {
             vmdcon -err "readlammpsdata: unkown header line: $lineno : $line "
             vmdcon -err "readlammpsdata: cannot continue. "
             return -1
-        }    
+        }
         set lammps(lineno) $lineno
     }
     close $fp
@@ -201,7 +201,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
             $msel set mass $m
             $msel delete
         }
-    } 
+    }
     mol reanalyze $mol
     variable newaddsrep
     if {$newaddsrep} {
@@ -230,7 +230,7 @@ proc ::TopoTools::skiplammpslines {fp num lineno} {
 # and return as an array.
 proc ::TopoTools::readlammpsheader {fp} {
     array set lammps {
-        atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0 
+        atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy {} xz {} yz {}
         lineno 0 cgcmm 0 triclinic 0 style unknown
@@ -239,7 +239,7 @@ proc ::TopoTools::readlammpsheader {fp} {
 
     vmdcon -info "parsing LAMMPS header."
 
-    # first header line is skipped by LAMMPS. so we put a flag to 
+    # first header line is skipped by LAMMPS. so we put a flag to
     # detect CMM style CG data files with additional information.
     gets $fp line
     if {[string match "*CGCMM*" $line]} {
@@ -255,7 +255,7 @@ proc ::TopoTools::readlammpsheader {fp} {
     set offs [tell $fp]
     set lammps(lineno) $lineno
 
-    # 
+    #
     while {[gets $fp line] >= 0} {
         incr lineno
         if { [      regexp {^\s*(\d+)\s+atoms}     $line x lammps(atoms) ] } {
@@ -280,7 +280,7 @@ proc ::TopoTools::readlammpsheader {fp} {
         } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
             seek $fp $offs start
             break
-        } else { 
+        } else {
             vmdcon -warn "readlammpsheader: skipping unkown header line: $lineno : $line "
         }
         set offs [tell $fp]
@@ -295,7 +295,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
     set numatoms [$sel num]
     set atomdata {}
     set boxx 0.0
-    set boxy 0.0 
+    set boxy 0.0
     set boxz 0.0
     set alpha 90.0
     set beta  90.0
@@ -342,7 +342,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
             switch $style { # XXX: use regexp based parser to detect wrong formats.
 
                 atomic    -
-                dpd { 
+                dpd {
                     if {[llength $line] >= 8} {
                         lassign $line atomid       atomtype        x y z xi yi zi
                     } else {
@@ -352,7 +352,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
 
                 bond      -
                 angle     -
-                molecular { 
+                molecular {
                     if {[llength $line] >= 9} {
                         lassign $line atomid resid atomtype        x y z xi yi zi
                     } else {
@@ -360,7 +360,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
                     }
                 }
 
-                charge { 
+                charge {
                     if {[llength $line] >= 9} {
                         lassign $line atomid       atomtype charge x y z xi yi zi
                     } else {
@@ -393,9 +393,9 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
                 return -1
             }
 
-            # XXX: no reason to discriminate by atomid. we store the 
+            # XXX: no reason to discriminate by atomid. we store the
             # atomid in the user field and assign atoms sorted by atomid
-            # (for faster lookup) and can retrieve that info later and 
+            # (for faster lookup) and can retrieve that info later and
             # use it for mapping bonds, angles, etc to it.
             ################
             # if {$atomid > $numatoms} {
@@ -489,7 +489,7 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
             # skip empty lines.
         } else {
             incr curatoms
-            lassign $line atomid vx vy vz 
+            lassign $line atomid vx vy vz
 
             #if {$atomid > $numatoms} {
             #    vmdcon -err "readlammpsvelocities: only atomids 1-$numatoms are supported. $lineno : $line "
@@ -523,7 +523,7 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curbonds 
+            incr curbonds
             lassign $line num type a b ;# XXX: use regexp based parser to detect wrong format.
             # map atomid to vmd atom index.
             set aidx [lsearch -sorted -integer $atomidmap $a]
@@ -559,7 +559,7 @@ proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curangles 
+            incr curangles
             lassign $line num type a b c ;# XXX: use regexp based parser to detect wrong format.
             # map atomid to vmd atom index.
             set aidx [lsearch -sorted -integer $atomidmap $a]
@@ -597,7 +597,7 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curdihedrals 
+            incr curdihedrals
             lassign $line num type a b c d ;# XXX: use regexp based parser to detect wrong format.
             # map atomid to vmd atom index.
             set aidx [lsearch -sorted -integer $atomidmap $a]
@@ -636,7 +636,7 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
         if { [regexp {^\s*(\#.*|)$} $line ] } {
             # skip empty lines.
         } else {
-            incr curimpropers 
+            incr curimpropers
             lassign $line num type a b c d;# XXX: use regexp based parser to detect wrong format.
             # map atomid to vmd atom index.
             set aidx [lsearch -sorted -integer $atomidmap $a]
@@ -674,7 +674,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
 
     # initialize system default settings
     array set lammps {
-        atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0 
+        atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 triclinic 0
         style unknown
@@ -737,8 +737,8 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     lassign $min xlo ylo zlo
     lassign $max xhi yhi zhi
     lassign [molinfo $mol get {a b c alpha beta gamma}] boxx boxy boxz alpha beta gamma
-    
-    # override min/max settings where box info available. 
+
+    # override min/max settings where box info available.
     # try to (mostly) preserve the center of the cell, by
     # deriving it from the preceeding min/max search.
     set small 0.0001
@@ -783,7 +783,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         set lammps(yz) 0.0
         set ly [expr {sqrt($boxy*$boxy - $lammps(xy)*$lammps(xy))}]
         if {abs($ly) > $small} {
-            set lammps(yz) [expr {($boxy*$boxz*cos($alpha*$conv) 
+            set lammps(yz) [expr {($boxy*$boxz*cos($alpha*$conv)
                                    - $lammps(xy)*$lammps(xz)) / $ly}]
         }
         set lz [expr {sqrt($boxz*$boxz - $lammps(xz)*$lammps(xz) - $lammps(yz)*$lammps(yz))}]
@@ -797,7 +797,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
             set lammps(zhi)  [expr { 0.5*$lz + $lammps(zmid)}]
         }
     }
-        
+
     # write out supported data file sections
     writelammpsheader $fp [array get lammps]
 
@@ -864,7 +864,7 @@ proc ::TopoTools::writelammpsheader {fp flags} {
     return
 }
 
-# write masses section, but only if number of masses 
+# write masses section, but only if number of masses
 # matches the number of atom types and if no mass is < 0.01
 proc ::TopoTools::writelammpsmasses {fp sel} {
 
@@ -913,31 +913,31 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         incr resid
         switch $style {
             atomic -
-            dpd       { 
+            dpd       {
                 puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
-                              $atomid        $atomtype  $x $y $z $type] 
+                              $atomid        $atomtype  $x $y $z $type]
             }
             bond  -
             angle -
-            molecular { 
+            molecular {
                 puts $fp [format "%d %d %d %.6f %.6f %.6f \# %s %s" \
-                              $atomid $resid $atomtype  $x $y $z $type $resname] 
+                              $atomid $resid $atomtype  $x $y $z $type $resname]
             }
-            charge    { 
+            charge    {
                 puts $fp [format "%d %d %.6f %.6f %.6f %.6f \# %s" \
-                              $atomid $atomtype $charge $x $y $z $type] 
+                              $atomid $atomtype $charge $x $y $z $type]
             }
-            full      { 
+            full      {
                 puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
-                              $atomid $resid $atomtype $charge $x $y $z $type $resname] 
+                              $atomid $resid $atomtype $charge $x $y $z $type $resname]
             }
-            hybrid      { 
+            hybrid      {
                 puts $fp [format "%d %d %.6f %.6f %.6f %d %.6f \# %s %s" \
-                              $atomid $atomtype $x $y $z $resid $charge $type $resname] 
+                              $atomid $atomtype $x $y $z $resid $charge $type $resname]
             }
             default   {
                 # ignore this unsupported style
-                # XXX: add a way to flag an error. actually the test for 
+                # XXX: add a way to flag an error. actually the test for
                 #      supported lammps atom styles should be done on a
                 #      much higher level, so that we don't do unneeded work.
             }
@@ -985,7 +985,7 @@ proc ::TopoTools::writelammpsangles {fp sel atomidmap} {
         set at2  [lsearch -integer -sorted $atomidmap $b]
         set at3  [lsearch -integer -sorted $atomidmap $c]
         set type [lsearch -ascii $angletypes $t]
-   
+
         # go from 0-based to 1-based indexing and write out
         incr at1; incr at2; incr at3; incr type
         puts $fp [format "%d %d %d %d %d" $angleid $type $at1 $at2 $at3]
@@ -1010,7 +1010,7 @@ proc ::TopoTools::writelammpsdihedrals {fp sel atomidmap} {
         set at3  [lsearch -integer -sorted $atomidmap $c]
         set at4  [lsearch -integer -sorted $atomidmap $d]
         set type [lsearch -ascii $dihedraltypes $t]
-   
+
         # go from 0-based to 1-based indexing and write out
         incr at1; incr at2; incr at3; incr at4; incr type
         puts $fp [format "%d %d %d %d %d %d" $dihedralid $type $at1 $at2 $at3 $at4]
@@ -1035,7 +1035,7 @@ proc ::TopoTools::writelammpsimpropers {fp sel atomidmap} {
         set at3  [lsearch -integer -sorted $atomidmap $c]
         set at4  [lsearch -integer -sorted $atomidmap $d]
         set type [lsearch -ascii $impropertypes $t]
-   
+
         # go from 0-based to 1-based indexing and write out
         incr at1; incr at2; incr at3; incr at4; incr type
         puts $fp [format "%d %d %d %d %d %d" $improperid $type $at1 $at2 $at3 $at4]

@@ -1,8 +1,8 @@
 #!/usr/bin/tclsh
-# TopoTools, a VMD package to simplify manipulating bonds 
+# TopoTools, a VMD package to simplify manipulating bonds
 # other topology related properties in VMD.
 #
-# TODO: 
+# TODO:
 # - topotools.tcl : some operations on bonds can be very slow.
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
@@ -13,10 +13,10 @@
 # $Id: topotools.tcl,v 1.27 2013/09/19 16:11:47 akohlmey Exp $
 
 namespace eval ::TopoTools:: {
-    # for allowing compatibility checks in scripts 
+    # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
     variable version 1.4
-    # location of additional data files containing 
+    # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
     # print a citation reminder in case the CG-CMM is used, but only once.
@@ -25,10 +25,56 @@ namespace eval ::TopoTools:: {
     # when creating a new molecule. similar to what "mol new" does.
     variable newaddsrep 1
 
+    # per package global constants:
+    # conversion factor for kJ from kcal
+    variable kjinkcal 4.184
+
+    # element names from PTE
+    variable elements {X H He Li Be B C N O F Ne Na Mg Al Si P
+        S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As
+        Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn
+        Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho
+        Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po
+        At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md
+        No Lr Rf Db Sg Bh Hs Mt Ds Rg}
+
+    # element masses in AMU
+    variable masses {0.00000 1.00794 4.00260 6.941 9.012182 10.811
+        12.0107 14.0067 15.9994 18.9984032 20.1797 22.989770
+        24.3050 26.981538 28.0855 30.973761 32.065 35.453
+        39.948 39.0983 40.078 44.955910 47.867 50.9415
+        51.9961 54.938049 55.845 58.9332 58.6934 63.546
+        65.409 69.723 72.64 74.92160  78.96 79.904 83.798
+        85.4678 87.62 88.90585 91.224 92.90638 95.94 98.0
+        101.07 102.90550 106.42 107.8682 112.411 114.818
+        118.710 121.760 127.60 126.90447 131.293 132.90545
+        137.327 138.9055 140.116 140.90765 144.24 145.0
+        150.36 151.964 157.25 158.92534 162.500 164.93032
+        167.259 168.93421 173.04 174.967 178.49 180.9479
+        183.84 186.207 190.23 192.217 195.078 196.96655
+        200.59 204.3833 207.2 208.98038 209.0 210.0 222.0
+        223.0 226.0 227.0 232.0381 231.03588 238.02891
+        237.0 244.0 243.0 247.0 247.0 251.0 252.0 257.0
+        258.0 259.0 262.0 261.0 262.0 266.0 264.0 269.0
+        268.0 271.0 272.0}
+
+    # VdW radii, ionic radii for elements that are commonly
+    # ionic in typical systems. unknown elements set to 2.0.
+    variable radii {1.5 1.2 1.4 1.82 2.0 2.0 1.7 1.55 1.52
+        1.47 1.54 1.36 1.18 2.0 2.1 1.8 1.8 2.27 1.88 1.76
+        1.37 2.0 2.0 2.0 2.0 2.0 2.0 2.0 1.63 1.4 1.39 1.07
+        2.0 1.85 1.9 1.85 2.02 2.0 2.0 2.0 2.0 2.0 2.0 2.0
+        2.0 2.0 1.63 1.72 1.58 1.93 2.17 2.0 2.06 1.98 2.16
+        2.1 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0
+        2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 1.72 1.66
+        1.55 1.96 2.02 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0
+        1.86 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0
+        2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0}
+
     # utility command exports. the other commands are
     # best used through the "topo" frontend command.
     # part 1: operations on whole systems/selections
-    namespace export mergemols selections2mol replicatemol 
+    namespace export mergemols selections2mol replicatemol
     # part 2: CGCMM forcefield tools
     namespace export parse_cgcmm_parms parse_cgcmm_topo canonical_cgcmm_ljtype
 }
@@ -71,7 +117,7 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  getbondlist \[type|order|both|none\]"
     vmdcon -info "     returns a list of unique bonds, optionally"
     vmdcon -info "     including bond order and bond type."
-    vmdcon -info "  setbondlist \[type|order|both|none\] <list>" 
+    vmdcon -info "  setbondlist \[type|order|both|none\] <list>"
     vmdcon -info "     resets all bonds from a list in the same"
     vmdcon -info "     format as returned by 'topo getbondlist'."
     vmdcon -info "     order or type are reset to defaults if not given."
@@ -159,7 +205,7 @@ proc ::TopoTools::usage {} {
 # the main frontend command.
 # this takes care of all sanity checks on arguments and
 # then dispatches the subcommands to the corresponding
-# subroutines. 
+# subroutines.
 proc ::TopoTools::topo { args } {
 
     set molid -1
@@ -179,11 +225,11 @@ proc ::TopoTools::topo { args } {
         set arg [lindex $args $i]
 
         if {[string match -?* $arg]} {
-            
+
             set val [lindex $args [expr $i+1]]
-        
+
             switch -- $arg {
-                -molid { 
+                -molid {
                     if {[catch {molinfo $val get name} res]} {
                         vmdcon -err "Invalid -molid argument '$val': $res"
                         return
@@ -195,7 +241,7 @@ proc ::TopoTools::topo { args } {
                     incr i
                 }
 
-                -sel { 
+                -sel {
                     # check if the argument to -sel is a valid atomselect command
                     if {([info commands $val] != "") && ([string equal -length 10 $val atomselect])} {
                         set localsel 0
@@ -208,7 +254,7 @@ proc ::TopoTools::topo { args } {
                     incr i
                 }
 
-                -bondtype { 
+                -bondtype {
                     if {[string length $val] < 1} {
                         vmdcon -err "Invalid -bondtype argument '$val'"
                         return
@@ -217,7 +263,7 @@ proc ::TopoTools::topo { args } {
                     incr i
                 }
 
-                -bondorder { 
+                -bondorder {
                     if {[string length $val] < 1} {
                         vmdcon -err "Invalid -bondorder argument '$val'"
                         return
@@ -237,10 +283,10 @@ proc ::TopoTools::topo { args } {
         }
     }
 
-    if {$molid < 0} { 
+    if {$molid < 0} {
         set molid $selmol
     }
-    if {$molid < 0} { 
+    if {$molid < 0} {
         set molid [molinfo top]
     }
 
@@ -350,15 +396,15 @@ proc ::TopoTools::topo { args } {
         }
 
         retypebonds {
-            set retval [retypebonds $sel] 
+            set retval [retypebonds $sel]
         }
 
         clearbonds {
-            set retval [clearbonds $sel] 
+            set retval [clearbonds $sel]
         }
 
         guessbonds {
-            set retval [guessbonds $sel] 
+            set retval [guessbonds $sel]
         }
 
         addbond {
@@ -398,19 +444,19 @@ proc ::TopoTools::topo { args } {
         }
 
         retypeangles {
-            set retval [retypeangles $sel] 
+            set retval [retypeangles $sel]
         }
 
         guessangles {
-            set retval [guessangles $sel] 
+            set retval [guessangles $sel]
         }
 
         sortangles {
-            set retval [sortsomething angle $sel] 
+            set retval [sortsomething angle $sel]
         }
 
         clearangles {
-            set retval [clearangles $sel] 
+            set retval [clearangles $sel]
         }
 
         addangle {
@@ -456,19 +502,19 @@ proc ::TopoTools::topo { args } {
         }
 
         retypedihedrals {
-            set retval [retypedihedrals $sel] 
+            set retval [retypedihedrals $sel]
         }
 
         guessdihedrals {
-            set retval [guessdihedrals $sel] 
+            set retval [guessdihedrals $sel]
         }
 
         sortdihedrals {
-            set retval [sortsomething dihedral $sel] 
+            set retval [sortsomething dihedral $sel]
         }
 
         cleardihedrals {
-            set retval [cleardihedrals $sel] 
+            set retval [cleardihedrals $sel]
         }
 
         adddihedral {
@@ -516,19 +562,19 @@ proc ::TopoTools::topo { args } {
         }
 
         retypeimpropers {
-            set retval [retypeimpropers $sel] 
+            set retval [retypeimpropers $sel]
         }
 
         guessimpropers {
-            set retval [guessimpropers $sel $newargs] 
+            set retval [guessimpropers $sel $newargs]
         }
 
         sortimpropers {
-            set retval [sortsomething improper $sel] 
+            set retval [sortsomething improper $sel]
         }
 
         clearimpropers {
-            set retval [clearimpropers $sel] 
+            set retval [clearimpropers $sel]
         }
 
         addimproper {
@@ -574,7 +620,7 @@ proc ::TopoTools::topo { args } {
         }
 
         clearcrossterms {
-            set retval [clearcrossterms $sel] 
+            set retval [clearcrossterms $sel]
         }
 
         addcrossterm {

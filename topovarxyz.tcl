@@ -1,11 +1,11 @@
 #!/usr/bin/tclsh
-# This file is part of TopoTools, a VMD package to simplify 
+# This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
 # $Id: topovarxyz.tcl,v 1.4 2013/04/15 09:19:29 akohlmey Exp $
 
-# high level subroutines for supporting xyz 
+# high level subroutines for supporting xyz
 # trajectories with a varying number of particles.
 #
 # import an xmol-format xyz trajectory data file.
@@ -16,7 +16,7 @@
 # necessary padding atoms and then set the "user" field
 # to either 0 or 1 depending on whether the corresponding
 # atom is present in the current frame.
-# 
+#
 # Arguments:
 # filename = name of data file
 # flags = more flags. (currently not used)
@@ -30,10 +30,10 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
     set nframes    0 ; # total number of frames
     set typemap   {} ; # atom type map
     set typecount {} ; # atom type count for one frame
-    set maxcount  {} ; # max. atom type count for all frames  
+    set maxcount  {} ; # max. atom type count for all frames
     array set traj {} ; # temporary trajectory storage
 
-    # to be able to determine the number of dummy atoms we first 
+    # to be able to determine the number of dummy atoms we first
     # have to parse and store away the whole trajectory and while
     # doing so count the number of atom types in each frame.
     while {[gets $fp line] >= 0} {
@@ -97,7 +97,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
     foreach n $maxcount {
         incr natoms $n
     }
-    
+
     vmdcon -info "readvarxyz: read in $nframes frames requiring $natoms atoms storage.\nType map: $typemap\nMax type counts: $maxcount"
 
     # create an empty molecule and timestep
@@ -145,7 +145,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
         for {set k $j} {$k < $count} {incr k} {
             lappend data {0.0 0.0 0.0 -1.0}
         }
-        incr idx 
+        incr idx
         while {$idx < [llength $maxcount]} {
             set count [lindex $maxcount $idx]
             for {set j 0} {$j < $count} {incr j} {
@@ -205,7 +205,7 @@ proc ::TopoTools::writevarxyz {filename mol sel {flags {}}} {
     set writesel [atomselect $mol "([$sel text]) and $selmod"]
     for {set i $first} {$i <= $last} {incr i $step} {
         if {$i > $maxframe} continue
-        
+
         $writesel frame $i
         $writesel update
 
