@@ -15,7 +15,7 @@
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.4
+    variable version 1.5
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)

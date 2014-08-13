@@ -1,4 +1,4 @@
-<!--#set var="TITLE" value="TopoTools Plugin, Version 1.4"-->
+<!--#set var="TITLE" value="TopoTools Plugin, Version 1.5"-->
 <!--#include virtual="/include/header-over.shtml"-->
 
 <!-- CONTENT STARTS HERE -->
@@ -229,8 +229,8 @@ lappend midlist $mol </code></div><div><code> # do the magic</code></div><div><c
 </code></div></div><h4><a name="TOC-selections2mol-list-of-atom-selecti"></a>selections2mol &lt;list of atom selections&gt;</h4><p align="justify">This is very similar to the previous <code>mergemols</code> command. It combines one or multiple atom selections, which can be taken from different molecules, into one new molecule. This is also non-destructive and will create a new molecule. The molecule id of the new molecule is returned, or -1 in case of a failure. Usage example:</p>
 <div class="sites-codeblock sites-codesnippet-block"><code>package require topotools 1.1</code><div><code>set sellist {}</code></div><div><code>set sel [atomselect 0 protein]</code></div><div><code>lappend sellist $sel </code></div><div><code>set sel [atomselect 0 protein]</code></div><div><code>$sel frame 200 </code></div><div><code>$sel moveby {50.0 50.0 0.0}</code></div><div><code>lappend sellist $sel</code></div><div><code>set sel [atomselect 1 "same residue as (within 3.0 of chain L)"]</code></div><div><code>lappend sellist $sel</code></div><div><code># do the magic</code></div><div><code>set mol [::TopoTools::selections2mol $sellist]</code></div><div><code>animate write psf combinedsel.psf $mol</code></div><div><code>animate write pdb combinedsel.pdb $mol</code></div></div>
 <h4><a name="TOC-replicatemol-mol-nx-ny-nz-"></a>replicatemol &lt;mol&gt; &lt;nx&gt; &lt;ny&gt; &lt;nz&gt;</h4>
-<p>Replicate the current unitcell according to integer replicate counts. This currently assumes an orthorhombic cell. Usage example:</p>
-<div class="sites-codeblock sites-codesnippet-block"><code>package require topotools 1.2 </code><div><code># load a molecule</code></div><div><code>set mol [mol new pegc12e8-small.xml type hoomd waitfor all]</code></div><div><code># do the magic</code></div><div><code>set newmol [::TopoTools::replicatemol $mol 2 2 1 ]</code></div><div><code>animate write hoomd replicated.xml $newmol</code></div></div>
+<p>Replicate the current unitcell according to integer replicate counts. Usage example:</p>
+<div class="sites-codeblock sites-codesnippet-block"><code>package require topotools 1.5 </code><div><code># load a molecule</code></div><div><code>set mol [mol new pegc12e8-small.xml type hoomd waitfor all]</code></div><div><code># do the magic</code></div><div><code>set newmol [::TopoTools::replicatemol $mol 2 2 1 ]</code></div><div><code>animate write hoomd replicated.xml $newmol</code></div></div>
 <div><br />
 </div></div></td></tr></tbody></table>
 </div> 
