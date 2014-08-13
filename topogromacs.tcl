@@ -231,7 +231,7 @@ proc ::TopoTools::writegmxLJprm {fp lj mass types} {
             set epsilon [expr {abs([lindex $dat 2] * $kjinkcal) }]
             set m [dict get $mass $type]
             set idx [ptefrommass $m]
-            puts $fp [format "%8s  %3d  %10f  0.000  A  %.12f  %.5f" $type $idx $m $sigma $epsilon]
+            puts $fp [format "%8s  %3d  %10.4f  0.000  A  %.12f  %.5f" $type $idx $m $sigma $epsilon]
         }
     }
     puts $fp "\n\[ pairtypes \]"
@@ -390,8 +390,6 @@ proc ::TopoTools::writecharmmparams {fp mol sel filelist} {
             set ss [regexp -inline -all -- {\S+} $l]
             # Fit the split to one of the (type aware) parameter parsings,
             # ignore it if it doesn't fit.
-            #puts $ss
-            #puts [llength $ss]
             switch [llength $ss] {
                 4 {
                     #Length 4: Bonds, LJ, NBFIX, certain CMAP data lines, MASS
@@ -514,6 +512,15 @@ proc ::TopoTools::writecharmmparams {fp mol sel filelist} {
         }
     }
     set types [lsort -unique [$sel get type]]
+    #In case only a parameter file without MASS lines is passed,
+    #lookup what the masses should be based on what exists in the current molecule.
+    foreach type $types {
+        if { ! [dict exists $mass $type]} {
+            set subset [atomselect $mol "type $type"]
+            dict set mass $type [lindex [$subset get mass] 0]
+            $subset delete
+        }
+    }
     #Write the parameter lists to the output file.
     writegmxLJprm $fp $lj $mass $types
     writegmxbondprm $fp $bonds $types
