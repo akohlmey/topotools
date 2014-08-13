@@ -263,6 +263,7 @@ proc ::TopoTools::selections2mol {sellist} {
 #            https://github.com/koniweb/
 #
 proc ::TopoTools::replicatemol {mol nx ny nz} {
+    global M_PI
 
     if {[string equal $mol top]} {
         set mol [molinfo top]
@@ -341,7 +342,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
 
 	# calculate movevec for nonorthogonal boxes
         set movevec {0.0 0.0 0.0}
-	set deg2rad [expr 3.141592 / 180]
+	set deg2rad [expr $M_PI / 180]
 	set alpharad [expr [lindex $boxtilt 0] * $deg2rad ]
 	set betarad  [expr [lindex $boxtilt 1] * $deg2rad ]
 	set gammarad [expr [lindex $boxtilt 2] * $deg2rad ]
