@@ -10,7 +10,7 @@
 # Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
-# $Id: topotools.tcl,v 1.27 2013/09/19 16:11:47 akohlmey Exp $
+# $Id: topotools.tcl,v 1.28 2014/08/19 16:45:04 johns Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts

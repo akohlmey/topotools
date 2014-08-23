@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.10 2013/09/19 16:14:56 akohlmey Exp $
+# $Id: topoimpropers.tcl,v 1.11 2014/08/19 16:45:04 johns Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.

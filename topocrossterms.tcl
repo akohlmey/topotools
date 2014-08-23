@@ -4,7 +4,7 @@
 #
 # support for crossterms contributed by Josh Vermaas <vermaas2@illinois.edu>
 #
-# $Id: topocrossterms.tcl,v 1.3 2013/09/19 16:11:10 akohlmey Exp $
+# $Id: topocrossterms.tcl,v 1.4 2014/08/19 16:45:04 johns Exp $
 
 
 proc ::TopoTools::crossterminfo {infotype sel {flag none}} {

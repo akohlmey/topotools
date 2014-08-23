@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoangles.tcl,v 1.11 2013/09/19 16:14:56 akohlmey Exp $
+# $Id: topoangles.tcl,v 1.12 2014/08/19 16:45:04 johns Exp $
 
 # return info about angles
 # we list and count only angles that are entirely within the selection.

@@ -5,7 +5,7 @@
 # Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
-# $Id: topoutils.tcl,v 1.15 2013/09/23 19:29:02 akohlmey Exp $
+# $Id: topoutils.tcl,v 1.16 2014/08/19 16:45:04 johns Exp $
 
 # utility commands
 
