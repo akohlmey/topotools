@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topobonds.tcl,v 1.14 2013/09/19 16:14:56 akohlmey Exp $
+# $Id: topobonds.tcl,v 1.15 2014/08/19 16:45:04 johns Exp $
 
 # Return info about bonds.
 # we list and count only bonds that are entirely within the selection.

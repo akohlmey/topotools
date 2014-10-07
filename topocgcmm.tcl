@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topocgcmm.tcl,v 1.7 2013/04/25 11:53:29 akohlmey Exp $
+# $Id: topocgcmm.tcl,v 1.8 2014/08/19 16:45:04 johns Exp $
 
 # high level subroutines for CMM coarse grain forcefield support.
 

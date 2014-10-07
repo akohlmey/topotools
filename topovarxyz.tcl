@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topovarxyz.tcl,v 1.4 2013/04/15 09:19:29 akohlmey Exp $
+# $Id: topovarxyz.tcl,v 1.5 2014/08/19 16:45:04 johns Exp $
 
 # high level subroutines for supporting xyz
 # trajectories with a varying number of particles.

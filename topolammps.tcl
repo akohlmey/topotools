@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.40 2013/09/23 19:29:02 akohlmey Exp $
+# $Id: topolammps.tcl,v 1.42 2014/08/19 16:45:04 johns Exp $
 
 # high level subroutines for LAMMPS support.
 #
