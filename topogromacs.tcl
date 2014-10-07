@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.6 2013/04/15 09:19:28 akohlmey Exp $
+# $Id: topogromacs.tcl,v 1.8 2014/08/19 19:23:22 johns Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -38,7 +38,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
     set atype 1
     set dtype 1
     set itype 1
-
+    set writepairs 0
     if { $flags == "" } {
         vmdcon -info "Generating a 'faked' gromacs topology file: $filename"
         puts $fp "; 'fake' gromacs topology generated from topotools."
@@ -66,6 +66,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         set atype 5
         set dtype 9
         set itype 2
+        set writepairs 1
     }
 
     set fraglist {}
@@ -130,6 +131,21 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                     incr nr
                 }
             # end of loop over atoms
+
+            if { $writepairs } {
+                #Need to find the 1-4 pairs. For some dumb reason, grompp doesn't do this for you.
+                set list [get14pairs $fsel]
+                if {[llength $list]} {
+                    puts $fp "\n\[ pairs \]\n; ai aj func"
+                    foreach pair $list {
+                        lassign $pair i j
+                        set i [lsearch -sorted -integer $atmmap $i]
+                        set j [lsearch -sorted -integer $atmmap $j]
+                        incr i; incr j
+                        puts $fp "$i $j 1"
+                    }
+                }
+            }
 
             set list [bondinfo getbondlist $fsel none]
             if {[llength $list]} {
@@ -222,8 +238,9 @@ proc ::TopoTools::writegmxLJprm {fp lj mass types} {
     set twoonesixth [expr { pow(2.0, 1.0/6)}]
 
     foreach dat $lj {
+
         set type [lindex $dat 0]
-        if {[lsearch $types $type] != -1} {
+        if {[lsearch -exact $types $type] != -1} {
             # Sigma in gromacs is defined as the radius where the potential
             # crosses zero and not where it is minimal (rmin) as in CHARMM.
             # also it is given in nanometers and not angstrom.
@@ -242,12 +259,12 @@ proc ::TopoTools::writegmxLJprm {fp lj mass types} {
     foreach dat $lj {
         if {[llength $dat] == 7} {
             set type1 [lindex $dat 0]
-            if {[lsearch $types $type1] != -1} {
+            if {[lsearch -exact $types $type1] != -1} {
                 set sigma1 [expr {[lindex $dat 6] * .2 / $twoonesixth}]
                 set epsilon1 [expr {abs([lindex $dat 5] * $kjinkcal) }]
                 foreach dat2 $lj {
                     set type2 [lindex $dat2 0]
-                    if {[lsearch $types $type2] != -1} {
+                    if {[lsearch -exact $types $type2] != -1} {
                         if {[llength $dat2] == 7} {
                             set sigma2 [expr {[lindex $dat2 6] * .2 / $twoonesixth}]
                             set epsilon2 [expr {abs([lindex $dat2 5] * $kjinkcal) }]
@@ -416,7 +433,7 @@ proc ::TopoTools::writecharmmparams {fp mol sel filelist} {
                         lappend nbfix $ss
                         #LJ
                     } elseif {[string is alnum [lindex $ss 0]] && [string is ascii [lindex $ss 0]] &&
-                              [string is double [lindex $ss 3]] &&
+                              [string is double [lindex $ss 1]] &&
                               [string is double [lindex $ss 2]] && [lindex $ss 2] < 0 &&
                               [string is double [lindex $ss 3]]} then {
                         lappend lj $ss
@@ -529,4 +546,57 @@ proc ::TopoTools::writecharmmparams {fp mol sel filelist} {
     writegmximproperprm $fp $impropers $types
     writegmxcmapprm $fp $cmap $types
     writegmxnbfixprm $fp $nbfix $types
+}
+
+
+proc ::TopoTools::get14pairs { sel } {
+    set bondtable [$sel getbonds]
+    set excl12 [list ]
+    set excl13 [list ]
+    set excl14 [list ]
+    set idxlist [$sel get index]
+    foreach i [$sel get index] {
+        set bonds [lsort [lindex $bondtable [lsearch -exact $idxlist $i]]]
+        foreach j $bonds {
+            set bondj [lsort [lindex $bondtable [lsearch -exact $idxlist $j]]]
+            #To avoid making these lists blow up, we do simple comparisons here so we
+            #only add them to the list once.
+            if { $i < $j } {
+                lappend excl12 [list $i $j]
+                foreach k $bonds {
+                    if {$k < $j} {
+                        lappend excl13 [list $k $j]
+                    }
+                    if {$k != $j} {
+                        foreach l $bondj {
+                            if {$l != $i && $l != $k} {
+                                if { $k < $l } {
+                                    lappend excl14 [list $k $l]
+                                } else {
+                                    lappend excl14 [list $l $k]
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                #i < j not needed for angle/1-3 interactions.
+                foreach k $bonds {
+                    if {$k < $j} {
+                        lappend excl13 [list $k $j]
+                    }
+                }
+            }
+        }
+    }
+    set excl123 [concat $excl12 $excl13]
+    set retlist [list ]
+    #For cyclic systems (<6 membered rings), it is possible that elements determined by
+    #bonding alone would be excluded from the 1-4 list since they are really 1-2 or 1-3 pairs.
+    foreach pair $excl14 {
+        if {[lsearch -exact $excl123 $pair] == -1} {
+            lappend retlist $pair
+        }
+    }
+    return $retlist
 }
