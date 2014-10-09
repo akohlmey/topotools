@@ -593,8 +593,11 @@ proc ::TopoTools::get14pairs { sel } {
     set retlist [list ]
     #For cyclic systems (<6 membered rings), it is possible that elements determined by
     #bonding alone would be excluded from the 1-4 list since they are really 1-2 or 1-3 pairs.
+    #Also, for 6-membered rings, the naive implementation will pick up pairs across the rings twice (once in each direction around the ring).
+    #The second check makes sure that those pairs are only included once as they should be,
+    #otherwise those terms are included twice in the pairlist, which is incorrect.
     foreach pair $excl14 {
-        if {[lsearch -exact $excl123 $pair] == -1} {
+        if {[lsearch -exact $excl123 $pair] == -1 && [lsearch -exact $retlist $pair] == -1} {
             lappend retlist $pair
         }
     }
