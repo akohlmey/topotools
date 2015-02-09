@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.8 2014/08/19 19:23:22 johns Exp $
+# $Id: topogromacs.tcl,v 1.11 2014/10/23 01:18:40 johns Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -315,26 +315,48 @@ proc ::TopoTools::writegmxangleprm {fp angles types} {
 proc ::TopoTools::writegmxdihedralprm {fp dihedrals types} {
     variable kjinkcal
     puts $fp "\n\[ dihedraltypes \]"
+    set delaywrite [list ]
     puts $fp "; i j k l func phi0 kphi n ; These are the proper dihedrals."
     foreach dihedral $dihedrals {
         lassign $dihedral t1 t2 t3 t4 k n delta
         if {[findInTypes $types [list $t1 $t2 $t3 $t4]]} {
-            puts $fp [format "%8s %8s %8s %8s  9  %8.3f %12.6f %d" \
+            if { [string equal $t1 X] || [string equal $t4 X] || [string equal $t2 X] || [string equal $t3 X]} {
+                lappend delaywrite [format "%8s %8s %8s %8s  9  %8.3f %12.6f %d" \
                           $t1 $t2 $t3 $t4 $delta [expr {$k * $kjinkcal}] $n]
+            } else {
+                puts $fp [format "%8s %8s %8s %8s  9  %8.3f %12.6f %d" \
+                          $t1 $t2 $t3 $t4 $delta [expr {$k * $kjinkcal}] $n]
+            }
         }
+    }
+    #Gromacs dihedral type parser isn't very clever. It looks for the first matching dihedral,
+    #therefore wildcard dihedrals must come last.
+    foreach element $delaywrite {
+        puts $fp $element
     }
 }
 
 proc ::TopoTools::writegmximproperprm {fp impropers types} {
     variable kjinkcal
     puts $fp "\n\[ dihedraltypes \]"
+    set delaywrite [list ]
     puts $fp "; i j k l func phi0 kphi ; These are the improper dihedrals."
     foreach dihedral $impropers {
         lassign $dihedral t1 t2 t3 t4 k n delta
         if {[findInTypes $types [list $t1 $t2 $t3 $t4]]} then {
-            puts $fp [format "%8s %8s %8s %8s  2  %8.3f %12.6f" \
+            if { [string equal $t1 X] || [string equal $t4 X] || [string equal $t2 X] || [string equal $t3 X]} {
+                lappend delaywrite [format "%8s %8s %8s %8s  2  %8.3f %12.6f" \
                           $t1 $t2 $t3 $t4 $delta [expr {2 * $k * $kjinkcal}]]
+            } else {
+                puts $fp [format "%8s %8s %8s %8s  2  %8.3f %12.6f" \
+                          $t1 $t2 $t3 $t4 $delta [expr {2 * $k * $kjinkcal}]]
+            }
         }
+    }
+    #Gromacs dihedral type parser isn't very clever. It looks for the first matching dihedral,
+    #therefore wildcard dihedrals must come last.
+    foreach element $delaywrite {
+        puts $fp $element
     }
 }
 
