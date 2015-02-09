@@ -40,7 +40,7 @@ proc ::TopoTools::guessatomdata {sel what from} {
         element-mass {
             foreach a [lsort -real -unique [$sel get mass]] {
                 set s [atomselect [$sel molid] "mass $a and ( $selstr )"]
-                $s set element [lindex $elements [ptefrommass $idx]]
+                $s set element [lindex $elements [ptefrommass $a]]
                 $s delete
             }
         }
