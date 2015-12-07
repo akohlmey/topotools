@@ -85,7 +85,13 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                 lappend fragcntr $count
             }
             puts $fp ""
-            set molname "molecule[llength $fragcntr]"
+            set iswater 0
+            if { [$fsel num] == 3 && [lsort -unique [$fsel get resname]] == "TIP3" } {
+                set molname "water[llength $fragcntr]"
+                set iswater 1
+            } else {
+                set molname "molecule[llength $fragcntr]"
+            }
             lappend fraglist $molname
             set count 1
             set nlold $nlist
@@ -131,86 +137,89 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
                     incr nr
                 }
             # end of loop over atoms
+            if { $iswater } {
+                puts $fp "\n\[ settles \]\n; i   j funct   length\n1     1 0.09572 0.15139\n\n\[ exclusions \]\n1 2 3\n2 1 3\n3 1 2"
+            } else {
+                if { $writepairs } {
+                    #Need to find the 1-4 pairs. For some dumb reason, grompp doesn't do this for you.
+                    set list [get14pairs $fsel]
+                    if {[llength $list]} {
+                        puts $fp "\n\[ pairs \]\n; ai aj func"
+                        foreach pair $list {
+                            lassign $pair i j
+                            set i [lsearch -sorted -integer $atmmap $i]
+                            set j [lsearch -sorted -integer $atmmap $j]
+                            incr i; incr j
+                            puts $fp "$i $j 1"
+                        }
+                    }
+                }
 
-            if { $writepairs } {
-                #Need to find the 1-4 pairs. For some dumb reason, grompp doesn't do this for you.
-                set list [get14pairs $fsel]
+                set list [bondinfo getbondlist $fsel none]
                 if {[llength $list]} {
-                    puts $fp "\n\[ pairs \]\n; ai aj func"
-                    foreach pair $list {
-                        lassign $pair i j
+                    puts $fp "\n\[ bonds \]\n; i  j  func"
+                    foreach b $list {
+                        lassign $b i j
                         set i [lsearch -sorted -integer $atmmap $i]
                         set j [lsearch -sorted -integer $atmmap $j]
                         incr i; incr j
-                        puts $fp "$i $j 1"
+                        puts $fp "$i $j $btype"
                     }
                 }
-            }
 
-            set list [bondinfo getbondlist $fsel none]
-            if {[llength $list]} {
-                puts $fp "\n\[ bonds \]\n; i  j  func"
-                foreach b $list {
-                    lassign $b i j
-                    set i [lsearch -sorted -integer $atmmap $i]
-                    set j [lsearch -sorted -integer $atmmap $j]
-                    incr i; incr j
-                    puts $fp "$i $j $btype"
+                set list [angleinfo getanglelist $fsel]
+                if {[llength $list] > 0} {
+                    puts $fp "\n\[ angles \]\n; i  j  k  func"
+                    foreach b $list {
+                        lassign $b t i j k
+                        set i [lsearch -sorted -integer $atmmap $i]
+                        set j [lsearch -sorted -integer $atmmap $j]
+                        set k [lsearch -sorted -integer $atmmap $k]
+                        incr i; incr j; incr k
+                        puts $fp "$i $j $k $atype"
+                    }
                 }
-            }
 
-            set list [angleinfo getanglelist $fsel]
-            if {[llength $list] > 0} {
-                puts $fp "\n\[ angles \]\n; i  j  k  func"
-                foreach b $list {
-                    lassign $b t i j k
-                    set i [lsearch -sorted -integer $atmmap $i]
-                    set j [lsearch -sorted -integer $atmmap $j]
-                    set k [lsearch -sorted -integer $atmmap $k]
-                    incr i; incr j; incr k
-                    puts $fp "$i $j $k $atype"
+                set list [dihedralinfo getdihedrallist $fsel]
+                if {[llength $list] > 0} {
+                    puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
+                    foreach b $list {
+                        lassign $b t i j k l
+                        set i [lsearch -sorted -integer $atmmap $i]
+                        set j [lsearch -sorted -integer $atmmap $j]
+                        set k [lsearch -sorted -integer $atmmap $k]
+                        set l [lsearch -sorted -integer $atmmap $l]
+                        incr i ; incr j; incr k ; incr l
+                        puts $fp "$i $j $k $l $dtype"
+                    }
                 }
-            }
 
-            set list [dihedralinfo getdihedrallist $fsel]
-            if {[llength $list] > 0} {
-                puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
-                foreach b $list {
-                    lassign $b t i j k l
-                    set i [lsearch -sorted -integer $atmmap $i]
-                    set j [lsearch -sorted -integer $atmmap $j]
-                    set k [lsearch -sorted -integer $atmmap $k]
-                    set l [lsearch -sorted -integer $atmmap $l]
-                    incr i ; incr j; incr k ; incr l
-                    puts $fp "$i $j $k $l $dtype"
+                set list [improperinfo getimproperlist $fsel]
+                if {[llength $list] > 0} {
+                    puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
+                    foreach b $list {
+                        lassign $b t i j k l
+                        set i [lsearch -sorted -integer $atmmap $i]
+                        set j [lsearch -sorted -integer $atmmap $j]
+                        set k [lsearch -sorted -integer $atmmap $k]
+                        set l [lsearch -sorted -integer $atmmap $l]
+                        incr i ; incr j; incr k ; incr l
+                        puts $fp "$i $j $k $l $itype"
+                    }
                 }
-            }
-
-            set list [improperinfo getimproperlist $fsel]
-            if {[llength $list] > 0} {
-                puts $fp "\n\[ dihedrals \]\n; i  j  k  l  func"
-                foreach b $list {
-                    lassign $b t i j k l
-                    set i [lsearch -sorted -integer $atmmap $i]
-                    set j [lsearch -sorted -integer $atmmap $j]
-                    set k [lsearch -sorted -integer $atmmap $k]
-                    set l [lsearch -sorted -integer $atmmap $l]
-                    incr i ; incr j; incr k ; incr l
-                    puts $fp "$i $j $k $l $itype"
-                }
-            }
-            set list [crossterminfo getcrosstermlist $fsel]
-            if {[llength $list] > 0} {
-                puts $fp "\n\[ cmap \]\n; ai aj ak al am funct"
-                foreach b $list {
-                    lassign $b i j k l x y z m
-                    set i [lsearch -sorted -integer $atmmap $i]
-                    set j [lsearch -sorted -integer $atmmap $j]
-                    set k [lsearch -sorted -integer $atmmap $k]
-                    set l [lsearch -sorted -integer $atmmap $l]
-                    set m [lsearch -sorted -integer $atmmap $m]
-                    incr i ; incr j; incr k ; incr l ; incr m
-                    puts $fp "$i $j $k $l $m 1"
+                set list [crossterminfo getcrosstermlist $fsel]
+                if {[llength $list] > 0} {
+                    puts $fp "\n\[ cmap \]\n; ai aj ak al am funct"
+                    foreach b $list {
+                        lassign $b i j k l x y z m
+                        set i [lsearch -sorted -integer $atmmap $i]
+                        set j [lsearch -sorted -integer $atmmap $j]
+                        set k [lsearch -sorted -integer $atmmap $k]
+                        set l [lsearch -sorted -integer $atmmap $l]
+                        set m [lsearch -sorted -integer $atmmap $m]
+                        incr i ; incr j; incr k ; incr l ; incr m
+                        puts $fp "$i $j $k $l $m 1"
+                    }
                 }
             }
         } else {

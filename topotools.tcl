@@ -351,7 +351,7 @@ proc ::TopoTools::topo { args } {
             return
         }
 
-	if {$localsel} {
+        if {$localsel} {
             # need to create a selection
             if {[catch {atomselect $molid $seltxt} sel]} {
                 vmdcon -err "Problem with atom selection using '$seltxt': $sel"
