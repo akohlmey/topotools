@@ -155,7 +155,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(atomtypes) $lineno]
         } elseif {[regexp {^\s*(PairIJ Coeffs)} $line ]} {
-            set skip [expr {$lammps(atomtypes)*($lammps(atomtypes)-1)}]
+            set skip [expr {$lammps(atomtypes)*($lammps(atomtypes)+1)/2}]
             set lineno [skiplammpslines $fp $skip $lineno]
         } elseif {[regexp {^\s*(Bond Coeffs)} $line ]} {
             set lineno [skiplammpslines $fp $lammps(bondtypes) $lineno]
