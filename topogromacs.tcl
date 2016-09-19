@@ -31,6 +31,31 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
 
     # get a list of fragments, i.e. individual molecules
     set fragmap [lsort -integer -unique [$sel get fragment]]
+    #User feedback has indicated we need to test for some input conditions that will cause GROMACS to complain, but not TopoGromacs.
+    if { $flags != "" } {
+        #Unfortunately, not all fragments represent individual molecules. We need to check for this, and warn the user!
+        set savesegname [$sel get segname]
+        $sel set segname "SEG"
+        mol reanalyze $mol
+        set flatfragmap [lsort -integer -unique [$sel get fragment]]
+        if { [llength $fragmap] > [llength $flatfragmap] } {
+            vmdcon -err "writegmxtop: inconsistent fragment count in input molecule."
+            puts "There are connected components that have different segnames, and thus are"
+            puts "classified into different fragments. This will cause problems for grompp."
+            puts "It is recommended that connected components have a single segname, so that"
+            puts "VMD can recognize these connected components as a single molecule."
+        }
+        $sel set segname $savesegname
+        if { [$sel get name] == [$sel get type] } {
+            vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
+            puts "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
+            puts "parameters to specific atoms. However, the atomnames are identical to the"
+            puts "atomtypes in this molecule, which suggests that the type field was populated"
+            puts "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
+            puts "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
+            puts "avoid this error."
+        }
+    }
     set typemap [lsort -ascii -unique [$sel get type]]
     set selstr [$sel text]
     # defaults for bond/angle/dihedral/improper functional form
