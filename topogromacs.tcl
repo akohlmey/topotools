@@ -47,6 +47,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             puts "classified into different fragments. This will cause problems for grompp."
             puts "It is recommended that connected components have a single segname and chain, so that"
             puts "VMD can recognize these connected components as a single molecule."
+            return -1
         }
         $sel set segname $savesegname
         $sel set chain $savechain
@@ -58,6 +59,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             puts "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
             puts "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
             puts "avoid this error."
+            return -1
         }
     }
     set typemap [lsort -ascii -unique [$sel get type]]
