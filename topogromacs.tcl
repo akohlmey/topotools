@@ -35,7 +35,10 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
     if { $flags != "" } {
         #Unfortunately, not all fragments represent individual molecules. We need to check for this, and warn the user!
         set savesegname [$sel get segname]
+        set savechain [$sel get chain]
+        #By making everything the same segment and chain, mol reanalyze will determine fragments strictly from connectivity.
         $sel set segname "SEG"
+        $sel set chain A
         mol reanalyze $mol
         set flatfragmap [lsort -integer -unique [$sel get fragment]]
         if { [llength $fragmap] > [llength $flatfragmap] } {
@@ -46,6 +49,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             puts "VMD can recognize these connected components as a single molecule."
         }
         $sel set segname $savesegname
+        $sel set chain $savechain
         if { [$sel get name] == [$sel get type] } {
             vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
             puts "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
