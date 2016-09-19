@@ -92,6 +92,9 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         puts $fp "\n\[ dihedraltypes \]\n; i j k l func coefficients\n  C C C C 1 0.0 3 10.0 ; totally bogus"
     } else {
         vmdcon -info "Generating a real gromacs topology file: $filename"
+        puts $fp "; This gromacs topology generated using topotools, and contains parameter"
+        puts $fp "; information suitable for starting a simulation with gromacs. See "
+        puts $fp "; doi:10.1021/acs.jcim.6b00103 for algorithmic details."
         writecharmmparams $fp $mol $sel [lindex $flags 0]
         set btype 1
         set atype 5
