@@ -43,9 +43,9 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         set flatfragmap [lsort -integer -unique [$sel get fragment]]
         if { [llength $fragmap] > [llength $flatfragmap] } {
             vmdcon -err "writegmxtop: inconsistent fragment count in input molecule."
-            puts "There are connected components that have different segnames, and thus are"
+            puts "There are connected components that have different segnames and/or chains, and thus are"
             puts "classified into different fragments. This will cause problems for grompp."
-            puts "It is recommended that connected components have a single segname, so that"
+            puts "It is recommended that connected components have a single segname and chain, so that"
             puts "VMD can recognize these connected components as a single molecule."
         }
         $sel set segname $savesegname
