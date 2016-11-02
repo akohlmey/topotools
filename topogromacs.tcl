@@ -31,6 +31,37 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
 
     # get a list of fragments, i.e. individual molecules
     set fragmap [lsort -integer -unique [$sel get fragment]]
+    #User feedback has indicated we need to test for some input conditions that will cause GROMACS to complain, but not TopoGromacs.
+    if { $flags != "" } {
+        #Unfortunately, not all fragments represent individual molecules. We need to check for this, and warn the user!
+        set savesegname [$sel get segname]
+        set savechain [$sel get chain]
+        #By making everything the same segment and chain, mol reanalyze will determine fragments strictly from connectivity.
+        $sel set segname "SEG"
+        $sel set chain A
+        mol reanalyze $mol
+        set flatfragmap [lsort -integer -unique [$sel get fragment]]
+        if { [llength $fragmap] > [llength $flatfragmap] } {
+            vmdcon -err "writegmxtop: inconsistent fragment count in input molecule."
+            puts "There are connected components that have different segnames and/or chains, and thus are"
+            puts "classified into different fragments. This will cause problems for grompp."
+            puts "It is recommended that connected components have a single segname and chain, so that"
+            puts "VMD can recognize these connected components as a single molecule."
+            return -1
+        }
+        $sel set segname $savesegname
+        $sel set chain $savechain
+        if { [$sel get name] == [$sel get type] } {
+            vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
+            puts "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
+            puts "parameters to specific atoms. However, the atomnames are identical to the"
+            puts "atomtypes in this molecule, which suggests that the type field was populated"
+            puts "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
+            puts "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
+            puts "avoid this error."
+            return -1
+        }
+    }
     set typemap [lsort -ascii -unique [$sel get type]]
     set selstr [$sel text]
     # defaults for bond/angle/dihedral/improper functional form
@@ -61,6 +92,9 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         puts $fp "\n\[ dihedraltypes \]\n; i j k l func coefficients\n  C C C C 1 0.0 3 10.0 ; totally bogus"
     } else {
         vmdcon -info "Generating a real gromacs topology file: $filename"
+        puts $fp "; This gromacs topology generated using topotools, and contains parameter"
+        puts $fp "; information suitable for starting a simulation with gromacs. See "
+        puts $fp "; doi:10.1021/acs.jcim.6b00103 for algorithmic details."
         writecharmmparams $fp $mol $sel [lindex $flags 0]
         set btype 1
         set atype 5
