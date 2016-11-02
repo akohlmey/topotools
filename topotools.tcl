@@ -196,8 +196,8 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      write a fake gromacs topology format file that can be used in combination"
     vmdcon -info "      with a .gro/.pdb coordinate file for generating .tpr files needed to use"
     vmdcon -info "      Some of the more advanced gromacs analysis tools for simulation data that"
-    vmdcon -info "      was not generated with gromacs."
-    vmdcon -info ""
+    vmdcon -info "      was not generated with gromacs.\n"
+    citation_reminder
     return
 }
 
@@ -335,12 +335,14 @@ proc ::TopoTools::topo { args } {
             return
         }
         set retval [readlammpsdata $fname $style]
+        citation_reminder
         return $retval
     }
 
     if {[string equal $cmd readvarxyz]} {
         set fname [lindex $newargs 0]
         set retval [readvarxyz $fname]
+        citation_reminder
         return $retval
     }
 
@@ -702,9 +704,10 @@ proc ::TopoTools::topo { args } {
             usage
         }
     }
-    if {$localsel} {
+    if {$localsel && ($sel != "")} {
         $sel delete
     }
+    citation_reminder
     return $retval
 }
 
@@ -714,7 +717,8 @@ proc ::TopoTools::citation_reminder {args} {
     variable version
 
     if {$topociteme} {
-        vmdcon -info "======================\nPlease cite TopoTools as:\n"
+        vmdcon -info "======================"
+        vmdcon -info "Please cite TopoTools as:"
         vmdcon -info "Axel Kohlmeyer, (2016). TopoTools: Release $version"
         vmdcon -info "http://doi.org/10.5281/zenodo.50249"
         vmdcon -info "======================\n"
@@ -744,8 +748,6 @@ source [file join $env(TOPOTOOLSDIR) topohelpers.tcl]
 
 # insert the "topo" frontend command into the normal namespace
 interp alias {} topo {} ::TopoTools::topo
-
-::TopoTools::citation_reminder
 
 package provide topotools $::TopoTools::version
 
