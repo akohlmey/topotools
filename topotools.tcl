@@ -22,6 +22,8 @@ namespace eval ::TopoTools:: {
     variable datadir $env(TOPOTOOLSDIR)
     # print a citation reminder, but only once.
     variable topociteme 1
+    # same for topogromacs
+    variable gmxciteme 1
     # if nonzero, add a new representation with default settings,
     # when creating a new molecule. similar to what "mol new" does.
     variable newaddsrep 1

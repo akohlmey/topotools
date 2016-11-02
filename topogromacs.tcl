@@ -7,22 +7,31 @@
 
 # high level subroutines for supporting gromacs topology files.
 #
-# write a fake gromacs topology format file that can be used in combination
-# with a .gro/.pdb coordinate file for generating .tpr files needed to use
-# Some of the more advanced gromacs analysis tools for simulation data that
-# was not generated with gromacs.
+# by default writegmxtop will write an incomplete gromacs topology
+# format file that can be used in combination with a .gro/.pdb
+# coordinate file for generating .tpr files needed for some analysis
+# tools bundled with gromacs. this can be used to analyze simulation
+# data, that was not generated with gromacs and thus for which
+# no .tpr file exists.
 #
-# IMPORTANT NOTE: this script differs from other topotools script in that
-# it does not check whether fragments are fully contained in the selection.
-# it will output a topology with exactly the same number of atoms as the
-# selection has. in case of partially contained fragments, new molecule types
-# will be created.
+# however, if CHARMM (format) parameter files are provided, a fully
+# functional topology file will be created, that is also capable of
+# running MD simulations. this functionality is written by josh vermaas
+# and documented in the publication at doi:10.1021/acs.jcim.6b00103
+#
+# IMPORTANT NOTE: this script differs from other topotools scripts in
+# that it does not check whether fragments are fully contained in the
+# selection.  it will output a topology with exactly the same number of
+# atoms as the selection has. in case of partially contained fragments,
+# new molecule types will be created.
 #
 # Arguments:
 # filename = name of topology file
 # mol = molecule
 # sel = selection
 proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
+    variable gmxciteme
+    variable version
 
     if {[catch {open $filename w} fp]} {
         vmdcon -err "writegmxtop: problem opening gromacs topology file: $fp\n"
@@ -31,34 +40,48 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
 
     # get a list of fragments, i.e. individual molecules
     set fragmap [lsort -integer -unique [$sel get fragment]]
-    #User feedback has indicated we need to test for some input conditions that will cause GROMACS to complain, but not TopoGromacs.
+
+    # user feedback has indicated we need to test for some
+    # input conditions that will cause GROMACS to complain,
+    # but not TopoGromacs.
     if { $flags != "" } {
-        #Unfortunately, not all fragments represent individual molecules. We need to check for this, and warn the user!
+        if {$gmxciteme} {
+            vmdcon -info "======================"
+            vmdcon -info "Please cite the following publication:"
+            vmdcon -info "J.V. Vermaas et al., TopoGromacs: [...]"
+            vmdcon -info "http://dx.doi.org/10.1021/acs.jcim.6b00103"
+            vmdcon -info "======================\n"
+            set gmxciteme 0
+        }
+
+        # unfortunately, not all fragments represent individual
+        # molecules. we need to check for this, and warn the user
         set savesegname [$sel get segname]
         set savechain [$sel get chain]
-        #By making everything the same segment and chain, mol reanalyze will determine fragments strictly from connectivity.
+        # by making everything the same segment and chain, mol reanalyze
+        # will determine fragments strictly from connectivity.
         $sel set segname "SEG"
         $sel set chain A
         mol reanalyze $mol
         set flatfragmap [lsort -integer -unique [$sel get fragment]]
         if { [llength $fragmap] > [llength $flatfragmap] } {
             vmdcon -err "writegmxtop: inconsistent fragment count in input molecule."
-            puts "There are connected components that have different segnames and/or chains, and thus are"
-            puts "classified into different fragments. This will cause problems for grompp."
-            puts "It is recommended that connected components have a single segname and chain, so that"
-            puts "VMD can recognize these connected components as a single molecule."
+            vmdcon -info "There are connected components that have different segnames and/or chains, and thus are"
+            vmdcon -info "classified into different fragments. This will cause problems for grompp."
+            vmdcon -info "It is recommended that connected components have a single segname and chain, so that"
+            vmdcon -info "VMD can recognize these connected components as a single molecule."
             return -1
         }
         $sel set segname $savesegname
         $sel set chain $savechain
         if { [$sel get name] == [$sel get type] } {
             vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
-            puts "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
-            puts "parameters to specific atoms. However, the atomnames are identical to the"
-            puts "atomtypes in this molecule, which suggests that the type field was populated"
-            puts "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
-            puts "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
-            puts "avoid this error."
+            vmdcon -info "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
+            vmdcon -info "parameters to specific atoms. However, the atomnames are identical to the"
+            vmdcon -info "atomtypes in this molecule, which suggests that the type field was populated"
+            vmdcon -info "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
+            vmdcon -info "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
+            vmdcon -info "avoid this error."
             return -1
         }
     }
@@ -71,8 +94,8 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
     set itype 1
     set writepairs 0
     if { $flags == "" } {
-        vmdcon -info "Generating a 'faked' gromacs topology file: $filename"
-        puts $fp "; 'fake' gromacs topology generated from topotools."
+        vmdcon -info "Generating an incomplete gromacs topology file: $filename"
+        puts $fp "; INCOMPLETE gromacs topology generated from topotools."
         puts $fp "; WARNING| the purpose of this topology is to allow using the  |WARNING"
         puts $fp "; WARNING| analysis tools from gromacs for non gromacs data.   |WARNING"
         puts $fp "; WARNING| it cannot be used for a simulation.                 |WARNING"
