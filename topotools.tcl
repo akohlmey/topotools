@@ -7,7 +7,8 @@
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
 #
-# Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016
+#               by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
 # $Id: topotools.tcl,v 1.30 2015/12/08 20:13:55 johns Exp $
@@ -15,12 +16,12 @@
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.6
+    variable version 1.7
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
-    # print a citation reminder in case the CG-CMM is used, but only once.
-    variable cgcmmciteme 1
+    # print a citation reminder, but only once.
+    variable topociteme 1
     # if nonzero, add a new representation with default settings,
     # when creating a new molecule. similar to what "mol new" does.
     variable newaddsrep 1
@@ -75,8 +76,6 @@ namespace eval ::TopoTools:: {
     # best used through the "topo" frontend command.
     # part 1: operations on whole systems/selections
     namespace export mergemols selections2mol replicatemol
-    # part 2: CGCMM forcefield tools
-    namespace export parse_cgcmm_parms parse_cgcmm_topo canonical_cgcmm_ljtype
 }
 
 # help/usage/error message and online documentation.
@@ -709,6 +708,21 @@ proc ::TopoTools::topo { args } {
     return $retval
 }
 
+# gently remind people that the should cite the cg papers.
+proc ::TopoTools::citation_reminder {args} {
+    variable topociteme
+    variable version
+
+    if {$topociteme} {
+        vmdcon -info "======================\nPlease cite TopoTools as:\n"
+        vmdcon -info "Axel Kohlmeyer, (2016). TopoTools: Release $version"
+        vmdcon -info "http://doi.org/10.5281/zenodo.50249"
+        vmdcon -info "======================\n"
+        set topociteme 0
+    }
+    return
+}
+
 # load middleware API
 source [file join $env(TOPOTOOLSDIR) topoatoms.tcl]
 source [file join $env(TOPOTOOLSDIR) topobonds.tcl]
@@ -721,7 +735,6 @@ source [file join $env(TOPOTOOLSDIR) topocrossterms.tcl]
 source [file join $env(TOPOTOOLSDIR) topolammps.tcl]
 source [file join $env(TOPOTOOLSDIR) topogromacs.tcl]
 source [file join $env(TOPOTOOLSDIR) topovarxyz.tcl]
-source [file join $env(TOPOTOOLSDIR) topocgcmm.tcl]
 
 # load high-level utility functions
 source [file join $env(TOPOTOOLSDIR) topoutils.tcl]
@@ -731,6 +744,8 @@ source [file join $env(TOPOTOOLSDIR) topohelpers.tcl]
 
 # insert the "topo" frontend command into the normal namespace
 interp alias {} topo {} ::TopoTools::topo
+
+::TopoTools::citation_reminder
 
 package provide topotools $::TopoTools::version
 
