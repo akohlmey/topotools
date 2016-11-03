@@ -246,8 +246,8 @@ proc ::TopoTools::readlammpsheader {fp} {
         set lammps(cgcmm) 1
         vmdcon -info "detected CGCMM style file. will try to parse additional data."
         if {[string match "*atom_style*" $line]} {
-            if { [regexp {^.*atom_style\s+(atomic|dpd|bond|angle|molecular|charge|full|sphere)\s*.*}  $line x lammps(style) ] } {
-                vmdcon -info "probable atom_style: $lammps(style)"
+            if { [regexp {^.*atom_style\s+(atomic|bond|angle|molecular|charge|full|sphere)\s*.*}  $line x lammps(style) ] } {
+                vmdcon -info "Probable atom_style: $lammps(style)"
             }
         }
     }
@@ -342,8 +342,7 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
             incr curatoms
             switch $style { # XXX: use regexp based parser to detect wrong formats.
 
-                atomic    -
-                dpd {
+                atomic {
                     if {[llength $line] >= 8} {
                         lassign $line atomid       atomtype        x y z xi yi zi
                     } else {
@@ -685,7 +684,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 triclinic 0
-        style unknown
+        style unknown typemass 1
     }
 
     # gather available system information
@@ -705,9 +704,19 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     # for the selected atom style
     switch $style {
         atomic -
-        charge -
-        dpd    -
+        charge {
+            set lammps(bonds) 0
+            set lammps(angles) 0
+            set lammps(dihedrals) 0
+            set lammps(impropers) 0
+            set lammps(bondtypes) 0
+            set lammps(angletypes) 0
+            set lammps(dihedraltypes) 0
+            set lammps(impropertypes) 0
+        }
+
         sphere {
+            set lammps(typemass) 0
             set lammps(bonds) 0
             set lammps(angles) 0
             set lammps(dihedrals) 0
@@ -921,8 +930,7 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         incr atomtype
         incr resid
         switch $style {
-            atomic -
-            dpd       {
+            atomic {
                 puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
                               $atomid        $atomtype  $x $y $z $type]
             }
@@ -1066,8 +1074,8 @@ proc ::TopoTools::writelammpsimpropers {fp sel atomidmap} {
 proc ::TopoTools::checklammpsstyle {style} {
     switch $style {
 
+        auto -
         atomic -
-        dpd   -
         bond  -
         angle -
         molecular -
