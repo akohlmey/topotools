@@ -246,7 +246,7 @@ proc ::TopoTools::readlammpsheader {fp} {
         set lammps(cgcmm) 1
         vmdcon -info "detected CGCMM style file. will try to parse additional data."
         if {[string match "*atom_style*" $line]} {
-            if { [regexp {^.*atom_style\s+(atomic|dpd|bond|angle|molecular|charge|full|sphere|hybrid)\s*.*}  $line x lammps(style) ] } {
+            if { [regexp {^.*atom_style\s+(atomic|dpd|bond|angle|molecular|charge|full|sphere)\s*.*}  $line x lammps(style) ] } {
                 vmdcon -info "probable atom_style: $lammps(style)"
             }
         }
@@ -387,11 +387,6 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
                     } else {
                         lassign $line atomid resid atomtype charge x y z
                     }
-                }
-
-                hybrid {
-                     # with hybrid style we cannot detect image flags.
-                        lassign $line atomid       atomtype        x y z
                 }
 
                 default   {
@@ -741,7 +736,6 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
 
         molecular -
         full -
-        hybrid -
         default { ; # print all sections
         }
     }
@@ -959,11 +953,6 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
                               $atomid $resid $atomtype $charge $x $y $z $type $resname]
             }
 
-            hybrid      {
-                puts $fp [format "%d %d %.6f %.6f %.6f %d %.6f \# %s %s" \
-                              $atomid $atomtype $x $y $z $resid $charge $type $resname]
-            }
-
             default   {
                 # ignore this unsupported style
                 # XXX: add a way to flag an error. actually the test for
@@ -1088,7 +1077,6 @@ proc ::TopoTools::checklammpsstyle {style} {
             return 0
         }
 
-        hybrid -
         default {
             return 1
         }
