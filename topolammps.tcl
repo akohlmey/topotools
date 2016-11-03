@@ -292,6 +292,7 @@ proc ::TopoTools::readlammpsheader {fp} {
 
 # parse atom section
 proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
+    global M_PI
     set numatoms [$sel num]
     set atomdata {}
     set boxx 0.0
