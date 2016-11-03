@@ -29,15 +29,6 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
         return -1
     }
 
-    # check for atom_style flag
-    if {![string equal unknown $lammps(style)]} {
-        if {![string equal $style $lammps(style)]} {
-            vmdcon -warn "readlammpsdata: requested atom style $style is different from"
-            vmdcon -warn "readlammpsdata: style $lammps(style) encoded into data file header."
-            vmdcon -warn "readlammpsdata: this may not work. continuing anyway..."
-        }
-    }
-
     # create an empty molecule and timestep
     set mol -1
     if {[catch {mol new atoms $lammps(atoms)} mol]} {
@@ -90,6 +81,28 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     while {[gets $fp line] >= 0} {
         incr lineno
         if {[regexp {^\s*Atoms} $line ]} {
+            # use atom style indicated by CGCMM header or use style hint comment.
+            set stylehint $lammps(style)
+            regexp {^\s*Atoms\s+#\s*([a-z]+)} $line x stylehint
+            # for requested atom style 'auto' use the hint value instead
+            if {[string equal $style auto]} { set style $stylehint }
+            if {[string equal $style unknown]} {
+                vmdcon -warn "readlammpsdata: automatic atom style detection requested,"
+                vmdcon -warn "readlammpsdata: but no atom style hints in data file."
+                vmdcon -warn "readlammpsdata: assuming atom style 'full' instead."
+                set style {full}
+            }
+            # check for atom style consistency
+            if {![string equal unknown $stylehint] && ![string equal $style $stylehint]} {
+                vmdcon -warn "readlammpsdata: requested atom style '$style' is different from"
+                vmdcon -warn "readlammpsdata: style hint '$stylehint' encoded into data file."
+                vmdcon -warn "readlammpsdata: this may not work. Continuing with '$style'"
+            }
+            # if atom style is supported
+            if { ![regexp {^(atomic|bond|angle|molecular|charge|full|sphere)} $style] } {
+                vmdcon -err "readlammpsdata: unsupported atom style '$style'"
+                return -1
+            }
             set lineno [readlammpsatoms $fp $sel $style $lammps(cgcmm) $boxdim $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Atoms section."
@@ -362,9 +375,9 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
 
                 charge {
                     if {[llength $line] >= 9} {
-                        lassign $line atomid       atomtype charge x y z xi yi zi
+                        lassign $line atomid atomtype charge x y z xi yi zi
                     } else {
-                        lassign $line atomid       atomtype charge x y z
+                        lassign $line atomid atomtype charge x y z
                     }
                 }
 
@@ -833,8 +846,9 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     if {$lammps(impropers) > 0} {
         writelammpscoeffhint $fp $sel impropers
     }
-
-    writelammpsmasses $fp $sel
+    if {$lammps(typemass) > 0} {
+        writelammpsmasses $fp $sel
+    }
     writelammpsatoms $fp $sel $style
     set atomidmap  [$sel list]
     if {$lammps(bonds) > 0} {
@@ -918,7 +932,7 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
 
     vmdcon -info "writing LAMMPS Atoms section in style '$style'."
 
-    puts $fp " Atoms\n"
+    puts $fp " Atoms # $style\n"
     set typemap [lsort -unique -ascii [$sel get type]]
     set resmap  [lsort -unique -integer [$sel get resid]]
     set atomid 0

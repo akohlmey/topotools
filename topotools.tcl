@@ -169,14 +169,14 @@ proc ::TopoTools::usage {} {
     vmdcon -info "  readlammpsdata <filename> \[<atomstyle>\]"
     vmdcon -info "      read atom coordinates, properties, bond, angle, dihedral and other related data"
     vmdcon -info "      from a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
-    vmdcon -info "      parameter. default value is 'full'."
+    vmdcon -info "      parameter. Default is to autodetect from embedded hints with fallback to 'full'."
     vmdcon -info "      this subcommand creates a new molecule and returns the molecule id or -1 on failure."
     vmdcon -info "      the -sel parameter is currently ignored."
     vmdcon -info ""
     vmdcon -info "  writelammpsdata <filename> \[<atomstyle>\]"
     vmdcon -info "      write atom properties, bond, angle, dihedral and other related data"
     vmdcon -info "      to a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
-    vmdcon -info "      parameter. default value is 'full'."
+    vmdcon -info "      parameter. Default value is 'full'."
     vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
     vmdcon -info "  readvarxyz <filename>"
@@ -208,6 +208,7 @@ proc ::TopoTools::usage {} {
 # then dispatches the subcommands to the corresponding
 # subroutines.
 proc ::TopoTools::topo { args } {
+    variable version
 
     set molid -1
     set seltxt all
@@ -233,6 +234,7 @@ proc ::TopoTools::topo { args } {
                 -molid {
                     if {[catch {molinfo $val get name} res]} {
                         vmdcon -err "Invalid -molid argument '$val': $res"
+                        citation_reminder
                         return
                     }
                     set molid $val
@@ -258,6 +260,7 @@ proc ::TopoTools::topo { args } {
                 -bondtype {
                     if {[string length $val] < 1} {
                         vmdcon -err "Invalid -bondtype argument '$val'"
+                        citation_reminder
                         return
                     }
                     set bondtype $val
@@ -267,6 +270,7 @@ proc ::TopoTools::topo { args } {
                 -bondorder {
                     if {[string length $val] < 1} {
                         vmdcon -err "Invalid -bondorder argument '$val'"
+                        citation_reminder
                         return
                     }
                     set bondorder $val
@@ -321,7 +325,7 @@ proc ::TopoTools::topo { args } {
 
     # we need a few special cases for reading coordinate/topology files.
     if {[string equal $cmd readlammpsdata]} {
-        set style full
+        set style auto
         if {[llength $newargs] < 1} {
             vmdcon -err "Not enough arguments for 'topo readlammpsdata'"
             usage
@@ -332,8 +336,8 @@ proc ::TopoTools::topo { args } {
             set style [lindex $newargs 1]
         }
         if {[checklammpsstyle $style]} {
-            vmdcon -err "Atom style '$style' not supported."
-            usage
+            vmdcon -err "Atom style '$style' is not supported by TopoTools $version"
+            citation_reminder
             return
         }
         set retval [readlammpsdata $fname $style]
@@ -351,6 +355,12 @@ proc ::TopoTools::topo { args } {
     if { ![string equal $cmd help] } {
         if {($selmol >= 0) && ($selmol != $molid)} {
             vmdcon -err "Molid from selection '$selmol' does not match -molid argument '$molid'"
+            citation_reminder
+            return
+        }
+        if {$molid < 0} {
+            vmdcon -err "Cannot use 'topo $cmd' without a molecule"
+            citation_reminder
             return
         }
 
@@ -358,6 +368,7 @@ proc ::TopoTools::topo { args } {
             # need to create a selection
             if {[catch {atomselect $molid $seltxt} sel]} {
                 vmdcon -err "Problem with atom selection using '$seltxt': $sel"
+                citation_reminder
                 return
             }
         }
@@ -375,6 +386,7 @@ proc ::TopoTools::topo { args } {
         guessatom {
             if {[llength $newargs] < 2} {
                 vmdcon -err "'topo guessatom' requires two arguments: <what> <from>"
+                usage
                 return
             }
             set retval [guessatomdata $sel [lindex $newargs 0] [lindex $newargs 1]]
