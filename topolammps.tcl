@@ -232,8 +232,8 @@ proc ::TopoTools::readlammpsheader {fp} {
     array set lammps {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
-        xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy {} xz {} yz {}
-        lineno 0 cgcmm 0 triclinic 0 style unknown
+        xlo -0.5 xhi 0.5 ylo -0.5 yhi 0.5 zlo -0.5 zhi 0.5 xy {} xz {} yz {}
+        lineno 0 cgcmm 0 triclinic 0 style unknown typemass 1
     }
     set x {}
 
