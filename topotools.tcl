@@ -24,6 +24,8 @@ namespace eval ::TopoTools:: {
     variable topociteme 1
     # same for topogromacs
     variable gmxciteme 1
+    # flag to print warning about atomselect
+    variable masswarn 1
     # if nonzero, add a new representation with default settings,
     # when creating a new molecule. similar to what "mol new" does.
     variable newaddsrep 1
