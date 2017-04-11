@@ -1,6 +1,8 @@
 VMD topotools package. Version 1.7
-Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016
+Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017
  by Axel Kohlmeyer <akohlmey@gmail.com>
+
+[![DOI](https://zenodo.org/badge/13922095.svg)](https://zenodo.org/badge/latestdoi/13922095)
 
 This package contains contributed features from:
 - Josh Vermaas (fully working gromacs topology files for CHARMM)
