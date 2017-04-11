@@ -310,13 +310,14 @@ proc ::TopoTools::topo { args } {
         getbondlist bondtypenames numbondtypes numbonds setbondlist
         retypebonds clearbonds guessbonds addbond delbond getanglelist
         angletypenames numangletypes numangles setanglelist retypeangles
-        clearangles guessangles addangle delangle getdihedrallist
+        clearangles guessangles addangle delangle sortangles getdihedrallist
         dihedraltypenames numdihedraltypes numdihedrals setdihedrallist
         retypedihedrals cleardihedrals guessdihedrals adddihedral
-        deldihedral getimproperlist impropertypenames numimpropertypes
-        numimpropers setimproperlist retypeimpropers clearimpropers
-        guessimpropers addimproper delimproper getcrosstermlist numcrossterms
-        setcrosstermlist clearcrossterms addcrossterm delcrossterm}
+        deldihedral sortdihedrals getimproperlist impropertypenames
+        numimpropertypes numimpropers setimproperlist retypeimpropers
+        clearimpropers guessimpropers addimproper delimproper sortimpropers
+        getcrosstermlist numcrossterms setcrosstermlist clearcrossterms
+        addcrossterm delcrossterm}
     if {[lsearch -exact $validcmd $cmd] < 0} {
         vmdcon -err "Unknown topotools command '$cmd'"
         usage

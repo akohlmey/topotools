@@ -48,7 +48,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         if {$gmxciteme} {
             vmdcon -info "======================"
             vmdcon -info "Please cite the following publication:"
-            vmdcon -info "J.V. Vermaas et al., TopoGromacs: [...]"
+            vmdcon -info "J.V. Vermaas et al., TopoGromacs: Automated Topology Conversion ..."
             vmdcon -info "http://dx.doi.org/10.1021/acs.jcim.6b00103"
             vmdcon -info "======================\n"
             set gmxciteme 0
