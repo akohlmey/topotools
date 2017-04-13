@@ -737,7 +737,7 @@ proc ::TopoTools::citation_reminder {args} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
         vmdcon -info "Axel Kohlmeyer, (2016). TopoTools: Release $version"
-        vmdcon -info "http://doi.org/10.5281/zenodo.545655
+        vmdcon -info "http://doi.org/10.5281/zenodo.545655"
         vmdcon -info "======================\n"
         set topociteme 0
     }
