@@ -74,7 +74,8 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         }
         $sel set segname $savesegname
         $sel set chain $savechain
-        if { [$sel get name] == [$sel get type] } {
+        set typechecklist [$sel get type]
+        if { [$sel get name] == $typechecklist } {
             vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
             vmdcon -info "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
             vmdcon -info "parameters to specific atoms. However, the atomnames are identical to the"
@@ -82,6 +83,14 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             vmdcon -info "by the atomname in a pdb file. Make sure the psf file is loaded before the pdb!"
             vmdcon -info "If the atomnames are intentionally identical to the atomtypes, rename an atom to"
             vmdcon -info "avoid this error."
+            return -1
+        }
+        if { [string is integer [lindex $typechecklist 0]] } {
+            vmdcon -err "writegmxtop: atomtypes are integers"
+            vmdcon -info "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
+            vmdcon -info "parameters to specific atoms. The atomtypes appear to be integers, consistent"
+            vmdcon -info "with a CHARMM-formatted psf. TopoGromacs requires an XPLOR-formatted psf, which uses"
+            vmdcon -info "the same alphanumeric atomtypes found in parameter files."
             return -1
         }
     }
