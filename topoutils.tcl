@@ -350,7 +350,7 @@ proc ::TopoTools::replicatemol {mol nx ny nz} {
         set bx [expr [lindex $box 1] * cos($gammarad) ]
         set by [expr [lindex $box 1] * sin($gammarad) ]
         set cx [expr [lindex $box 2] * cos($betarad)  ]
-        set cy [expr [lindex $box 2] * [ expr cos($betarad) -cos($betarad) * cos($gammarad)] / sin($gammarad)]
+        set cy [expr [lindex $box 2] * [ expr cos($alpharad) -cos($betarad) * cos($gammarad)] / sin($gammarad)]
         # calc cz
         set V1  [expr [lindex $box 0] *  [lindex $box 1] * [lindex $box 2] ]
         set V21  [expr 1 - cos($alpharad)*cos($alpharad) \
