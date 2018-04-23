@@ -16,7 +16,7 @@
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.7
+    variable version 1.8
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -736,7 +736,7 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer, (2016). TopoTools: Release $version"
+        vmdcon -info "Axel Kohlmeyer, (2017). TopoTools: Release $version"
         vmdcon -info "http://doi.org/10.5281/zenodo.545655"
         vmdcon -info "======================\n"
         set topociteme 0

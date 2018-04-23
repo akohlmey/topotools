@@ -109,12 +109,13 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
             vmdcon -info "avoid this error."
             return -1
         }
-        if { [string is integer [lindex $typechecklist 0]] } {
-            vmdcon -err "writegmxtop: atomtypes are integers"
-            vmdcon -info "TopoGromacs depends on the atomtypes to be set correctly to correctly map"
-            vmdcon -info "parameters to specific atoms. The atomtypes appear to be integers, consistent"
-            vmdcon -info "with a CHARMM-formatted psf. TopoGromacs requires an XPLOR-formatted psf, which uses"
-            vmdcon -info "the same alphanumeric atomtypes found in parameter files."
+        if { [lsearch -regexp $typechecklist {^[0-9]+$}] >= 0 } {
+            vmdcon -err "writegmxtop: at least one atomtype is an integer and not a symbolic type name"
+            vmdcon -info "TopoGromacs depends on the atomtypes to be given as alphanumeric types, as listed"
+            vmdcon -info "in the parameter file, to correctly map parameters to specific atoms. At least"
+            vmdcon -info "one atomtype here appear to be an integer, consistent with a CHARMM-formatted"
+            vmdcon -info "psf file. TopoGromacs, however, requires an XPLOR-style psf file, which uses"
+            vmdcon -info "alphanumeric atomtypes."
             return -1
         }
     }
