@@ -195,8 +195,8 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
                     set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
                     set t2 $b1; set b1 $b2; set b2 $t2
                 }
-                set type [join [list $b1typ $b2typ $atyp $b3typ] "-"]
-                lappend newimproperlist [list $type $b1 $b2 $aidx $b3]
+                set type [join [list $atyp $b1typ $b2typ $b3typ] "-"]
+                lappend newimproperlist [list $type $aidx $b1 $b2 $b3]
             }
         }
     }
