@@ -181,7 +181,7 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      parameter. Default value is 'full'."
     vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
-    vmdcon -info "  readvarxyz <filename>"
+    vmdcon -info "  readvarxyz <filename> \[first|last|step <frame>\]"
     vmdcon -info "      read an xmol/xyz format trajectory with a varying numer of particles."
     vmdcon -info "      This is normally not supported by VMD and the script circumvents this"
     vmdcon -info "      restriction by automatically adding dummy particles and then indicating"
@@ -307,19 +307,20 @@ proc ::TopoTools::topo { args } {
     }
 
     # check whether we have a valid command.
-    set validcmd {readvarxyz writevarxyz readlammpsdata writelammpsdata
-        writegmxtop help numatoms numatomtypes atomtypenames guessatom
-        getbondlist bondtypenames numbondtypes numbonds setbondlist
-        retypebonds clearbonds guessbonds addbond delbond getanglelist
-        angletypenames numangletypes numangles setanglelist retypeangles
-        clearangles guessangles addangle delangle sortangles getdihedrallist
+    set validcmd {readlammpsmol writelammpsmol readvarxyz
+        writevarxyz readlammpsdata writelammpsdata writegmxtop help
+        numatoms numatomtypes atomtypenames guessatom getbondlist
+        bondtypenames numbondtypes numbonds setbondlist retypebonds
+        clearbonds guessbonds addbond delbond getanglelist angletypenames
+        numangletypes numangles setanglelist retypeangles clearangles
+        guessangles addangle delangle sortangles getdihedrallist
         dihedraltypenames numdihedraltypes numdihedrals setdihedrallist
         retypedihedrals cleardihedrals guessdihedrals adddihedral
         deldihedral sortdihedrals getimproperlist impropertypenames
         numimpropertypes numimpropers setimproperlist retypeimpropers
-        clearimpropers guessimpropers addimproper delimproper sortimpropers
-        getcrosstermlist numcrossterms setcrosstermlist clearcrossterms
-        addcrossterm delcrossterm}
+        clearimpropers guessimpropers addimproper delimproper
+        sortimpropers getcrosstermlist numcrossterms setcrosstermlist
+        clearcrossterms addcrossterm delcrossterm}
     if {[lsearch -exact $validcmd $cmd] < 0} {
         vmdcon -err "Unknown topotools command '$cmd'"
         usage
@@ -348,9 +349,23 @@ proc ::TopoTools::topo { args } {
         return $retval
     }
 
+    if {[string equal $cmd readlammpsmol]} {
+        if {[llength $newargs] < 1} {
+            vmdcon -err "Not enough arguments for 'topo readlammpsdata'"
+            usage
+            return
+        }
+        set fname [lindex $newargs 0]
+
+        set retval [readlammpsmol $fname]
+        citation_reminder
+        return $retval
+    }
+
+
     if {[string equal $cmd readvarxyz]} {
         set fname [lindex $newargs 0]
-        set retval [readvarxyz $fname]
+        set retval [readvarxyz $fname [lrange $newargs 1 end]]
         citation_reminder
         return $retval
     }
@@ -696,6 +711,16 @@ proc ::TopoTools::topo { args } {
             set retval [writelammpsdata $molid $fname $style $sel]
         }
 
+        writelammpsmol { ;# NOTE: readlammpsdata is handled above to bypass check for sel/molid.
+            if {[llength $newargs] < 1} {
+                vmdcon -err "Not enough arguments for 'topo writelammpsmol'"
+                usage
+                return
+            }
+            set fname [lindex $newargs 0]
+            set retval [writelammpsmol $molid $fname $sel]
+        }
+
         writevarxyz { ;# NOTE: readvarxyz is handled above to bypass check for sel/molid.
             if {[llength $newargs] < 1} {
                 vmdcon -err "Not enough arguments for 'topo writevarxyz'"
@@ -767,4 +792,3 @@ source [file join $env(TOPOTOOLSDIR) topohelpers.tcl]
 interp alias {} topo {} ::TopoTools::topo
 
 package provide topotools $::TopoTools::version
-
