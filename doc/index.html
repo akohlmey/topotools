@@ -53,9 +53,11 @@
       <ul class="goog-toc" style="list-style: none;">
         <li class="goog-toc"><a href="#TOC-readlammpsdata-file-name-atom-style"><strong>4.1 </strong>readlammpsdata &lt;file name&gt; [&lt;atom style&gt;]</a></li>
         <li class="goog-toc"><a href="#TOC-writelammpsdata-file-name-atom-styl"><strong>4.2 </strong>writelammpsdata &lt;file name&gt; [&lt;atom style&gt;]</a></li>
-        <li class="goog-toc"><a href="#TOC-readvarxyz-file-name-"><strong>4.3 </strong>readvarxyz &lt;file name&gt;</a></li>
-        <li class="goog-toc"><a href="#TOC-writevarxyz-file-name-selmod-sel-fi"><strong>4.4 </strong>writevarxyz &lt;file name&gt; [selmod &lt;sel&gt;] [first|last|step &lt;frame]</a></li>
-        <li class="goog-toc"><a href="#TOC-writegmxtop-file-name-"><strong>4.5 </strong>writegmxtop &lt;file name&gt;</a></li>
+        <li class="goog-toc"><a href="#TOC-readlammpsmol-file-name"><strong>4.3 </strong>readlammpsmol &lt;file name&gt; </a></li>
+        <li class="goog-toc"><a href="#TOC-writelammpsmol-file-name"><strong>4.4 </strong>writelammpsmol &lt;file name&gt; </a></li>
+        <li class="goog-toc"><a href="#TOC-readvarxyz-file-name-"><strong>4.5 </strong>readvarxyz &lt;file name&gt; [first|last|step &lt;frame] </a></li>
+        <li class="goog-toc"><a href="#TOC-writevarxyz-file-name-selmod-sel-fi"><strong>4.6 </strong>writevarxyz &lt;file name&gt; [selmod &lt;sel&gt;] [first|last|step &lt;frame]</a></li>
+        <li class="goog-toc"><a href="#TOC-writegmxtop-file-name-"><strong>4.7 </strong>writegmxtop &lt;file name&gt;</a></li>
       </ul>
     </li>
     <li class="goog-toc"><a href="#TOC-Utility-Functions"><strong>5 </strong>Utility Functions</a>
@@ -77,7 +79,7 @@
       topology data or even building topologies from scratch. The focus lies
       hereby on being able to perform many operations manually or scripted and
       thus being less focused on and optimized for biomolecules like
-      psfgen.</p> 
+      psfgen.</p>
     <p align="justify">In combination with the new command
       <tt><code>mol new atoms &lt;number&gt;</code></tt> it is now also
       possible to do many operations directly that previously required writing
@@ -86,7 +88,7 @@
       is especially useful for file formats, where additional input from the
       user is required, for example reading LAMMPS format "data" (=topology)
       files, where the "style" of the<i>Atoms</i> section cannot be deduced
-      from the data. Of course write support is also possible.</p> 
+      from the data. Of course write support is also possible.</p>
     <p align="justify">The underlying Tcl script API in VMD itself had been
       designed to be minimalistic, since most operations are not
       computationally demanding and could be programmed with scripting. The
@@ -95,11 +97,11 @@
       multiple low lever commands in a way to solve common tasks conveniently
       and efficiently.</p>
     <p align="justify">Finally <b>topotools</b> also contains some utilities and
-      applications for more complex operations like combining multiple molecules 
+      applications for more complex operations like combining multiple molecules
       (=different files) or multiple  selections into one new molecule, or building
       larger systems by replicating a given unitcell.</p>
     <p align="justify">Updates and bug fixes for topotools between VMD releases
-      are available from <a href="http://sites.google.com/site/akohlmey/software/topotools">http://sites.google.com/site/akohlmey/software/topotools</a>. 
+      are available from <a href="http://sites.google.com/site/akohlmey/software/topotools">http://sites.google.com/site/akohlmey/software/topotools</a>.
       This page also links to a set of tutorial examples that demonstrate in more
       detail, how the commands in the plugin can be used to build topology
       data files for different kinds of MD simulation packages.</p>
@@ -210,8 +212,12 @@
 <h4><a name="TOC-readlammpsdata-file-name-atom-style"></a>readlammpsdata &lt;file name&gt; [&lt;atom style&gt;]</h4>
 <p align="justify">Read in atom coordinates, properties, bond, angle, dihedral and other related topology info from a <a href="http://lammps.sandia.gov" target="_blank" rel="nofollow">LAMMPS</a> data file, i.e. a file suitable for the <code>read_data</code> command. This can be used to check a data file for its validity (e.g. after using <code>restart2data</code>), for manipulations from within VMD, or to generate a .psf file to be used for visualization of <code>.dcd</code> or <code>.xtc</code> format trajectory files in VMD. The 'atom style' is the value given to the <code>atom_style</code> command in the LAMMPS input file (by default TopoTools will try to infer the atom style from information embedded in the data file as comments; if no such hints are present, it will use 'full'). This subcommand creates a new molecule in VMD and returns its molecule id or -1 in case of failure. The -sel parameter is currently ignored.</p>
 <h4><a name="TOC-writelammpsdata-file-name-atom-styl"></a>writelammpsdata &lt;file name&gt; [&lt;atom style&gt;]</h4>
-<p align="justify">Write out atom coordinates, properties, bond, angle, dihedral and other related topology info stored inside VMD to a <a href="http://lammps.sandia.gov/" target="_blank" rel="nofollow">LAMMPS</a> data file, i.e. a file suitable for the <code>read_data</code> command. This this way VMD can be used to build LAMMPS input with Tcl scripting and convert existing inputs from other MD codes to be used in LAMMPS. For some examples, please see the <a href="https://sites.google.com/site/akohlmey/software/topotools/topotools-tutorial---introduction">TopoTools tutorials</a>. The 'atom style' is the value you want to give to the <code>atom_style</code> command in the LAMMPS input file (default is 'full'). Only data that is present will be written.</p>
-<h4><a name="TOC-readvarxyz-file-name-"></a>readvarxyz &lt;file name&gt;</h4>
+<p align="justify">Write out atom coordinates, properties, bond, angle, dihedral and other related topology info stored inside VMD to a <a href="http://lammps.sandia.gov/" target="_blank" rel="nofollow">LAMMPS</a> data file, i.e. a file suitable for the <code>read_data</code> command. This way VMD can be used to build LAMMPS input with Tcl scripting and convert existing inputs from other MD codes to be used in LAMMPS. For some examples, please see the <a href="https://sites.google.com/site/akohlmey/software/topotools/topotools-tutorial---introduction">TopoTools tutorials</a>. The 'atom style' is the value you want to give to the <code>atom_style</code> command in the LAMMPS input file (default is 'full'). Only data that is present will be written.</p>
+<h4><a name="TOC-readlammpsmol-file-name"></a>readlammpsmol &lt;file name&gt; </h4>
+<p align="justify">Read in atom coordinates, properties, bond, angle, dihedral and other related topology info from a <a href="http://lammps.sandia.gov" target="_blank" rel="nofollow">LAMMPS</a> molecule template file, i.e. a file suitable for the <code>molecule</code> command. This can be used to check a molecule template for its validity (e.g. for fixes that utilize molecule templates), or for manipulations from within VMD. This subcommand creates a new molecule in VMD and returns its molecule id or -1 in case of failure. The -sel parameter is currently ignored.</p>
+<h4><a name="TOC-writelammpsmol-file-name"></a>writelammpsmol &lt;file name&gt; [&lt;atom style&gt;]</h4>
+<p align="justify">Write out atom coordinates, properties, bond, angle, dihedral and other related topology info stored inside VMD to a <a href="http://lammps.sandia.gov/" target="_blank" rel="nofollow">LAMMPS</a> molecule template file, i.e. a file suitable for the <code>molecule</code> command. This way VMD can be used to build LAMMPS input with Tcl scripting and convert existing inputs from other MD codes to be used in LAMMPS. Only data that is present will be written.</p>
+<h4><a name="TOC-readvarxyz-file-name-"></a>readvarxyz &lt;file name&gt; [first|last|step &lt;frame]</h4>
 <p align="justify">Read in an xyz-format trajectory file (in xmol style) with a varying number of atoms per frame. This format is normally not supported in VMD and the script circumvents the restriction by automatically adding a sufficient number of dummy particles. Whether an atom is actually present in a given frame or not is flagged by the value of the corresponding <code>user</code> field, which is set to either <code>1.0</code> or <code>-1.0</code>, respectively. For efficiency reasons the atoms are sorted by type, thus atom order and bonding is not preserved. This subcommand creates a new molecule and returns its molecule id or -1, in case of failure.</p>
 <h4><a name="TOC-writevarxyz-file-name-selmod-sel-fi"></a>writevarxyz &lt;file name&gt; [selmod &lt;sel&gt;] [first|last|step &lt;frame]</h4>
 <div>Write out an xyz-format trajectory file with a varying number of atoms per frame. This is the counterpart to the readvarxyz subcommand. The optional selection string defines how atoms for each frame have to be selected. If not given, as selection string of "user &gt; 0" is assumed.</div>
@@ -259,8 +265,8 @@
 <div class="sites-codeblock sites-codesnippet-block"><code>package require topotools 1.5 </code><div><code># load a molecule</code></div><div><code>set mol [mol new pegc12e8-small.xml type hoomd waitfor all]</code></div><div><code># do the magic</code></div><div><code>set newmol [::TopoTools::replicatemol $mol 2 2 1 ]</code></div><div><code>animate write hoomd replicated.xml $newmol</code></div></div>
 <div><br />
 </div></div></td></tr></tbody></table>
-</div> 
-</div> 
+</div>
+</div>
 
 <h3 ><a name="TOC-Author"></a>Author</h3>
 <p><a href="http://sites.google.com/site/akohlmey/">Axel Kohlmeyer</a> with contributions from Josh Vermaas (TopoGromacs, i.e. fully working gromacs topology files for CHARMM style parameter files) and  Konstantin W (replicatemols for non-orthogonal cells) </p>
