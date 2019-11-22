@@ -169,14 +169,16 @@ proc ::TopoTools::guessdihedrals {sel} {
                 set o1typ [lindex $atomtypes $o1idx]
                 set o2idx [lsearch -sorted -integer $atomindex $o2]
                 set o2typ [lindex $atomtypes $o2idx]
-                if { ([string compare $b1typ $b2typ] > 0) \
-                 || ( [string equal $b1typ $b2typ]
-                      && [string compare $o1typ $o2typ] > 0 ) } {
-                    set type [join [list $o2typ $b2typ $b1typ $o1typ] "-"]
-                    lappend newdihedrallist [list $type $o2 $b2 $b1 $o1]
-                } else {
-                    set type [join [list $o1typ $b1typ $b2typ $o2typ] "-"]
-                    lappend newdihedrallist [list $type $o1 $b1 $b2 $o2]
+                if { $o1 != $o2 } {
+                    if { ([string compare $b1typ $b2typ] > 0) \
+                          || ( [string equal $b1typ $b2typ]
+                              && [string compare $o1typ $o2typ] > 0 ) } {
+                        set type [join [list $o2typ $b2typ $b1typ $o1typ] "-"]
+                        lappend newdihedrallist [list $type $o2 $b2 $b1 $o1]
+                    } else {
+                        set type [join [list $o1typ $b1typ $b2typ $o2typ] "-"]
+                        lappend newdihedrallist [list $type $o1 $b1 $b2 $o2]
+                    }
                 }
             }
         }
