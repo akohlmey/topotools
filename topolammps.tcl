@@ -768,37 +768,28 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     lassign $max xhi yhi zhi
     lassign [molinfo $mol get {a b c alpha beta gamma}] boxx boxy boxz alpha beta gamma
 
-    # override min/max settings where box info available.
+    # adjust min/max settings when box info is available.
     # try to (mostly) preserve the center of the cell, by
     # deriving it from the preceeding min/max search.
+    # refuse to write data file without a box.
     set small 0.0001
-    if {$boxx > $small} {
-        set lammps(xmid) [expr {($xlo + $xhi) * 0.5}]
-        set lammps(xlo)  [expr {-0.5*$boxx + $lammps(xmid)}]
-        set lammps(xhi)  [expr { 0.5*$boxx + $lammps(xmid)}]
-    } else {
-        set lammps(xmid)  0.0
-        set lammps(xlo)  -0.5
-        set lammps(xhi)   0.5
+    if {($boxx < $small) || ($boxy < $small) || ($boxz < $small)} {
+        vmdcon -err "writelammpsdata: need to have non-zero box sizes to write a data file"
+        vmdcon -err "writelammpsdata: current box sizes: {$boxx $boxy $boxz}"
+        return -1
     }
-    if {$boxy > $small} {
-        set lammps(ymid) [expr {($ylo + $yhi) * 0.5}]
-        set lammps(ylo)  [expr {-0.5*$boxy + $lammps(ymid)}]
-        set lammps(yhi)  [expr { 0.5*$boxy + $lammps(ymid)}]
-    } else {
-        set lammps(ymid)  0.0
-        set lammps(ylo)  -0.5
-        set lammps(yhi)   0.5
-    }
-    if {$boxz > $small} {
-        set lammps(zmid) [expr {($zlo + $zhi) * 0.5}]
-        set lammps(zlo)  [expr {-0.5*$boxz + $lammps(zmid)}]
-        set lammps(zhi)  [expr { 0.5*$boxz + $lammps(zmid)}]
-    } else {
-        set lammps(zmid)  0.0
-        set lammps(zlo)  -0.5
-        set lammps(zhi)   0.5
-    }
+    set lammps(xmid) [expr {($xlo + $xhi) * 0.5}]
+    set lammps(xlo)  [expr {-0.5*$boxx + $lammps(xmid)}]
+    set lammps(xhi)  [expr { 0.5*$boxx + $lammps(xmid)}]
+    set lammps(ymid) [expr {($ylo + $yhi) * 0.5}]
+    set lammps(ylo)  [expr {-0.5*$boxy + $lammps(ymid)}]
+    set lammps(yhi)  [expr { 0.5*$boxy + $lammps(ymid)}]
+    set lammps(ymid)  0.0
+    set lammps(ylo)  -0.5
+    set lammps(yhi)   0.5
+    set lammps(zmid) [expr {($zlo + $zhi) * 0.5}]
+    set lammps(zlo)  [expr {-0.5*$boxz + $lammps(zmid)}]
+    set lammps(zhi)  [expr { 0.5*$boxz + $lammps(zmid)}]
 
     # if angle is not set assume orthogonal.
     if {$alpha == 0.0} { set alpha 90.0 }
