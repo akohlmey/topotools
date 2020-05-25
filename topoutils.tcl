@@ -2,7 +2,7 @@
 # TopoTools, a VMD package to simplify manipulating bonds
 # other topology related properties in VMD.
 #
-# Copyright (c) 2009,2010,2011,2012,2013 by Axel Kohlmeyer <akohlmey@gmail.com>
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
 #
 # $Id: topoutils.tcl,v 1.17 2015/12/08 20:13:55 johns Exp $
