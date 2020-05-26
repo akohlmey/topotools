@@ -784,9 +784,6 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     set lammps(ymid) [expr {($ylo + $yhi) * 0.5}]
     set lammps(ylo)  [expr {-0.5*$boxy + $lammps(ymid)}]
     set lammps(yhi)  [expr { 0.5*$boxy + $lammps(ymid)}]
-    set lammps(ymid)  0.0
-    set lammps(ylo)  -0.5
-    set lammps(yhi)   0.5
     set lammps(zmid) [expr {($zlo + $zhi) * 0.5}]
     set lammps(zlo)  [expr {-0.5*$boxz + $lammps(zmid)}]
     set lammps(zhi)  [expr { 0.5*$boxz + $lammps(zmid)}]
