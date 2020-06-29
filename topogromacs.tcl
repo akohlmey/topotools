@@ -16,7 +16,7 @@
 #
 # however, if CHARMM (format) parameter files are provided, a fully
 # functional topology file will be created, that is also capable of
-# running MD simulations. this functionality is written by josh vermaas
+# running MD simulations. this functionality is written by Josh Vermaas
 # and documented in the publication at doi:10.1021/acs.jcim.6b00103
 #
 # IMPORTANT NOTE: this script differs from other topotools scripts in

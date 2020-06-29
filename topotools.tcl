@@ -9,7 +9,7 @@
 #
 # Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
-# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+# support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
 # $Id: topotools.tcl,v 1.31 2016/11/04 05:57:55 johns Exp $
 
@@ -736,7 +736,7 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer & Josh Vermass, (2019). TopoTools: Release $version"
+        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2019). TopoTools: Release $version"
         vmdcon -info "https://doi.org/10.5281/zenodo.598373"
         vmdcon -info "======================\n"
         set topociteme 0

@@ -3,7 +3,7 @@
 # other topology related properties in VMD.
 #
 # Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
-# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+# support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
 # $Id: topoutils.tcl,v 1.17 2015/12/08 20:13:55 johns Exp $
 
