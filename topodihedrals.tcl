@@ -3,7 +3,7 @@
 # manipulating bonds other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topodihedrals.tcl,v 1.11 2014/08/19 16:45:04 johns Exp $
+# $Id: topodihedrals.tcl,v 1.12 2020/05/29 19:47:40 johns Exp $
 
 # return info about dihedrals
 # we list and count only dihedrals that are entirely within the selection.
