@@ -147,7 +147,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         ; # puts $fp "\n\[ constrainttypes \]\n;"
         puts $fp "\n\[ angletypes \]\n; i j k func th0 cth\n  C C C 1 109.500 100.0 ; totally bogus"
         puts $fp "\n\[ dihedraltypes \]\n; i j k l func coefficients\n  C C C C 1 0.0 3 10.0 ; totally bogus"
-        puts $fp "\n\[ cmaptypes \]\n; i j k l m func\n C C C C C 1 0.0 0.0 ; totally bogus"
+        puts $fp "\n\[ cmaptypes \]\n; i j k l m func\n C C C C C 1 1 1 0; totally bogus"
     } else {
         vmdcon -info "Generating a real gromacs topology file: $filename"
         puts $fp "; This gromacs topology generated using topotools, and contains parameter"
