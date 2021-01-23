@@ -7,11 +7,11 @@
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
 #
-# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
-# support for crossterms contributed by Josh Vermass <vermass2@illinois.edu>
+# support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
-# $Id: topotools.tcl,v 1.31 2016/11/04 05:57:55 johns Exp $
+# $Id: topotools.tcl,v 1.34 2020/07/01 05:19:33 johns Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
@@ -761,8 +761,8 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer, (2017). TopoTools: Release $version"
-        vmdcon -info "http://doi.org/10.5281/zenodo.545655"
+        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2019). TopoTools: Release $version"
+        vmdcon -info "https://doi.org/10.5281/zenodo.598373"
         vmdcon -info "======================\n"
         set topociteme 0
     }

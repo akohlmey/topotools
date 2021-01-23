@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoangles.tcl,v 1.12 2014/08/19 16:45:04 johns Exp $
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topoangles.tcl,v 1.13 2020/05/29 19:47:40 johns Exp $
 
 # return info about angles
 # we list and count only angles that are entirely within the selection.

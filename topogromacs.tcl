@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds and other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.14 2017/01/17 23:39:56 johns Exp $
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topogromacs.tcl,v 1.16 2020/07/06 05:11:01 johns Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
@@ -16,7 +16,7 @@
 #
 # however, if CHARMM (format) parameter files are provided, a fully
 # functional topology file will be created, that is also capable of
-# running MD simulations. this functionality is written by josh vermaas
+# running MD simulations. this functionality is written by Josh Vermaas
 # and documented in the publication at doi:10.1021/acs.jcim.6b00103
 #
 # IMPORTANT NOTE: this script differs from other topotools scripts in
@@ -74,6 +74,30 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         }
         $sel set segname $savesegname
         $sel set chain $savechain
+        #Fragments can also be discontinuous, which while not a problem for TopoGromacs, it WILL result in a geometry
+        #the user doesn't expect during simulation. So we check to make sure that fragment numbers are only increasing.
+        set fraglist [$sel get fragment]
+        set lowfrags [lrange $fraglist 0 end-1]
+        set highfrags [lrange $fraglist 1 end]
+        if { [lindex [lsort -real -increasing [vecsub $highfrags $lowfrags]] 0] < -0.5 } {
+            vmdcon -err "writegmxtop: fragments are non-contiguous"
+            vmdcon -info "Grompp reads input coordinates in order, and maps these directly onto atoms as"
+            vmdcon -info "they are listed in the .top file. We have detected fragments out of numerical order"
+            vmdcon -info "in the molecule, which will likely result in a misinterpretation of the input structure."
+            vmdcon -info "Please try the following to generate a reordered structure, and use that as input:"
+            vmdcon -info "set fragsellist \[list\]"
+            vmdcon -info "set bigsel \[atomselect top \"not (water or ions)\"\]"
+            vmdcon -info "foreach frag \[lsort -unique \[\$bigsel get fragment\]\] \{"
+            vmdcon -info "  set fsel \[atomselect top \"fragment \$frag\"\]"
+            vmdcon -info "  lappend fragsellist \$fsel"
+            vmdcon -info "\}"
+            vmdcon -info "set othersel \[atomselect top \"(water or ions)\"\]"
+            vmdcon -info "lappend fragsellist \$othersel"
+            vmdcon -info "set newmol \[::TopoTools::selections2mol \$fragsellist\]"
+            vmdcon -info "animate write psf reordered.psf \$newmol"
+            vmdcon -info "animate write pdb reordered.pdb \$newmol"
+            return -1
+        }
         set typechecklist [$sel get type]
         if { [$sel get name] == $typechecklist } {
             vmdcon -err "writegmxtop: atomnames are identical to atomtypes"
@@ -123,6 +147,7 @@ proc ::TopoTools::writegmxtop {filename mol sel {flags none}} {
         ; # puts $fp "\n\[ constrainttypes \]\n;"
         puts $fp "\n\[ angletypes \]\n; i j k func th0 cth\n  C C C 1 109.500 100.0 ; totally bogus"
         puts $fp "\n\[ dihedraltypes \]\n; i j k l func coefficients\n  C C C C 1 0.0 3 10.0 ; totally bogus"
+        puts $fp "\n\[ cmaptypes \]\n; i j k l m func\n C C C C C 1 1 1 0; totally bogus"
     } else {
         vmdcon -info "Generating a real gromacs topology file: $filename"
         puts $fp "; This gromacs topology generated using topotools, and contains parameter"
@@ -631,7 +656,7 @@ proc ::TopoTools::writecharmmparams {fp mol sel filelist} {
     #lookup what the masses should be based on what exists in the current molecule.
     foreach type $types {
         if { ! [dict exists $mass $type]} {
-            set subset [atomselect $mol "type $type"]
+            set subset [atomselect $mol "type \"$type\""]
             dict set mass $type [lindex [$subset get mass] 0]
             $subset delete
         }

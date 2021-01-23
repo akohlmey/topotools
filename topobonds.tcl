@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topobonds.tcl,v 1.15 2014/08/19 16:45:04 johns Exp $
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topobonds.tcl,v 1.16 2020/05/29 19:47:40 johns Exp $
 
 # Return info about bonds.
 # we list and count only bonds that are entirely within the selection.

@@ -2,9 +2,9 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
-# support for crossterms contributed by Josh Vermaas <vermaas2@illinois.edu>
+# support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
-# $Id: topocrossterms.tcl,v 1.4 2014/08/19 16:45:04 johns Exp $
+# $Id: topocrossterms.tcl,v 1.5 2020/07/06 05:11:01 johns Exp $
 
 
 proc ::TopoTools::crossterminfo {infotype sel {flag none}} {
