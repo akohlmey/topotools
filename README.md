@@ -1,6 +1,6 @@
 # VMD TopoTools package. Version 1.8
 
-Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017
+Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
  by Axel Kohlmeyer <akohlmey@gmail.com>
 
 [![DOI](https://zenodo.org/badge/13922095.svg)](https://zenodo.org/badge/latestdoi/13922095)
@@ -27,15 +27,15 @@ That page also links to tutorials demonstrating the use
 of the package for different purposes.
 
 ## TODO
-  - improve "topo setbonds" to be more efficient for large sets 
+  - improve "topo setbonds" to be more efficient for large sets
     of bonds to be added.
   - topo copybonds <fromsel> <tosel>
-  - topo guessbonds <sel>  (use bondsrecalc and restore bonds 
+  - topo guessbonds <sel>  (use bondsrecalc and restore bonds
     outside the selection)
   - support for generating and replicating bonds across
     periodic boundaries (for molecular crystal models).
   - better documentation, more tutorials
-  - more tools to read/write custom topology files 
+  - more tools to read/write custom topology files
     (e.g. gromacs top?, amber parmtop?)
   - API to read/parse/store force field database information.
 

@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topoimpropers.tcl,v 1.11 2014/08/19 16:45:04 johns Exp $
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topoimpropers.tcl,v 1.12 2020/05/29 19:47:40 johns Exp $
 
 # return info about impropers
 # we list and count only impropers that are entirely within the selection.
@@ -195,8 +195,8 @@ proc ::TopoTools::guessimpropers {sel {flags {}}} {
                     set t1 $b1typ; set b1typ $b2typ; set b2typ $t1
                     set t2 $b1; set b1 $b2; set b2 $t2
                 }
-                set type [join [list $b1typ $b2typ $atyp $b3typ] "-"]
-                lappend newimproperlist [list $type $b1 $b2 $aidx $b3]
+                set type [join [list $atyp $b1typ $b2typ $b3typ] "-"]
+                lappend newimproperlist [list $type $aidx $b1 $b2 $b3]
             }
         }
     }
