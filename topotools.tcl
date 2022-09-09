@@ -175,10 +175,12 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      this subcommand creates a new molecule and returns the molecule id or -1 on failure."
     vmdcon -info "      the -sel parameter is currently ignored."
     vmdcon -info ""
-    vmdcon -info "  writelammpsdata <filename> \[<atomstyle>\]"
+    vmdcon -info "  writelammpsdata <filename> \[typelabels\] \[<atomstyle>\]"
     vmdcon -info "      write atom properties, bond, angle, dihedral and other related data"
-    vmdcon -info "      to a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
-    vmdcon -info "      parameter. Default value is 'full'."
+    vmdcon -info "      to a LAMMPS data file.  If the \"typelabels\" keyword is present, use symbolic"
+    vmdcon -info "      types and write '* Type Labels' sections, otherwise traditional numeric types"
+    vmdcon -info "      will be used.  The final option 'atomstyle' determines the format of the 'Atoms'"
+    vmdcon -info "      section is the value given to the 'atom_style' LAMMPS keyword. Default value is 'full'."
     vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
     vmdcon -info "  readvarxyz <filename>"
@@ -196,11 +198,16 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      The optional selection string in the <selstring> argument indicates"
     vmdcon -info "      how to select the atoms. Its default is 'user > 0'."
     vmdcon -info ""
-    vmdcon -info "  writegmxtop <filename>"
-    vmdcon -info "      write a fake gromacs topology format file that can be used in combination"
+    vmdcon -info "  writegmxtop <filename> \[<CHARMM parameter file> \[<CHARMM parameter file>\]...\]"
+    vmdcon -info "      write a Gromacs topology format file."
+    vmdcon -info "      Without a CHARMM parameter file, the resulting file uses bogus force field"
+    vmdcon -info "      parameters to be just sufficient so the generated file can be used in combination"
     vmdcon -info "      with a .gro/.pdb coordinate file for generating .tpr files needed to use"
-    vmdcon -info "      Some of the more advanced gromacs analysis tools for simulation data that"
-    vmdcon -info "      was not generated with gromacs.\n"
+    vmdcon -info "      some of the more advanced gromacs analysis tools for simulation data that"
+    vmdcon -info "      was not generated with Gromacs."
+    vmdcon -info "      When using one or more CHARMM parameter files as arguments, the generated file"
+    vmdcon -info "      will be sufficient to run simulations with Gromacs. For that to work, the topology"
+    vmdcon -info "      must be read from an X-plor style PSF file with symbolic (not numeric) atom types.\n"
     citation_reminder
     return
 }
@@ -684,16 +691,24 @@ proc ::TopoTools::topo { args } {
                 usage
                 return
             }
+            set typelabels 0
             set fname [lindex $newargs 0]
             if {[llength $newargs] > 1} {
-                set style [lindex $newargs 1]
+                if {[lindex $newargs 1] == "typelabels"} {
+                    set typelabels 1
+                    if {[llength $newargs] > 2} {
+                        set style [lindex $newargs 2]
+                    }
+                } else {
+                    set style [lindex $newargs 1]
+                }
             }
             if {[checklammpsstyle $style]} {
                 vmdcon -err "Atom style '$style' not supported."
                 usage
                 return
             }
-            set retval [writelammpsdata $molid $fname $style $sel]
+            set retval [writelammpsdata $molid $fname $typelabels $style $sel]
         }
 
         writevarxyz { ;# NOTE: readvarxyz is handled above to bypass check for sel/molid.
