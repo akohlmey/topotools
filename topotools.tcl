@@ -7,7 +7,7 @@
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
 #
-# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2022
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
@@ -16,7 +16,7 @@
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.8
+    variable version 1.9
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
