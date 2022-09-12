@@ -751,7 +751,7 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2019). TopoTools: Release $version"
+        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2022). TopoTools: Release $version"
         vmdcon -info "https://doi.org/10.5281/zenodo.598373"
         vmdcon -info "======================\n"
         set topociteme 0
