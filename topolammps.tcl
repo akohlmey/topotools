@@ -1186,7 +1186,7 @@ proc ::TopoTools::writelammpsatoms {fp sel style typelabels} {
                                   $atomid $resid $type  $x $y $z $resname]
                 } else {
                     puts $fp [format "%d %d %s %.6f %.6f %.6f \# %s" \
-                                  $atomid $resid $type  $x $y $z $resname]
+                                  $atomid $resid $atomtype  $x $y $z $resname]
                 }
             }
 
