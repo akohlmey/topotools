@@ -11,7 +11,7 @@
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
-# $Id: topotools.tcl,v 1.34 2020/07/01 05:19:33 johns Exp $
+# $Id: topotools.tcl,v 1.36 2023/04/21 05:41:03 johns Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts

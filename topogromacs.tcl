@@ -3,7 +3,7 @@
 # manipulating bonds and other topology related properties.
 #
 # Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topogromacs.tcl,v 1.16 2020/07/06 05:11:01 johns Exp $
+# $Id: topogromacs.tcl,v 1.17 2022/10/04 16:12:40 johns Exp $
 
 # high level subroutines for supporting gromacs topology files.
 #
