@@ -2,8 +2,8 @@
 # This file is part of TopoTools, a VMD package to simplify
 # manipulating bonds other topology related properties.
 #
-# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020 by Axel Kohlmeyer <akohlmey@gmail.com>
-# $Id: topolammps.tcl,v 1.45 2020/05/29 19:47:40 johns Exp $
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2022,2023 by Axel Kohlmeyer <akohlmey@gmail.com>
+# $Id: topolammps.tcl,v 1.47 2023/04/21 05:41:03 johns Exp $
 
 # high level subroutines for LAMMPS support.
 #
@@ -71,6 +71,11 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     }
     set atomidmap {}
     set atommasses {}
+    set atomlabels {}
+    set bondlabels {}
+    set anglelabels {}
+    set dihedrallabels {}
+    set improperlabels {}
 
     # now loop through the file until we find a known section header.
     # then call a subroutine that parses this section. those subroutines
@@ -103,7 +108,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -err "readlammpsdata: unsupported atom style '$style'"
                 return -1
             }
-            set lineno [readlammpsatoms $fp $sel $style $lammps(cgcmm) $boxdim $lineno]
+            set lineno [readlammpsatoms $fp $sel $style $lammps(cgcmm) $boxdim atomlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Atoms section."
                 return -1
@@ -120,7 +125,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 return -1
             }
         } elseif {[regexp {^\s*Masses} $line ]} {
-            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lammps(cgcmm) atommasses $lineno]
+            set lineno [readlammpsmasses $fp $mol $lammps(atomtypes) $lammps(cgcmm) atommasses atomlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Masses section."
                 return -1
@@ -130,7 +135,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Bonds in data file"
                 return -1
             }
-            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap $lineno]
+            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap bondlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Bonds section."
                 return -1
@@ -140,7 +145,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Angles in data file"
                 return -1
             }
-            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap $lineno]
+            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap anglelabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Angles section."
                 return -1
@@ -150,7 +155,7 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Dihedrals in data file"
                 return -1
             }
-            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap $lineno]
+            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap dihedrallabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Dihedrals section."
                 return -1
@@ -160,9 +165,39 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Impropers in data file"
                 return -1
             }
-            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap $lineno]
+            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap improperlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Impropers section."
+                return -1
+            }
+        } elseif {[regexp {^\s*(Atom Type Labels)} $line ]} {
+            set lineno [readlammpslabels $fp $mol Atom $lammps(atomtypes) atomlabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Atom Type Labels section."
+                return -1
+            }
+        } elseif {[regexp {^\s*(Bond Type Labels)} $line ]} {
+            set lineno [readlammpslabels $fp $mol Bond $lammps(bondtypes) bondlabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Bond Type Labels section."
+                return -1
+            }
+        } elseif {[regexp {^\s*(Angle Type Labels)} $line ]} {
+            set lineno [readlammpslabels $fp $mol Angle $lammps(angletypes) anglelabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Angle Type Labels section."
+                return -1
+            }
+        } elseif {[regexp {^\s*(Dihedral Type Labels)} $line ]} {
+            set lineno [readlammpslabels $fp $mol Dihedral $lammps(dihedraltypes) dihedrallabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Dihedral Type Labels section."
+                return -1
+            }
+        } elseif {[regexp {^\s*(Improper Type Labels)} $line ]} {
+            set lineno [readlammpslabels $fp $mol Improper $lammps(impropertypes) improperlabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Improper Type Labels section."
                 return -1
             }
         } elseif {[regexp {^\s*(Pair Coeffs)} $line ]} {
@@ -246,7 +281,7 @@ proc ::TopoTools::readlammpsheader {fp} {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo -0.5 xhi 0.5 ylo -0.5 yhi 0.5 zlo -0.5 zhi 0.5 xy {} xz {} yz {}
-        lineno 0 cgcmm 0 triclinic 0 style unknown typemass 1
+        lineno 0 cgcmm 0 triclinic 0 style unknown typemass 1 typelabels 0
     }
     set x {}
 
@@ -258,6 +293,15 @@ proc ::TopoTools::readlammpsheader {fp} {
     if {[string match "*CGCMM*" $line]} {
         set lammps(cgcmm) 1
         vmdcon -info "detected CGCMM style file. will try to parse additional data."
+        if {[string match "*atom_style*" $line]} {
+            if { [regexp {^.*atom_style\s+(atomic|bond|angle|molecular|charge|full|sphere)\s*.*}  $line x lammps(style) ] } {
+                vmdcon -info "Probable atom_style: $lammps(style)"
+            }
+        }
+    }
+    if {[string match "*LABELMAP*" $line]} {
+        set lammps(typelabels) 1
+        vmdcon -info "detected LABELMAP style file. will try to parse additional data."
         if {[string match "*atom_style*" $line]} {
             if { [regexp {^.*atom_style\s+(atomic|bond|angle|molecular|charge|full|sphere)\s*.*}  $line x lammps(style) ] } {
                 vmdcon -info "Probable atom_style: $lammps(style)"
@@ -290,7 +334,7 @@ proc ::TopoTools::readlammpsheader {fp} {
                         x lammps(zlo) lammps(zhi)] } {
         } elseif { [regexp {^\s*([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+([-[:digit:].Ee+]+)\s+xy\s+xz\s+yz} $line x lammps(xy) lammps(xz) lammps(yz)] } {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
-        } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs)} $line ]} {
+        } elseif {[regexp {^\s*(Atoms|Velocities|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers|(Pair|Bond|Angle|Dihedral|Improper) Coeffs|(Atom|Bond|Angle|Dihedral|Improper) Type Labels)} $line ]} {
             seek $fp $offs start
             break
         } else {
@@ -304,7 +348,8 @@ proc ::TopoTools::readlammpsheader {fp} {
 }
 
 # parse atom section
-proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
+proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata typemap lineno} {
+    upvar $typemap atomlabels
     global M_PI
     set numatoms [$sel num]
     set atomdata {}
@@ -346,11 +391,17 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
         set yi 0
         set zi 0
 
-        if { [regexp {^\s*(\#.*|)$} $line ] } {
+        if {[regexp {^\s*(\#.*|)$} $line]} {
             # skip empty, whitespace or comment lines.
         } else {
-            if {[regexp {^(.*)\#\s*(\S+)(\s+(\S+))?} $line all nline atomname dummy resname]} {
-                set line $nline
+            if {$cgcmm} {
+                if {[regexp {^(.*)\#\s*(\S+)(\s+(\S+))?} $line all nline atomname dummy resname]} {
+                    set line $nline
+                }
+            } else {
+                if {[regexp {^(.*)\s+\#\s+(\S+)} $line all nline resname]} {
+                    set line $nline
+                }
             }
             incr curatoms
             switch $style { # XXX: use regexp based parser to detect wrong formats.
@@ -429,7 +480,24 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
                     set atomname $atomtype
                 }
             } else {
-                set atomname $atomtype
+                if {[llength $atomlabels] > 0} {
+                    set idx [lsearch $atomlabels $atomtype]
+                    if {$idx < 0} {
+                        vmdcon -err "readlammpsatoms: type $atomtype not found in atom type labelmap. $lineno : $line "
+                        return -1
+                    }
+                    if {[expr {$idx % 2}]} {
+                        # search found symbolic type
+                        set atomname $atomtype
+                    } else {
+                        # search found numeric type, replace with symbolic type from map
+                        incr idx
+                        set atomtype [lindex $atomlabels $idx]
+                        set atomname $atomtype
+                    }
+                } else {
+                    set atomname $atomtype
+                }
             }
             if {$triclinic} {
                 lappend atomdata [list $atomid $resid $resname $atomname $atomtype $charge \
@@ -451,10 +519,11 @@ proc ::TopoTools::readlammpsatoms {fp sel style cgcmm boxdata lineno} {
 }
 
 # parse masses section
-proc ::TopoTools::readlammpsmasses {fp mol numtypes cgcmm massmap lineno} {
+proc ::TopoTools::readlammpsmasses {fp mol numtypes cgcmm massmap typemap lineno} {
     vmdcon -info "parsing LAMMPS Masses section."
 
     upvar $massmap massdata
+    upvar $typemap atomlabels
     set massdata {}
     set curtypes 0
     while {[gets $fp line] >= 0} {
@@ -471,16 +540,29 @@ proc ::TopoTools::readlammpsmasses {fp mol numtypes cgcmm massmap lineno} {
             if {[regexp {^(.*)\#\s*(\S+).*} $line all nline typename]} {
                 set line $nline
             }
-            lassign $line typeid mass
-            if {$typeid > $numtypes} {
-                vmdcon -err "readlammpsmasses: only typeids 1-$numtypes are supported. $lineno : $line "
-                return -1
-            }
-            # if we have a CGCMM style data file, we have strings for types.
-            if {$cgcmm && ([string length $typename] > 0)} {
-                lappend massdata $typename $mass
+            if {[regexp {^\s*(\d+)\s+(.*)} $line all typeid mass]} {
+                if {($typeid < 1) || ($typeid > $numtypes)} {
+                    vmdcon -err "readlammpsmasses: only typeids 1-$numtypes are supported. $lineno : $line "
+                    return -1
+                }
+                # if we have a CGCMM style data file, we have strings for types.
+                if {$cgcmm && ([string length $typename] > 0)} {
+                    lappend massdata $typename $mass
+                } else {
+                    lappend massdata $typeid $mass
+                }
             } else {
-                lappend massdata $typeid $mass
+                if {[regexp {^\s*(\S+)\s+(\S+)\s*$} $line all typename mass]} {
+                    set idx [lsearch $atomlabels $typename]
+                    if {$idx < 0} {
+                        vmdcon -err "readlammpsmasses: type $typename not found in atom type labelmap. $lineno : $line "
+                        return -1
+                    }
+                    lappend massdata $typename $mass
+                } else {
+                    vmdcon -err "readlammpsmasses: incorect format. $lineno : $line "
+                return -1
+                }
             }
         }
         if {$curtypes >= $numtypes} break
@@ -527,7 +609,8 @@ proc ::TopoTools::readlammpsvelocities {fp sel lineno} {
 
 
 # parse bond section
-proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
+proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap typemap lineno} {
+    upvar $typemap bondlabels
     set curbonds 0
     set bonddata {}
 
@@ -549,8 +632,20 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
             set aidx [lsearch -sorted -integer $atomidmap $a]
             set bidx [lsearch -sorted -integer $atomidmap $b]
             if {($aidx < 0) || ($bidx < 0)} {
-                vmdcon -err "readlammpsdata: bond with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsbond: bond with non-existent atomid on line: $lineno"
                 return -1
+            }
+            if {[llength $bondlabels] > 0} {
+                set idx [lsearch $bondlabels $type]
+                if {$idx < 0} {
+                    vmdcon -err "readlammpsbonds: type $type not found in bond type labelmap. $lineno : $line "
+                    return -1
+                }
+                if {[expr {$idx % 2}] == 0} {
+                    # search found numeric type, replace with symbolic type from map
+                    incr idx
+                    set type [lindex $bondlabels $idx]
+                }
             }
             lappend bonddata [list $aidx $bidx $type]
         }
@@ -562,7 +657,8 @@ proc ::TopoTools::readlammpsbonds {fp sel numbonds atomidmap lineno} {
 }
 
 # parse angle section
-proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
+proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap typemap lineno} {
+    upvar $typemap anglelabels
     set curangles 0
     set angledata {}
 
@@ -586,8 +682,20 @@ proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
             set bidx [lsearch -sorted -integer $atomidmap $b]
             set cidx [lsearch -sorted -integer $atomidmap $c]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0)} {
-                vmdcon -err "readlammpsdata: angle with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsangles: angle with non-existent atomid on line: $lineno"
                 return -1
+            }
+            if {[llength $anglelabels] > 0} {
+                set idx [lsearch $anglelabels $type]
+                if {$idx < 0} {
+                    vmdcon -err "readlammpangles: type $type not found in angle type labelmap. $lineno : $line "
+                    return -1
+                }
+                if {[expr {$idx % 2}] == 0} {
+                    # search found numeric type, replace with symbolic type from map
+                    incr idx
+                    set type [lindex $anglelabels $idx]
+                }
             }
             lappend angledata [list $type $aidx $bidx $cidx]
         }
@@ -599,7 +707,8 @@ proc ::TopoTools::readlammpsangles {fp sel numangles atomidmap lineno} {
 }
 
 # parse dihedral section
-proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
+proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap typemap lineno} {
+    upvar $typemap dihedrallabels
     set curdihedrals 0
     set dihedraldata {}
 
@@ -625,8 +734,20 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
             set cidx [lsearch -sorted -integer $atomidmap $c]
             set didx [lsearch -sorted -integer $atomidmap $d]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
-                vmdcon -err "readlammpsdata: dihedral with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsdihedrals: dihedral with non-existent atomid on line: $lineno"
                 return -1
+            }
+            if {[llength $dihedrallabels] > 0} {
+                set idx [lsearch $dihedrallabels $type]
+                if {$idx < 0} {
+                    vmdcon -err "readlammpsdihedrals: type $type not found in dihedral type labelmap. $lineno : $line "
+                    return -1
+                }
+                if {[expr {$idx % 2}] == 0} {
+                    # search found numeric type, replace with symbolic type from map
+                    incr idx
+                    set type [lindex $dihedrallabels $idx]
+                }
             }
             lappend dihedraldata [list $type $aidx $bidx $cidx $didx]
         }
@@ -638,7 +759,8 @@ proc ::TopoTools::readlammpsdihedrals {fp sel numdihedrals atomidmap lineno} {
 }
 
 # parse improper section
-proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
+proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap typemap lineno} {
+    upvar $typemap improperlabels
     set curimpropers 0
     set improperdata {}
 
@@ -664,8 +786,20 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
             set cidx [lsearch -sorted -integer $atomidmap $c]
             set didx [lsearch -sorted -integer $atomidmap $d]
             if {($aidx < 0) || ($bidx < 0) || ($cidx < 0) || ($didx < 0)} {
-                vmdcon -err "readlammpsdata: improper with non-existent atomid on line: $lineno"
+                vmdcon -err "readlammpsimpropers: improper with non-existent atomid on line: $lineno"
                 return -1
+            }
+            if {[llength $improperlabels] > 0} {
+                set idx [lsearch $improperlabels $type]
+                if {$idx < 0} {
+                    vmdcon -err "readlammpsimpropers: type $type not found in improper type labelmap. $lineno : $line "
+                    return -1
+                }
+                if {[expr {$idx % 2}] == 0} {
+                    # search found numeric type, replace with symbolic type from map
+                    incr idx
+                    set type [lindex $improperlabels $idx]
+                }
             }
             lappend improperdata [list $type $aidx $bidx $cidx $didx]
         }
@@ -676,6 +810,39 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
     return $lineno
 }
 
+# parse type label section
+proc ::TopoTools::readlammpslabels {fp mol style numtypes typemap lineno} {
+    vmdcon -info "parsing LAMMPS ${style} Type Labels section."
+
+    upvar $typemap typedata
+    set typedata {}
+    set curtypes 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curtypes
+            if {[regexp {^(.*)\s+\#.*} $line all nline]} {
+                set line $nline
+            }
+            if {[regexp {^\s*(\d+)\s+(\S+)\s*$} $line all typeid label]} {
+                if {($typeid < 1) || ($typeid > $numtypes)} {
+                    vmdcon -err "readlammpslabels: only typeids 1-$numtypes are supported. $lineno : $line "
+                    return -1
+                }
+                lappend typedata $typeid $label
+            } else {
+                vmdcon -err "readlammpslabels: incorect format. $lineno : $line "
+                return -1
+            }
+        }
+        if {$curtypes >= $numtypes} break
+    }
+    return $lineno
+}
+
 
 # export internal structure data to a LAMMPS data file.
 # this requires that a corresponding set of information
@@ -683,10 +850,11 @@ proc ::TopoTools::readlammpsimpropers {fp sel numimpropers atomidmap lineno} {
 # Arguments:
 # mol = molecule id with matching coordinate data
 # filename = name of data file
+# typelabels = write data file with type labels instead of numeric types
 # style = atom style
 # sel = selection function for the subset to be written out.
 # flags = more flags. (currently not used)
-proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
+proc ::TopoTools::writelammpsdata {mol filename typelabels style sel {flags none}} {
     if {[catch {open $filename w} fp]} {
         vmdcon -err "writelammpsdata: problem opening data file: $fp\n"
         return -1
@@ -697,7 +865,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
         atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
         dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
         xlo 0 xhi 0 ylo 0 yhi 0 zlo 0 zhi 0 xy 0 xz 0 yz 0 triclinic 0
-        style unknown typemass 1
+        style unknown typemass 1 typelabels 0
     }
 
     # gather available system information
@@ -712,6 +880,7 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     set lammps(dihedraltypes) [dihedralinfo numdihedraltypes $sel]
     set lammps(impropertypes) [improperinfo numimpropertypes $sel]
     set lammps(style) $style
+    set lammps(typelabels) $typelabels
 
     # correct system information to allow only information valid
     # for the selected atom style
@@ -819,37 +988,41 @@ proc ::TopoTools::writelammpsdata {mol filename style sel {flags none}} {
     # write out supported data file sections
     writelammpsheader $fp [array get lammps]
 
+    if {$typelabels} {
+        writelammpslabelmaps $fp $sel [array get lammps]
+    }
+
     # write out hints about type to number mappings
     # for coefficient settings
-    writelammpscoeffhint $fp $sel atoms
+    writelammpscoeffhint $fp $sel $typelabels atoms
     if {$lammps(bonds) > 0} {
-        writelammpscoeffhint $fp $sel bonds
+        writelammpscoeffhint $fp $sel $typelabels bonds
     }
     if {$lammps(angles) > 0} {
-        writelammpscoeffhint $fp $sel angles
+        writelammpscoeffhint $fp $sel $typelabels angles
     }
     if {$lammps(dihedrals) > 0} {
-        writelammpscoeffhint $fp $sel dihedrals
+        writelammpscoeffhint $fp $sel $typelabels dihedrals
     }
     if {$lammps(impropers) > 0} {
-        writelammpscoeffhint $fp $sel impropers
+        writelammpscoeffhint $fp $sel $typelabels impropers
     }
     if {$lammps(typemass) > 0} {
-        writelammpsmasses $fp $sel
+        writelammpsmasses $fp $sel $typelabels
     }
-    writelammpsatoms $fp $sel $style
+    writelammpsatoms $fp $sel $style $typelabels
     set atomidmap  [$sel list]
     if {$lammps(bonds) > 0} {
-        writelammpsbonds $fp $sel $atomidmap
+        writelammpsbonds $fp $sel $atomidmap $typelabels
     }
     if {$lammps(angles) > 0} {
-        writelammpsangles $fp $sel $atomidmap
+        writelammpsangles $fp $sel $atomidmap $typelabels
     }
     if {$lammps(dihedrals) > 0} {
-        writelammpsdihedrals $fp $sel $atomidmap
+        writelammpsdihedrals $fp $sel $atomidmap $typelabels
     }
     if {$lammps(impropers) > 0} {
-        writelammpsimpropers $fp $sel $atomidmap
+        writelammpsimpropers $fp $sel $atomidmap $typelabels
     }
     close $fp
     return 0
@@ -861,8 +1034,11 @@ proc ::TopoTools::writelammpsheader {fp flags} {
     variable version
     array set lammps $flags
     # first header line is skipped.
-    puts $fp "LAMMPS data file. CGCMM style. atom_style $lammps(style) generated by VMD/TopoTools v$version on [clock format [clock seconds]]"
-
+    if {$lammps(typelabels)} {
+        puts $fp "LAMMPS data file. LABELMAP style. atom_style $lammps(style) generated by VMD/TopoTools v$version on [clock format [clock seconds]]"
+    } else {
+        puts $fp "LAMMPS data file. CGCMM style. atom_style $lammps(style) generated by VMD/TopoTools v$version on [clock format [clock seconds]]"
+    }
     foreach key {atoms bonds angles dihedrals impropers} {
         puts $fp [format " %d %s" $lammps($key) $key]
     }
@@ -883,9 +1059,65 @@ proc ::TopoTools::writelammpsheader {fp flags} {
     return
 }
 
+# write lammps type label maps to file
+proc ::TopoTools::writelammpslabelmaps {fp sel flags} {
+    variable version
+    array set lammps $flags
+
+    if {$lammps(atomtypes) > 0} {
+        set typemap [lsort -unique -ascii [$sel get type]]
+        set typeid 1
+
+        puts $fp " Atom Type Labels\n"
+        foreach type $typemap {
+            puts $fp [format " %d %s" $typeid $type]
+            incr typeid
+        }
+    }
+    puts $fp ""
+
+    if {$lammps(bonds) > 0} {
+        puts $fp " Bond Type Labels\n"
+        set bid 1
+        foreach bt [bondinfo bondtypenames $sel type] {
+            puts $fp " $bid  $bt"
+            incr bid
+        }
+        puts $fp ""
+    }
+    if {$lammps(angles) > 0} {
+        puts $fp " Angle Type Labels\n"
+        set aid 1
+        foreach at [angleinfo angletypenames $sel] {
+            puts $fp " $aid  $at"
+            incr aid
+        }
+        puts $fp ""
+    }
+    if {$lammps(dihedrals) > 0} {
+        puts $fp " Dihedral Type Labels\n"
+        set did 1
+        foreach dt [dihedralinfo dihedraltypenames $sel] {
+            puts $fp " $did  $dt"
+            incr did
+        }
+        puts $fp ""
+    }
+    if {$lammps(impropers) > 0} {
+        puts $fp " Improper Type Labels\n"
+        set iid 1
+        foreach it [improperinfo impropertypenames $sel] {
+            puts $fp " $iid  $it"
+            incr iid
+        }
+        puts $fp ""
+    }
+    return
+}
+
 # write masses section, but only if number of masses
 # matches the number of atom types and if no mass is < 0.01
-proc ::TopoTools::writelammpsmasses {fp sel} {
+proc ::TopoTools::writelammpsmasses {fp sel typelabels} {
 
     # first run the checks and build list of masses
     set typemap  [lsort -unique -ascii [$sel get type]]
@@ -896,9 +1128,9 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
         set tsel [atomselect $mol "( $selstr ) and (type '$type')"]
         set mass [lsort -unique -real [$tsel get mass]]
         $tsel delete
-        if {[llength $mass] != 1} return
+        if {[llength $mass] < 1} return
         if {$mass < 0.01} return
-        lappend masslist $mass
+        lappend masslist [lindex $mass 0]
     }
 
     # we passed the test, write out what we learned.
@@ -907,7 +1139,11 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
     puts $fp " Masses\n"
     set typeid 1
     foreach mass $masslist type $typemap {
-        puts $fp [format " %d %.6f \# %s" $typeid $mass $type]
+        if {$typelabels} {
+            puts $fp [format " %s %.6f" $type $mass]
+        } else {
+            puts $fp [format " %d %.6f \# %s" $typeid $mass $type]
+        }
         incr typeid
     }
     puts $fp ""
@@ -915,7 +1151,7 @@ proc ::TopoTools::writelammpsmasses {fp sel} {
 }
 
 # write atoms section
-proc ::TopoTools::writelammpsatoms {fp sel style} {
+proc ::TopoTools::writelammpsatoms {fp sel style typelabels} {
     global M_PI
 
     vmdcon -info "writing LAMMPS Atoms section in style '$style'."
@@ -933,20 +1169,35 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
         incr resid
         switch $style {
             atomic {
-                puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
-                              $atomid        $atomtype  $x $y $z $type]
+                if {$typelabels} {
+                    puts $fp [format "%d %s %.6f %.6f %.6f" \
+                                  $atomid        $type  $x $y $z]
+                } else {
+                    puts $fp [format "%d %d %.6f %.6f %.6f \# %s" \
+                                  $atomid        $atomtype  $x $y $z $type]
+                }
             }
 
             bond  -
             angle -
             molecular {
-                puts $fp [format "%d %d %d %.6f %.6f %.6f \# %s %s" \
-                              $atomid $resid $atomtype  $x $y $z $type $resname]
+                if {$typelabels} {
+                    puts $fp [format "%d %d %s %.6f %.6f %.6f \# %s" \
+                                  $atomid $resid $type  $x $y $z $resname]
+                } else {
+                    puts $fp [format "%d %d %s %.6f %.6f %.6f \# %s" \
+                                  $atomid $resid $atomtype  $x $y $z $resname]
+                }
             }
 
             charge    {
-                puts $fp [format "%d %d %.6f %.6f %.6f %.6f \# %s" \
-                              $atomid $atomtype $charge $x $y $z $type]
+                if {$typelabels} {
+                    puts $fp [format "%d %s %.6f %.6f %.6f %.6f" \
+                                  $atomid $type $charge $x $y $z]
+                } else {
+                    puts $fp [format "%d %d %.6f %.6f %.6f %.6f \# %s" \
+                                  $atomid $atomtype $charge $x $y $z $type]
+                }
             }
 
             sphere {
@@ -954,13 +1205,23 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
                 # convert them accordingly
                 set mass [expr {$mass/(4.0/3.0*$M_PI*$radius*$radius*$radius)}]
                 set radius [expr {2.0*$radius}]
-                puts $fp [format "%d %d %.6f %.6f %.6f %.6f %.6f \# %s" \
-                              $atomid $atomtype $radius $mass $x $y $z $type]
+                if {$typelabels} {
+                    puts $fp [format "%d %s %.6f %.6f %.6f %.6f %.6f" \
+                                  $atomid $type $radius $mass $x $y $z]
+                } else {
+                    puts $fp [format "%d %d %.6f %.6f %.6f %.6f %.6f \# %s" \
+                                  $atomid $atomtype $radius $mass $x $y $z $type]
+                }
             }
 
             full      {
-                puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
-                              $atomid $resid $atomtype $charge $x $y $z $type $resname]
+                if {$typelabels} {
+                    puts $fp [format "%d %d %s %.6f %.6f %.6f %.6f \# %s" \
+                                  $atomid $resid $type $charge $x $y $z $resname]
+                } else {
+                    puts $fp [format "%d %d %d %.6f %.6f %.6f %.6f \# %s %s" \
+                                  $atomid $resid $atomtype $charge $x $y $z $type $resname]
+                }
             }
 
             default   {
@@ -976,7 +1237,7 @@ proc ::TopoTools::writelammpsatoms {fp sel style} {
 }
 
 # write bond section
-proc ::TopoTools::writelammpsbonds {fp sel atomidmap} {
+proc ::TopoTools::writelammpsbonds {fp sel atomidmap typelabels} {
     set bonddata  [bondinfo getbondlist   $sel type]
     set bondtypes [bondinfo bondtypenames $sel type]
     vmdcon -info "writing LAMMPS Bonds section."
@@ -988,18 +1249,25 @@ proc ::TopoTools::writelammpsbonds {fp sel atomidmap} {
         lassign $bdat a b t
         set at1  [lsearch -integer -sorted $atomidmap $a]
         set at2  [lsearch -integer -sorted $atomidmap $b]
-        set type [lsearch -ascii $bondtypes $t]
+        # go from 0-based to 1-based indexing
+        incr at1; incr at2;
 
-        # go from 0-based to 1-based indexing and write out
-        incr at1; incr at2; incr type
-        puts $fp [format "%d %d %d %d" $bondid $type $at1 $at2]
+        if {$typelabels} {
+            puts $fp [format "%d %s %d %d" $bondid $t $at1 $at2]
+        } else {
+            set type [lsearch -ascii $bondtypes $t]
+
+            # go from 0-based to 1-based indexing and write out
+            incr type
+            puts $fp [format "%d %d %d %d" $bondid $type $at1 $at2]
+        }
     }
     puts $fp ""
     return
 }
 
 # write angle section
-proc ::TopoTools::writelammpsangles {fp sel atomidmap} {
+proc ::TopoTools::writelammpsangles {fp sel atomidmap typelabels} {
     set angledata  [angleinfo getanglelist   $sel]
     set angletypes [angleinfo angletypenames $sel]
     vmdcon -info "writing LAMMPS Angles section."
@@ -1012,18 +1280,25 @@ proc ::TopoTools::writelammpsangles {fp sel atomidmap} {
         set at1  [lsearch -integer -sorted $atomidmap $a]
         set at2  [lsearch -integer -sorted $atomidmap $b]
         set at3  [lsearch -integer -sorted $atomidmap $c]
-        set type [lsearch -ascii $angletypes $t]
+        # go from 0-based to 1-based indexing
+        incr at1; incr at2; incr at3
 
-        # go from 0-based to 1-based indexing and write out
-        incr at1; incr at2; incr at3; incr type
-        puts $fp [format "%d %d %d %d %d" $angleid $type $at1 $at2 $at3]
+        if {$typelabels} {
+            puts $fp [format "%d %s %d %d %d" $angleid $t $at1 $at2 $at3]
+        } else {
+            set type [lsearch -ascii $angletypes $t]
+
+            # go from 0-based to 1-based indexing and write out
+            incr type
+            puts $fp [format "%d %d %d %d %d" $angleid $type $at1 $at2 $at3]
+        }
     }
     puts $fp ""
     return
 }
 
 # write dihedral section
-proc ::TopoTools::writelammpsdihedrals {fp sel atomidmap} {
+proc ::TopoTools::writelammpsdihedrals {fp sel atomidmap typelabels} {
     set dihedraldata  [dihedralinfo getdihedrallist   $sel]
     set dihedraltypes [dihedralinfo dihedraltypenames $sel]
     vmdcon -info "writing LAMMPS Dihedrals section."
@@ -1037,18 +1312,25 @@ proc ::TopoTools::writelammpsdihedrals {fp sel atomidmap} {
         set at2  [lsearch -integer -sorted $atomidmap $b]
         set at3  [lsearch -integer -sorted $atomidmap $c]
         set at4  [lsearch -integer -sorted $atomidmap $d]
-        set type [lsearch -ascii $dihedraltypes $t]
+        # go from 0-based to 1-based indexing
+        incr at1; incr at2; incr at3; incr at4
 
-        # go from 0-based to 1-based indexing and write out
-        incr at1; incr at2; incr at3; incr at4; incr type
-        puts $fp [format "%d %d %d %d %d %d" $dihedralid $type $at1 $at2 $at3 $at4]
+        if {$typelabels} {
+            puts $fp [format "%d %s %d %d %d %d" $dihedralid $t $at1 $at2 $at3 $at4]
+        } else {
+            set type [lsearch -ascii $dihedraltypes $t]
+
+            # go from 0-based to 1-based indexing and write out
+            incr type
+            puts $fp [format "%d %d %d %d %d %d" $dihedralid $type $at1 $at2 $at3 $at4]
+        }
     }
     puts $fp ""
     return
 }
 
 # write improper section
-proc ::TopoTools::writelammpsimpropers {fp sel atomidmap} {
+proc ::TopoTools::writelammpsimpropers {fp sel atomidmap typelabels} {
     set improperdata  [improperinfo getimproperlist   $sel]
     set impropertypes [improperinfo impropertypenames $sel]
     vmdcon -info "writing LAMMPS Impropers section."
@@ -1062,11 +1344,18 @@ proc ::TopoTools::writelammpsimpropers {fp sel atomidmap} {
         set at2  [lsearch -integer -sorted $atomidmap $b]
         set at3  [lsearch -integer -sorted $atomidmap $c]
         set at4  [lsearch -integer -sorted $atomidmap $d]
-        set type [lsearch -ascii $impropertypes $t]
+        # go from 0-based to 1-based indexing
+        incr at1; incr at2; incr at3; incr at4
 
-        # go from 0-based to 1-based indexing and write out
-        incr at1; incr at2; incr at3; incr at4; incr type
-        puts $fp [format "%d %d %d %d %d %d" $improperid $type $at1 $at2 $at3 $at4]
+        if {$typelabels} {
+            puts $fp [format "%d %s %d %d %d %d" $improperid $t $at1 $at2 $at3 $at4]
+        } else {
+            set type [lsearch -ascii $impropertypes $t]
+
+            # go from 0-based to 1-based indexing and write out
+            incr type
+            puts $fp [format "%d %d %d %d %d %d" $improperid $type $at1 $at2 $at3 $at4]
+        }
     }
     puts $fp ""
     return
@@ -1094,14 +1383,18 @@ proc ::TopoTools::checklammpsstyle {style} {
 }
 
 # write hints about type coefficient mappings
-proc ::TopoTools::writelammpscoeffhint {fp sel type} {
+proc ::TopoTools::writelammpscoeffhint {fp sel typelabels type} {
     switch $type {
         atoms {
             puts $fp "\# Pair Coeffs\n\#"
             set aid 1
             set atlist [lsort -ascii -unique [$sel get {type}]]
             foreach at $atlist {
-                puts $fp "\# $aid  $at"
+                if {$typelabels} {
+                    puts $fp "\# $at"
+                } else {
+                    puts $fp "\# $aid  $at"
+                }
                 incr aid
             }
         }
@@ -1109,7 +1402,11 @@ proc ::TopoTools::writelammpscoeffhint {fp sel type} {
             puts $fp "\# Bond Coeffs\n\#"
             set bid 1
             foreach bt [bondinfo bondtypenames $sel type] {
-                puts $fp "\# $bid  $bt"
+                if {$typelabels} {
+                    puts $fp "\# $bt"
+                } else {
+                    puts $fp "\# $bid  $bt"
+                }
                 incr bid
             }
         }
@@ -1117,7 +1414,11 @@ proc ::TopoTools::writelammpscoeffhint {fp sel type} {
             puts $fp "\# Angle Coeffs\n\#"
             set aid 1
             foreach at [angleinfo angletypenames $sel] {
-                puts $fp "\# $aid  $at"
+                if {$typelabels} {
+                    puts $fp "\# $at"
+                } else {
+                    puts $fp "\# $aid  $at"
+                }
                 incr aid
             }
         }
@@ -1125,7 +1426,11 @@ proc ::TopoTools::writelammpscoeffhint {fp sel type} {
             puts $fp "\# Dihedral Coeffs\n\#"
             set did 1
             foreach dt [dihedralinfo dihedraltypenames $sel] {
-                puts $fp "\# $did  $dt"
+                if {$typelabels} {
+                    puts $fp "\# $dt"
+                } else {
+                    puts $fp "\# $did  $dt"
+                }
                 incr did
             }
         }
@@ -1133,7 +1438,11 @@ proc ::TopoTools::writelammpscoeffhint {fp sel type} {
             puts $fp "\# Improper Coeffs\n\#"
             set iid 1
             foreach it [improperinfo impropertypenames $sel] {
-                puts $fp "\# $iid  $it"
+                if {$typelabels} {
+                    puts $fp "\# $it"
+                } else {
+                    puts $fp "\# $iid  $it"
+                }
                 incr iid
             }
         }

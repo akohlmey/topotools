@@ -7,16 +7,16 @@
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
 #
-# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2022
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
-# $Id: topotools.tcl,v 1.34 2020/07/01 05:19:33 johns Exp $
+# $Id: topotools.tcl,v 1.36 2023/04/21 05:41:03 johns Exp $
 
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.8
+    variable version 1.9
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -175,10 +175,12 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      this subcommand creates a new molecule and returns the molecule id or -1 on failure."
     vmdcon -info "      the -sel parameter is currently ignored."
     vmdcon -info ""
-    vmdcon -info "  writelammpsdata <filename> \[<atomstyle>\]"
+    vmdcon -info "  writelammpsdata <filename> \[typelabels\] \[<atomstyle>\]"
     vmdcon -info "      write atom properties, bond, angle, dihedral and other related data"
-    vmdcon -info "      to a LAMMPS data file. 'atomstyle' is the value given to the 'atom_style'"
-    vmdcon -info "      parameter. Default value is 'full'."
+    vmdcon -info "      to a LAMMPS data file.  If the \"typelabels\" keyword is present, use symbolic"
+    vmdcon -info "      types and write '* Type Labels' sections, otherwise traditional numeric types"
+    vmdcon -info "      will be used.  The final option 'atomstyle' determines the format of the 'Atoms'"
+    vmdcon -info "      section is the value given to the 'atom_style' LAMMPS keyword. Default value is 'full'."
     vmdcon -info "      Only data that is present is written. "
     vmdcon -info ""
     vmdcon -info "  readvarxyz <filename> \[first|last|step <frame>\]"
@@ -196,11 +198,16 @@ proc ::TopoTools::usage {} {
     vmdcon -info "      The optional selection string in the <selstring> argument indicates"
     vmdcon -info "      how to select the atoms. Its default is 'user > 0'."
     vmdcon -info ""
-    vmdcon -info "  writegmxtop <filename>"
-    vmdcon -info "      write a fake gromacs topology format file that can be used in combination"
+    vmdcon -info "  writegmxtop <filename> \[<CHARMM parameter file> \[<CHARMM parameter file>\]...\]"
+    vmdcon -info "      write a Gromacs topology format file."
+    vmdcon -info "      Without a CHARMM parameter file, the resulting file uses bogus force field"
+    vmdcon -info "      parameters to be just sufficient so the generated file can be used in combination"
     vmdcon -info "      with a .gro/.pdb coordinate file for generating .tpr files needed to use"
-    vmdcon -info "      Some of the more advanced gromacs analysis tools for simulation data that"
-    vmdcon -info "      was not generated with gromacs.\n"
+    vmdcon -info "      some of the more advanced gromacs analysis tools for simulation data that"
+    vmdcon -info "      was not generated with Gromacs."
+    vmdcon -info "      When using one or more CHARMM parameter files as arguments, the generated file"
+    vmdcon -info "      will be sufficient to run simulations with Gromacs. For that to work, the topology"
+    vmdcon -info "      must be read from an X-plor style PSF file with symbolic (not numeric) atom types.\n"
     citation_reminder
     return
 }
@@ -699,16 +706,24 @@ proc ::TopoTools::topo { args } {
                 usage
                 return
             }
+            set typelabels 0
             set fname [lindex $newargs 0]
             if {[llength $newargs] > 1} {
-                set style [lindex $newargs 1]
+                if {[lindex $newargs 1] == "typelabels"} {
+                    set typelabels 1
+                    if {[llength $newargs] > 2} {
+                        set style [lindex $newargs 2]
+                    }
+                } else {
+                    set style [lindex $newargs 1]
+                }
             }
             if {[checklammpsstyle $style]} {
                 vmdcon -err "Atom style '$style' not supported."
                 usage
                 return
             }
-            set retval [writelammpsdata $molid $fname $style $sel]
+            set retval [writelammpsdata $molid $fname $typelabels $style $sel]
         }
 
         writelammpsmol { ;# NOTE: readlammpsdata is handled above to bypass check for sel/molid.
@@ -761,7 +776,7 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2019). TopoTools: Release $version"
+        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2022). TopoTools: Release $version"
         vmdcon -info "https://doi.org/10.5281/zenodo.598373"
         vmdcon -info "======================\n"
         set topociteme 0
