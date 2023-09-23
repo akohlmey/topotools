@@ -19,19 +19,36 @@
 #
 # Arguments:
 # filename = name of data file
-# flags = more flags. (currently not used)
-proc ::TopoTools::readvarxyz {filename {flags none}} {
+# flags = more flags
+proc ::TopoTools::readvarxyz {filename {flags {}}} {
     if {[catch {open $filename r} fp]} {
         vmdcon -err "readvarxyz: problem opening xyz file: $fp\n"
         return -1
     }
 
     # initialize local variables
-    set nframes    0 ; # total number of frames
+    set nframes    0 ; # number of frames read in
+    set tframes    0 ; # total number of frames in file
+    set step       1 ; # default step size when reading trajectory
+    set first      1 ; # default first frame to read in 
+    set last      -1 ; # default last frame to read in
     set typemap   {} ; # atom type map
     set typecount {} ; # atom type count for one frame
     set maxcount  {} ; # max. atom type count for all frames
     array set traj {} ; # temporary trajectory storage
+    
+    # parse optional flags
+    foreach {key value} $flags {
+        switch -- $key {
+            step   {set step   $value}
+            first  {set first  $value}
+            last   {set last   $value}
+            default {
+                vmdcon -err "writevarxyz: unknown flag: $key"
+                return -1
+            }
+        }
+    }
 
     # to be able to determine the number of dummy atoms we first
     # have to parse and store away the whole trajectory and while
@@ -51,6 +68,18 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
             break
         }
 
+        incr tframes
+        if {$tframes == $last+1} break
+        if {fmod($tframes-$first+1,$step) != 0 || $tframes < $first} {
+            for {set i 0} {$i < $numlines} {incr i} {
+                if {[catch {gets $fp line} msg]} {
+                    vmdcon -err "readvarxyz: error reading frame $nframes of xyz file: $msg. "
+                    break
+                }
+            }
+            continue
+        }
+        
         # collect data for this frame.
         set frame {}
         for {set i 0} {$i < $numlines} {incr i} {
@@ -171,7 +200,7 @@ proc ::TopoTools::readvarxyz {filename {flags none}} {
 
 # Arguments:
 # filename = name of data file
-# flags = more flags. (currently not used)
+# flags = more flags
 proc ::TopoTools::writevarxyz {filename mol sel {flags {}}} {
     if {[catch {open $filename w} fp]} {
         vmdcon -err "writevarxyz: problem opening xyz file: $fp\n"
