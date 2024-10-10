@@ -732,8 +732,14 @@ proc ::TopoTools::topo { args } {
                 usage
                 return
             }
+            set typelabels 0
             set fname [lindex $newargs 0]
-            set retval [writelammpsmol $molid $fname $sel]
+            if {[llength $newargs] > 1} {
+                if {[lindex $newargs 1] == "typelabels"} {
+                    set typelabels 1
+                }
+            }
+            set retval [writelammpsmol $molid $fname $typelabels $sel]
         }
 
         writevarxyz { ;# NOTE: readvarxyz is handled above to bypass check for sel/molid.

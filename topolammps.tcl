@@ -1802,15 +1802,15 @@ proc ::TopoTools::readlammpsmolmasses {fp sel lineno} {
 # filename = name of data file
 # sel = selection function for the subset to be written out.
 # flags = more flags. (currently not used)
-proc ::TopoTools::writelammpsmol {mol filename sel {flags none}} {
+proc ::TopoTools::writelammpsmol {mol filename typelabels sel {flags none}} {
     if {[catch {open $filename w} fp]} {
-        vmdcon -err "writelammpsdata: problem opening data file: $fp\n"
+        vmdcon -err "writelammpsmol: problem opening molecule file: $fp\n"
         return -1
     }
 
     # initialize system default settings
     array set lammps {
-        atoms 0 bonds 0 angles 0 dihedrals 0 impropers 0
+        atoms 0 bonds 0 angles 0 dihedrals 0 impropers 0 typelabels 0
     }
 
     # gather available system information
@@ -1824,6 +1824,7 @@ proc ::TopoTools::writelammpsmol {mol filename sel {flags none}} {
     set lammps(angletypes)    [angleinfo    numangletypes    $sel]
     set lammps(dihedraltypes) [dihedralinfo numdihedraltypes $sel]
     set lammps(impropertypes) [improperinfo numimpropertypes $sel]
+    set lammps(typelabels) $typelabels
 
     # write out supported data file sections
     writelammpsmolheader $fp [array get lammps]
@@ -1837,16 +1838,16 @@ proc ::TopoTools::writelammpsmol {mol filename sel {flags none}} {
     writelammpsmolcharges $fp $sel
 
     if {$lammps(bonds) > 0} {
-        writelammpsbonds $fp $sel $atomidmap
+        writelammpsbonds $fp $sel $atomidmap $typelabels
     }
     if {$lammps(angles) > 0} {
-        writelammpsangles $fp $sel $atomidmap
+        writelammpsangles $fp $sel $atomidmap $typelabels
     }
     if {$lammps(dihedrals) > 0} {
-        writelammpsdihedrals $fp $sel $atomidmap
+        writelammpsdihedrals $fp $sel $atomidmap $typelabels
     }
     if {$lammps(impropers) > 0} {
-        writelammpsimpropers $fp $sel $atomidmap
+        writelammpsimpropers $fp $sel $atomidmap $typelabels
     }
     close $fp
     return 0
@@ -1880,7 +1881,7 @@ proc ::TopoTools::writelammpsmoltypes {fp sel} {
         incr atomid
         incr atomtype
         # why $atomtype not correct? --jrg
-        puts $fp [format "%d %d" $atomid $type]
+        puts $fp [format "%d %s" $atomid $type]
     }
     puts $fp ""
     return
