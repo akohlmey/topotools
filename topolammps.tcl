@@ -1484,6 +1484,11 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
     set boxdim {}
     set atomidmap {}
     set atommasses {}
+    set atomlabels {}
+    set bondlabels {}
+    set anglelabels {}
+    set dihedrallabels {}
+    set improperlabels {}
 
     # now loop through the file until we find a known section header.
     # then call a subroutine that parses this section. those subroutines
@@ -1515,6 +1520,12 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
                 vmdcon -err "readlammpsdata: error reading Charges section."
                 return -1
             }
+        } elseif {[regexp {^\s*Molecules} $line ]} {
+            set lineno [readlammpsmolmolecules $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Molecules section."
+                return -1
+            }
         } elseif {[regexp {^\s*Masses} $line ]} {
             set lineno [readlammpsmolmasses $fp $sel $lineno]
             if {$lineno < 0} {
@@ -1526,7 +1537,7 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Bonds in data file"
                 return -1
             }
-            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap $lineno]
+            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap bondlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Bonds section."
                 return -1
@@ -1536,7 +1547,7 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Angles in data file"
                 return -1
             }
-            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap $lineno]
+            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap anglelabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Angles section."
                 return -1
@@ -1546,7 +1557,7 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Dihedrals in data file"
                 return -1
             }
-            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap $lineno]
+            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap dihedrallabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Dihedrals section."
                 return -1
@@ -1556,7 +1567,7 @@ proc ::TopoTools::readlammpsmol {filename {flags none}} {
                 vmdcon -err "readlammpsdata: Atoms section must come before Impropers in data file"
                 return -1
             }
-            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap $lineno]
+            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap improperlabels $lineno]
             if {$lineno < 0} {
                 vmdcon -err "readlammpsdata: error reading Impropers section."
                 return -1
@@ -1625,7 +1636,7 @@ proc ::TopoTools::readlammpsmolheader {fp} {
         } elseif { [regexp {^\s*(\d+)\s+dihedrals} $line x lammps(dihedrals)] } {
         } elseif { [regexp {^\s*(\d+)\s+impropers} $line x lammps(impropers)] } {
         } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
-        } elseif {[regexp {^\s*(Types|Coords|Charges|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers)} $line ]} {
+        } elseif {[regexp {^\s*(Types|Coords|Charges|Molecules|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers)} $line ]} {
             seek $fp $offs start
             break
         } else {
@@ -1731,6 +1742,34 @@ proc ::TopoTools::readlammpsmolcharges {fp sel lineno} {
     return $lineno
 }
 
+# parse mol Molecules section. put LAMMPS molecule ID into VMD resid
+proc ::TopoTools::readlammpsmolmolecules {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Molecules section."
+
+    set atomdata {}
+    set resid 0
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid resid
+            lappend atomdata [list $atomid $resid]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    $sel set {user resid} \
+        [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
 
 # parse mol masses section
 proc ::TopoTools::readlammpsmolmasses {fp sel lineno} {
