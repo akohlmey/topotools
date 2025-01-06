@@ -244,10 +244,19 @@ proc ::TopoTools::readlammpsdata {filename style {flags none}} {
     # since the Masses section can appear before the Atoms section
     # we have to set it here after the parsing.
     if {[llength atommasses] > 0} {
-        foreach {t m} $atommasses {
-            set msel [atomselect $mol "type '$t'"]
-            $msel set mass $m
-            $msel delete
+        # we have type labels, but masses are indexed by numeric type
+        if {([lindex $atommasses 0] == 1) && ([llength atomlabels] > 0)} {
+            foreach {t m} $atommasses {d l} $atomlabels {
+                set msel [atomselect $mol "type '$l'"]
+                $msel set mass $m
+                $msel delete
+            }
+        } else {
+            foreach {t m} $atommasses {
+                set msel [atomselect $mol "type '$t'"]
+                $msel set mass $m
+                $msel delete
+            }
         }
     }
     mol reanalyze $mol
