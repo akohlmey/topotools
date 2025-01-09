@@ -1463,3 +1463,465 @@ proc ::TopoTools::writelammpscoeffhint {fp sel typelabels type} {
     puts $fp ""
     return
 }
+
+
+# read lammps molecule file
+proc ::TopoTools::readlammpsmol {filename {flags none}} {
+    global M_PI
+    if {[catch {open $filename r} fp]} {
+        vmdcon -err "readlammpsmol: problem opening data file: $fp\n"
+        return -1
+    }
+
+    # parse lammps header section.
+    array set lammps [readlammpsmolheader $fp]
+    if {$lammps(atoms) < 1} {
+        vmdcon -err "readlammpsdata: failed to parse lammps data header. abort."
+        return -1
+    }
+
+    # create an empty molecule and timestep
+    set mol -1
+    if {[catch {mol new atoms $lammps(atoms)} mol]} {
+        vmdcon -err "readlammpsdata: problem creating empty molecule: $mol"
+        return -1
+    } else {
+        animate dup $mol
+    }
+    mol rename $mol [file tail $filename]
+    set sel [atomselect $mol all]
+    set boxdim {}
+    set atomidmap {}
+    set atommasses {}
+    set atomlabels {}
+    set bondlabels {}
+    set anglelabels {}
+    set dihedrallabels {}
+    set improperlabels {}
+
+    # now loop through the file until we find a known section header.
+    # then call a subroutine that parses this section. those subroutines
+    # all take the current line number as last argument and return the
+    # new value, so we can keep track of the current line and print more
+    # useful error messages or warnings.
+    set lineno $lammps(lineno)
+    while {[gets $fp line] >= 0} {
+        incr lineno
+        if {[regexp {^\s*Types} $line ]} {
+            set lineno [readlammpsmoltypes $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Types section."
+                return -1
+            }
+            set atomidmap {}
+            foreach id [$sel get user] {
+                lappend atomidmap [expr {int($id + 0.5)}]
+            }
+        } elseif {[regexp {^\s*Coords} $line ]} {
+            set lineno [readlammpsmolcoords $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Coords section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Charges} $line ]} {
+            set lineno [readlammpsmolcharges $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Charges section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Molecules} $line ]} {
+            set lineno [readlammpsmolmolecules $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Molecules section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Masses} $line ]} {
+            set lineno [readlammpsmolmasses $fp $sel $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Masses section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Bonds} $line ]} {
+            if {[llength $atomidmap] < 1} {
+                vmdcon -err "readlammpsdata: Atoms section must come before Bonds in data file"
+                return -1
+            }
+            set lineno [readlammpsbonds $fp $sel $lammps(bonds) $atomidmap bondlabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Bonds section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Angles} $line ]} {
+            if {[llength $atomidmap] < 1} {
+                vmdcon -err "readlammpsdata: Atoms section must come before Angles in data file"
+                return -1
+            }
+            set lineno [readlammpsangles $fp $sel $lammps(angles) $atomidmap anglelabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Angles section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Dihedrals} $line ]} {
+            if {[llength $atomidmap] < 1} {
+                vmdcon -err "readlammpsdata: Atoms section must come before Dihedrals in data file"
+                return -1
+            }
+            set lineno [readlammpsdihedrals $fp $sel $lammps(dihedrals) $atomidmap dihedrallabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Dihedrals section."
+                return -1
+            }
+        } elseif {[regexp {^\s*Impropers} $line ]} {
+            if {[llength $atomidmap] < 1} {
+                vmdcon -err "readlammpsdata: Atoms section must come before Impropers in data file"
+                return -1
+            }
+            set lineno [readlammpsimpropers $fp $sel $lammps(impropers) $atomidmap improperlabels $lineno]
+            if {$lineno < 0} {
+                vmdcon -err "readlammpsdata: error reading Impropers section."
+                return -1
+            }
+        } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines silently
+        } elseif {[regexp {^\s*Shake Flags|^\s*Shake Atoms|^\s*Diameters \
+                  |^\s*Special Bond Counts|^\s*Special Bond Counts|^\s*Shake Bond Types} $line ]} {
+            vmdcon -err "readlammpsmol: section $line not yet supported"
+            return -1
+        } else {
+            vmdcon -err "readlammpsdata: unkown header line: $lineno : $line "
+            vmdcon -err "readlammpsdata: cannot continue. "
+            return -1
+        }
+        set lammps(lineno) $lineno
+    }
+    close $fp
+
+    # apply masses. Atoms section sets a default of 1.0.
+    # since the Masses section can appear before the Atoms section
+    # we have to set it here after the parsing.
+    if {[llength atommasses] > 0} {
+        foreach {t m} $atommasses {
+            set msel [atomselect $mol "type '$t'"]
+            $msel set mass $m
+            $msel delete
+        }
+    }
+    mol reanalyze $mol
+    variable newaddsrep
+    if {$newaddsrep} {
+        adddefaultrep $mol
+    }
+    $sel delete
+    return $mol
+}
+
+
+# read lammps molecule header section from opened file
+# and return as an array.
+proc ::TopoTools::readlammpsmolheader {fp} {
+    array set lammps {
+        atoms 0 atomtypes 0 bonds 0 bondtypes 0 angles 0 angletypes 0
+        dihedrals 0 dihedraltypes 0 impropers 0 impropertypes 0 xtrabond 0
+        xlo -0.5 xhi 0.5 ylo -0.5 yhi 0.5 zlo -0.5 zhi 0.5 xy {} xz {} yz {}
+        lineno 0 cgcmm 0 triclinic 0 style unknown typemass 1
+    }
+    set x {}
+
+    vmdcon -info "parsing LAMMPS header."
+
+    # first header line is skipped by LAMMPS. so we put a flag to
+    # detect CMM style CG data files with additional information.
+    gets $fp line
+    set lineno 1
+    set offs [tell $fp]
+    set lammps(lineno) $lineno
+
+    #
+    while {[gets $fp line] >= 0} {
+        incr lineno
+        if { [      regexp {^\s*(\d+)\s+atoms}     $line x lammps(atoms) ] } {
+        } elseif { [regexp {^\s*(\d+)\s+bonds}     $line x lammps(bonds) ] } {
+        } elseif { [regexp {^\s*(\d+)\s+angles}    $line x lammps(angles)] } {
+        } elseif { [regexp {^\s*(\d+)\s+dihedrals} $line x lammps(dihedrals)] } {
+        } elseif { [regexp {^\s*(\d+)\s+impropers} $line x lammps(impropers)] } {
+        } elseif { [regexp {^\s*(\#.*|)$} $line ] } {
+        } elseif {[regexp {^\s*(Types|Coords|Charges|Molecules|Masses|Shapes|Dipoles|Bonds|Angles|Dihedrals|Impropers)} $line ]} {
+            seek $fp $offs start
+            break
+        } else {
+            vmdcon -warn "readlammpsheader: skipping unkown header line: $lineno : $line "
+        }
+        set offs [tell $fp]
+        set lammps(lineno) $lineno
+    }
+
+    return [array get lammps]
+}
+
+
+# parse mol coords section
+proc ::TopoTools::readlammpsmolcoords {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Coords section."
+
+    set atomdata {}
+    set x 0.0
+    set y 0.0
+    set z 0.0
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid x y z
+            lappend atomdata [list $atomid $x $y $z]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    $sel set {user x y z} \
+        [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
+
+
+# parse mol types section
+proc ::TopoTools::readlammpsmoltypes {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Types section."
+
+    set atomdata {}
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+        set atomtype 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid atomtype
+            lappend atomdata [list $atomid $atomtype]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    vmdcon -info "applying atoms data. sorted by atom id."
+    $sel set {user type} \
+        [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
+
+
+# parse mol charges section
+proc ::TopoTools::readlammpsmolcharges {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Charges section."
+
+    set atomdata {}
+    set charge 0
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid charge
+            lappend atomdata [list $atomid $charge]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    $sel set {user charge} \
+        [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
+
+# parse mol Molecules section. put LAMMPS molecule ID into VMD resid
+proc ::TopoTools::readlammpsmolmolecules {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Molecules section."
+
+    set atomdata {}
+    set resid 0
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid resid
+            lappend atomdata [list $atomid $resid]
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    $sel set {user resid} \
+        [lsort -integer -index 0 $atomdata]
+    return $lineno
+}
+
+# parse mol masses section
+proc ::TopoTools::readlammpsmolmasses {fp sel lineno} {
+    set numatoms [$sel num]
+
+    vmdcon -info "parsing LAMMPS Masses section."
+
+    set mass 0
+
+    set curatoms 0
+    while {[gets $fp line] >= 0} {
+        incr lineno
+
+        set atomid 0
+
+        if { [regexp {^\s*(\#.*|)$} $line ] } {
+            # skip empty lines.
+        } else {
+            incr curatoms
+            lassign $line atomid mass
+        }
+        if {$curatoms >= $numatoms} break
+    }
+    return $lineno
+}
+
+# export internal structure data to a LAMMPS molecule file.
+# Arguments:
+# mol = molecule id with matching coordinate data
+# filename = name of data file
+# sel = selection function for the subset to be written out.
+# flags = more flags. (currently not used)
+proc ::TopoTools::writelammpsmol {mol filename typelabels sel {flags none}} {
+    if {[catch {open $filename w} fp]} {
+        vmdcon -err "writelammpsmol: problem opening molecule file: $fp\n"
+        return -1
+    }
+
+    # initialize system default settings
+    array set lammps {
+        atoms 0 bonds 0 angles 0 dihedrals 0 impropers 0 typelabels 0
+    }
+
+    # gather available system information
+    set lammps(atoms)         [$sel num]
+    set lammps(bonds)         [bondinfo     numbonds     $sel]
+    set lammps(angles)        [angleinfo    numangles    $sel]
+    set lammps(dihedrals)     [dihedralinfo numdihedrals $sel]
+    set lammps(impropers)     [improperinfo numimpropers $sel]
+    set lammps(atomtypes)     [llength [lsort -ascii -unique [$sel get {type}]]]
+    set lammps(bondtypes)     [bondinfo     numbondtypes     $sel]
+    set lammps(angletypes)    [angleinfo    numangletypes    $sel]
+    set lammps(dihedraltypes) [dihedralinfo numdihedraltypes $sel]
+    set lammps(impropertypes) [improperinfo numimpropertypes $sel]
+    set lammps(typelabels) $typelabels
+
+    # write out supported data file sections
+    writelammpsmolheader $fp [array get lammps]
+
+    set atomidmap  [$sel list]
+
+    writelammpsmolcoords $fp $sel
+
+    writelammpsmoltypes $fp $sel
+
+    writelammpsmolcharges $fp $sel
+
+    if {$lammps(bonds) > 0} {
+        writelammpsbonds $fp $sel $atomidmap $typelabels
+    }
+    if {$lammps(angles) > 0} {
+        writelammpsangles $fp $sel $atomidmap $typelabels
+    }
+    if {$lammps(dihedrals) > 0} {
+        writelammpsdihedrals $fp $sel $atomidmap $typelabels
+    }
+    if {$lammps(impropers) > 0} {
+        writelammpsimpropers $fp $sel $atomidmap $typelabels
+    }
+    close $fp
+    return 0
+}
+
+# write lammps mol header section to open file
+proc ::TopoTools::writelammpsmolheader {fp flags} {
+    variable version
+    array set lammps $flags
+    # first header line is skipped.
+    puts $fp "LAMMPS molecule file generated by VMD/TopoTools v$version on [clock format [clock seconds]]"
+
+    foreach key {atoms bonds angles dihedrals impropers} {
+        puts $fp [format " %d %s" $lammps($key) $key]
+    }
+
+    puts $fp ""
+    return
+}
+
+# write mol types section
+proc ::TopoTools::writelammpsmoltypes {fp sel} {
+    global M_PI
+
+    puts $fp " Types\n"
+    set typemap [lsort -unique -ascii [$sel get type]]
+    set atomid 0
+    foreach adat [$sel get {type}] {
+        lassign $adat type
+        set atomtype [lsearch -sorted -ascii $typemap $type]
+        incr atomid
+        incr atomtype
+        # why $atomtype not correct? --jrg
+        puts $fp [format "%d %s" $atomid $type]
+    }
+    puts $fp ""
+    return
+}
+
+# write mol charges section
+proc ::TopoTools::writelammpsmolcharges {fp sel} {
+    global M_PI
+
+    puts $fp " Charges\n"
+    set atomid 0
+    foreach adat [$sel get {charge}] {
+        lassign $adat charge
+        incr atomid
+        puts $fp [format "%d %.6f" $atomid $charge]
+    }
+    puts $fp ""
+    return
+}
+
+# write mol coords section
+proc ::TopoTools::writelammpsmolcoords {fp sel} {
+    global M_PI
+
+    puts $fp " Coords\n"
+    set atomid 0
+    foreach adat [$sel get {x y z}] {
+        lassign $adat x y z
+        incr atomid
+        puts $fp [format "%d %.6f %.6f %.6f" $atomid $x $y $z]
+    }
+    puts $fp ""
+    return
+}
