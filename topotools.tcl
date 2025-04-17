@@ -7,7 +7,7 @@
 #                   we may need some optimized variants and/or special
 #                   implementation in VMD for that.
 #
-# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2022
+# Copyright (c) 2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2022,2023,2024,2025
 #               by Axel Kohlmeyer <akohlmey@gmail.com>
 # support for crossterms contributed by Josh Vermaas <joshua.vermaas@gmail.com>
 #
@@ -16,7 +16,7 @@
 namespace eval ::TopoTools:: {
     # for allowing compatibility checks in scripts
     # depending on this package. we'll have to expect
-    variable version 1.9
+    variable version 1.10
     # location of additional data files containing
     # force field parameters or topology data.
     variable datadir $env(TOPOTOOLSDIR)
@@ -751,7 +751,7 @@ proc ::TopoTools::citation_reminder {args} {
     if {$topociteme} {
         vmdcon -info "======================"
         vmdcon -info "Please cite TopoTools as:"
-        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2022). TopoTools: Release $version"
+        vmdcon -info "Axel Kohlmeyer & Josh Vermaas, (2025). TopoTools: Release $version"
         vmdcon -info "https://doi.org/10.5281/zenodo.598373"
         vmdcon -info "======================\n"
         set topociteme 0
