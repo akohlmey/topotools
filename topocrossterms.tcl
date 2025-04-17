@@ -152,7 +152,7 @@ proc ::TopoTools::addcrossterm {mol id1 id2 id3 id4 id5 id6 id7 id8} {
     }
 
     set crossterms [join [molinfo $mol get crossterms]]
-    lappend crossterms [list $type $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8]
+    lappend crossterms [list $id1 $id2 $id3 $id4 $id5 $id6 $id7 $id8]
     $sel delete
     molinfo $mol set crossterms [list $crossterms]
 }
