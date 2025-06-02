@@ -11,6 +11,13 @@ This package contains contributed features from:
 
 -------------------
 
+## New TopoTools Maintainers
+
+After over 16 years, I have lost interest in developing and maintaining
+TopoTools. Jake Gissinger and Josh Vermass have volunteered to continue
+developing it. The new home of TopoTools is
+ https://github.com/NanoCIPHER-Lab/topotools
+
 ## Overview
 
 TopoTools is a plugin for [VMD](http://www.ks.uiuc.edu/Research/vmd/)
